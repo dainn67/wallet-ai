@@ -1,0 +1,38 @@
+{
+  "phase_a": {
+    "enabled": true,
+    "auto_run_on_all_issues_closed": false,
+    "max_input_tokens": 80000,
+    "truncate_strategy": "priority_based",
+    "include_test_coverage": true,
+    "include_git_log": true,
+    "include_codebase_structure": true,
+    "custom_prompt_additions": null
+  },
+  "phase_b": {
+    "enabled": true,
+    "require_phase_a": true,
+    "max_iterations": 30,
+    "warn_at_iteration": 15,
+    "mid_loop_clear_at_iteration": 10,
+    "skip_performance_by_default": false,
+    "test_tiers": {
+      "smoke": { "required": true, "blocking": true },
+      "integration": { "required": true, "blocking": true },
+      "regression": { "required": true, "blocking": false },
+      "performance": { "required": false, "blocking": false }
+    },
+    "auto_write_tests_if_missing": true
+  },
+  "phase_c": {
+    "auto_close_epic_on_complete": false,
+    "create_git_tag_on_complete": true,
+    "archive_epic_context_on_complete": true,
+    "save_regression_baseline": true
+  },
+  "cost_control": {
+    "max_total_cost_per_verify": null,
+    "log_token_usage": true,
+    "warn_at_cost_usd": 100
+  }
+}

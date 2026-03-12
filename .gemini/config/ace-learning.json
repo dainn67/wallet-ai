@@ -1,0 +1,21 @@
+{
+  "skillbook": {
+    "enabled": true,
+    "max_entries": 50,
+    "inject_top": 5,
+    "inject_max_tokens": 500,
+    "min_match_score": 1
+  },
+  "reflection": {
+    "enabled": true,
+    "max_retries": 2,
+    "inject_max_tokens": 300
+  },
+  "complexity": {
+    "enabled": true,
+    "thresholds": {
+      "low": 3,
+      "high": 7
+    }
+  }
+}

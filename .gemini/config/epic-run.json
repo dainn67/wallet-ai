@@ -1,0 +1,19 @@
+{
+  "parallel": {
+    "max_parallel": 3,
+    "worktree_isolation": true,
+    "graceful_degradation": true
+  },
+  "execution": {
+    "auto_continue": true,
+    "model_override": null,
+    "skip_verification": false,
+    "error_handling": "ask",
+    "progress_format": "[{current}/{total}] {status} Task: {name} ({model}, {duration})"
+  },
+  "context_management": {
+    "sequential_subagent": true,
+    "max_result_length": 500,
+    "warn_after_tasks": 15
+  }
+}

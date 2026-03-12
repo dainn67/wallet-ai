@@ -1,0 +1,39 @@
+{
+  "mappings": {
+    "workflows": {
+      "source": "commands/pm",
+      "target": "antigravity/workflows",
+      "naming": "pm-{name}.md",
+      "transform": "workflow"
+    },
+    "context": {
+      "source": "commands/context",
+      "target": "antigravity/workflows",
+      "naming": "context-{name}.md",
+      "transform": "workflow"
+    },
+    "rules": {
+      "source": "rules",
+      "target": "antigravity/rules",
+      "naming": "ccpm-{name}.md",
+      "transform": "rule"
+    }
+  },
+  "frontmatter": {
+    "remove_fields": ["model", "allowed-tools"],
+    "add_fields": {
+      "name": "pm-{filename}",
+      "description": "{first_heading_or_summary}"
+    },
+    "tier_comment": true
+  },
+  "variable_map": {
+    "epic-*": "$EPIC_NAME",
+    "issue-*": "$ISSUE_NUMBER",
+    "prd-*": "$FEATURE_NAME",
+    "default": "$ARGUMENTS"
+  },
+  "skip_patterns": [
+    "antigravity-sync"
+  ]
+}

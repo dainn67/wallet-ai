@@ -1,0 +1,1 @@
+../../../test-superpowers-integration.sh
