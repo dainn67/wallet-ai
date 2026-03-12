@@ -117,6 +117,10 @@ fi
 if [ -z "$detected" ] && [ -f "pubspec.yaml" ]; then
   detected="flutter"
   test_cmd="flutter test --verbose"
+  # Check for FVM
+  if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
+    test_cmd="fvm flutter test --verbose"
+  fi
   test_dir="test"
   config_file="pubspec.yaml"
   test_count=$(find . -name "*_test.dart" 2>/dev/null | wc -l | tr -d ' ')
