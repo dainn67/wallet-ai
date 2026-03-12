@@ -1,13 +1,7 @@
----
-name: setup-provider
-status: done
-created: 2026-03-12T00:00:00Z
-progress: 100%
-priority: P0
-prd: .gemini/prds/setup-provider.md
-task_count: 3
-github: https://github.com/dainn67/wallet-ai/issues/1
----
+<!-- Source: GitHub Issue #1 | Collected: 2026-03-12T07:46:45Z | Epic: setup-provider -->
+
+# Epic: Epic: setup-provider
+
 
 # Epic: setup-provider
 
@@ -49,36 +43,6 @@ Modify `lib/main.dart` to:
 | NFR-1: Idiomatic | §Overview | T2, T3 | Lint check |
 | NFR-2: Minimal | §Overview | T3 | Code review |
 
-## Tasks Created
-| #   | Task                            | Phase | Parallel | Est. | Depends On | Status |
-| --- | ------------------------------- | ----- | -------- | ---- | ---------- | ------ |
-| 2 | Install Provider Dependency      | 1     | no       | 0.5d | —          | done   |
-| 3 | Create CounterProvider           | 2     | yes      | 1d   | 001        | done   |
-| 4 | Integrate MultiProvider & UI    | 3     | no       | 1.5d | 010        | done   |
-| 5 | Integration verification        | 3     | no       | 0.5d | all        | done   |
-
-### Summary
-- **Total tasks:** 4
-- **Parallel tasks:** 1 (Phase 2)
-- **Sequential tasks:** 3 (Phase 1 + 3)
-- **Estimated total effort:** 3.5d
-- **Critical path:** T001 → T010 → T020 → T090 (~3.5d)
-
-### Dependency Graph
-```
-  T001 ──→ T010 ──→ T020 ──→ T090
-```
-
-### PRD Coverage
-| PRD Requirement | Covered By | Status    |
-| --------------- | ---------- | --------- |
-| FR-1: Installation | T001       | ✅ Covered |
-| FR-2: Directory    | T010       | ✅ Covered |
-| FR-3: MultiProvider| T020       | ✅ Covered |
-| FR-4: Example      | T010, T020 | ✅ Covered |
-| NFR-1: Idiomatic   | T090       | ✅ Covered |
-| NFR-2: Minimal     | T090       | ✅ Covered |
-
 ## Risks & Mitigations
 | Risk | Severity | Likelihood | Impact | Mitigation |
 | ---- | -------- | ---------- | ------ | ---------- |
@@ -96,3 +60,4 @@ Modify `lib/main.dart` to:
 Total: 3 days. Critical path: T1 -> T2 -> T3.
 - Phase 1: 1.5d
 - Phase 2: 1.5d
+
