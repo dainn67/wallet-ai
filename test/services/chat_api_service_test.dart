@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wallet_ai/config/app_config.dart';
-import 'package:wallet_ai/services/api_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:wallet_ai/config/app_config.dart';
+import 'package:wallet_ai/services/chat_api_service.dart';
 
 class MockAppConfig extends Mock implements AppConfig {}
 
@@ -10,15 +10,16 @@ void main() {
 
   setUp(() {
     mockAppConfig = MockAppConfig();
-    when(() => mockAppConfig.baseUrl).thenReturn('https://api.example.com');
+    when(() => mockAppConfig.baseUrl).thenReturn('https://api.test.com');
+    when(() => mockAppConfig.mainChatApiKey).thenReturn('test_key');
     // Ensure the singleton is configured with the mock
-    ApiService(config: mockAppConfig);
+    ChatApiService(config: mockAppConfig);
   });
 
-  group('ApiService', () {
+  group('ChatApiService', () {
     test('singleton returns the same instance', () {
-      final instance1 = ApiService();
-      final instance2 = ApiService();
+      final instance1 = ChatApiService();
+      final instance2 = ChatApiService();
       expect(instance1, same(instance2));
     });
   });

@@ -1,1 +1,13 @@
-{"active_epic": null}
+{
+  "active_epic": {
+    "epic_name": "chatbot-feature",
+    "phase": "B",
+    "verify_mode": "STRICT",
+    "max_iterations": 30,
+    "current_iteration": 0,
+    "mid_clear_at": 10,
+    "phase_a_report": ".gemini/context/verify/epic-reports/chatbot-feature-20260314-071500.md",
+    "started_at": "2026-03-14T07:10:41Z",
+    "iterations": []
+  }
+}

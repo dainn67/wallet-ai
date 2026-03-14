@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 enum AppEnvironment { dev, prod }
 
 class AppConfig {
@@ -23,7 +25,7 @@ class AppConfig {
   String get baseUrl {
     switch (environment) {
       case AppEnvironment.dev:
-        return 'https://api.dev.wallet-ai.com';
+        return 'http://localhost:8000';
       case AppEnvironment.prod:
         return 'https://api.wallet-ai.com';
     }
@@ -31,4 +33,10 @@ class AppConfig {
 
   Duration get connectTimeout => const Duration(seconds: 10);
   Duration get receiveTimeout => const Duration(seconds: 10);
+
+  // API Tokens and Secrets
+  String get mainChatApiKey => dotenv.env['MAIN_CHAT_API_KEY'] ?? '';
+  String get otherSecretKey => dotenv.env['OTHER_SECRET_KEY'] ?? '';
+
+  String getEnv(String key, {String defaultValue = ''}) => dotenv.env[key] ?? defaultValue;
 }

@@ -3,20 +3,22 @@
 This document provides a map of the codebase and service responsibilities.
 
 File Structure:
-- lib/config/app_config.dart: Environment and app-wide settings.
-- lib/services/api_service.dart: Centralized http client and request logic.
-- lib/services/api_exception.dart: Standardized error model for network failures.
-- lib/services/storage_service.dart: Synchronous persistent storage using SharedPreferences.
-- lib/providers/counter_provider.dart: Example state management implementation.
-- lib/main.dart: App entry, MultiProvider configuration, and root widget.
-- test/services/: Unit tests for API and error handling.
+- .env: Local secrets (ignored by git).
+- .env.example: Template for environment variables.
+- lib/config/app_config.dart: Environment settings and secrets access via flutter_dotenv.
+- lib/helpers/api_helper.dart: Core utility for making HTTP requests (GET, POST, Stream).
+- lib/services/api_service.dart: Singleton for general REST requests (wraps APIHelper).
+- lib/services/chat_api_service.dart: Singleton for specialized chat streaming logic (wraps ApiService).
+- lib/services/storage_service.dart: Singleton for synchronous persistent storage.
+- lib/providers/chat_provider.dart: Manages chat UI state, message history, and stream subscriptions.
+- lib/main.dart: App entry, style configuration, and startup initialization.
 - docs/: AI context and project documentation.
 
-Key Components and Responsibilities:
-- ApiService: Manages GET, POST, PUT, DELETE requests. Uses http client. Handles JSON encoding/decoding and timeouts.
-- StorageService: Handles persistent data storage. Uses singleton pattern for synchronous access.
-- AppConfig: Returns environment-specific baseUrl (Dev/Prod) and Duration objects for timeouts.
-- MultiProvider: Injects AppConfig, ApiService, and StorageService so they are available via context.read<T>().
+Key Components:
+- ApiService: Standardized GET/POST/Stream requests using APIHelper.
+- ChatApiService: SSE (Server-Sent Events) streaming for LLM interactions.
+- StorageService: Sync access to SharedPreferences.
+- AppConfig: Centralized source of truth for URLs and API keys.
 
 Commands:
 - Install: fvm flutter pub get
