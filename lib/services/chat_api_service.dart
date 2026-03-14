@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:wallet_ai/config/app_config.dart';
+import 'package:wallet_ai/models/chat_stream_response.dart';
 import 'package:wallet_ai/services/api_exception.dart';
 import 'package:wallet_ai/services/api_service.dart';
 
@@ -14,12 +15,12 @@ class ChatApiService {
 
   ChatApiService._internal();
 
-  Stream<String> streamChat(String message) async* {
+  Stream<ChatStreamResponse> streamChat(String message, {String? conversationId}) async* {
     try {
       final inputs = {
         'user': '123',
         'query': message,
-        'inputs': {'language': 'English'},
+        'inputs': {'language': 'English', if (conversationId != null) 'conversation_id': conversationId},
       };
       final stream = await ApiService().postStream('/api/chat-flow/wallet-ai-chatbot', data: inputs, token: _config.mainChatApiKey);
 
@@ -27,12 +28,12 @@ class ChatApiService {
         throw ApiException(message: 'Failed to connect to chat stream.');
       }
 
-      yield* stream.where((data) => data != '[DONE]').map((data) {
+      yield* stream.map((data) {
         try {
           final decoded = jsonDecode(data);
-          return decoded['answer'] as String? ?? '';
+          return ChatStreamResponse.fromJson(decoded);
         } catch (_) {
-          return data;
+          return ChatStreamResponse(answer: data, event: 'error');
         }
       });
     } catch (e) {

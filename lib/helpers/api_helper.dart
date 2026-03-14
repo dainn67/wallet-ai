@@ -111,9 +111,6 @@ class APIHelper {
       }
       if (body != null) {
         request.write(jsonEncode(body));
-        print('url: $url');
-        print('token: $token');
-        print('body: ${jsonEncode(body)}');
       }
 
       await request

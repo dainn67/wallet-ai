@@ -1,3 +1,5 @@
+import 'package:wallet_ai/models/record.dart';
+
 enum ChatRole {
   user,
   assistant;
@@ -14,12 +16,14 @@ class ChatMessage {
   final ChatRole role;
   final String content;
   final DateTime timestamp;
+  final List<Record>? records;
 
   ChatMessage({
     required this.id,
     required this.role,
     required this.content,
     required this.timestamp,
+    this.records,
   });
 
   ChatMessage copyWith({
@@ -27,12 +31,14 @@ class ChatMessage {
     ChatRole? role,
     String? content,
     DateTime? timestamp,
+    List<Record>? records,
   }) {
     return ChatMessage(
       id: id ?? this.id,
       role: role ?? this.role,
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
+      records: records ?? this.records,
     );
   }
 
@@ -42,6 +48,7 @@ class ChatMessage {
       'role': role.name,
       'content': content,
       'timestamp': timestamp.toIso8601String(),
+      'records': records?.map((r) => r.toMap()).toList(),
     };
   }
 
@@ -51,6 +58,9 @@ class ChatMessage {
       role: ChatRole.values.byName(json['role'] as String),
       content: json['content'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
+      records: (json['records'] as List?)
+          ?.map((r) => Record.fromMap(r as Map<String, dynamic>))
+          .toList(),
     );
   }
 
