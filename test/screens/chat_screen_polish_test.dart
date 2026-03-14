@@ -15,7 +15,6 @@ void main() {
     mockChatProvider = MockChatProvider();
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
-    when(() => mockChatProvider.hasListeners).thenReturn(false);
   });
 
   Widget createChatScreen() {

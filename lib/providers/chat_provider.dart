@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:wallet_ai/models/chat_message.dart';
+import 'package:wallet_ai/models/chat_stream_response.dart';
 import 'package:wallet_ai/services/chat_api_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [ChatMessage(id: 'welcome', role: ChatRole.assistant, content: 'Hello! How can I help you today?', timestamp: DateTime.now())];
   bool _isStreaming = false;
   String? _error;
-  StreamSubscription<String>? _streamSubscription;
+  String? _conversationId;
+  StreamSubscription<ChatStreamResponse>? _streamSubscription;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
   String? get error => _error;
+  String? get conversationId => _conversationId;
 
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
@@ -23,32 +26,61 @@ class ChatProvider extends ChangeNotifier {
     _isStreaming = true;
     notifyListeners();
 
-    final assistantMessageId = (DateTime.now().millisecondsSinceEpoch + 1).toString();
-    var assistantMessage = ChatMessage(id: assistantMessageId, role: ChatRole.assistant, content: '', timestamp: DateTime.now());
+    final localAssistantId = (DateTime.now().millisecondsSinceEpoch + 1).toString();
+    var currentAssistantId = localAssistantId;
+    var assistantMessage = ChatMessage(id: localAssistantId, role: ChatRole.assistant, content: '', timestamp: DateTime.now());
     _messages.add(assistantMessage);
     notifyListeners();
+
+    String fullText = '';
+    bool displayTextCompleted = false;
 
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(content)
+          .streamChat(content, conversationId: _conversationId)
           .listen(
-            (chunk) {
-              final index = _messages.indexWhere((m) => m.id == assistantMessageId);
+            (response) {
+              if (response.conversationId != null) {
+                _conversationId = response.conversationId;
+              }
+
+              final index = _messages.indexWhere((m) => m.id == currentAssistantId);
               if (index != -1) {
-                assistantMessage = assistantMessage.copyWith(content: '${assistantMessage.content}$chunk');
+                String newId = assistantMessage.id;
+                if (response.messageId != null && response.messageId != currentAssistantId) {
+                  newId = response.messageId!;
+                  currentAssistantId = newId;
+                }
+
+                String displayText = assistantMessage.content;
+                final partialDelimiter = '--'; // Partial delimiter of --//--
+
+                if (!displayTextCompleted) {
+                  if (response.answer.contains(partialDelimiter)) {
+                    displayText = displayText + response.answer.split(partialDelimiter).first;
+                    displayTextCompleted = true;
+                  } else {
+                    displayText = displayText + response.answer;
+                  }
+                }
+
+                fullText += response.answer;
+
+                assistantMessage = assistantMessage.copyWith(id: newId, content: displayText);
                 _messages[index] = assistantMessage;
                 notifyListeners();
               }
             },
             onDone: () {
+              print('onDone: full: $fullText');
               _isStreaming = false;
               notifyListeners();
             },
             onError: (error) {
               _isStreaming = false;
               _error = error.toString();
-              final index = _messages.indexWhere((m) => m.id == assistantMessageId);
+              final index = _messages.indexWhere((m) => m.id == currentAssistantId);
               if (index != -1) {
                 _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error');
               }

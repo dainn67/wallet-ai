@@ -10,10 +10,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([
-    StorageService.init(),
-    dotenv.load(fileName: ".env"),
-  ]);
+  await Future.wait([StorageService.init(), dotenv.load(fileName: ".env")]);
   runApp(const MyApp());
 }
 
@@ -40,18 +37,12 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFF10B981), // Emerald
             surface: const Color(0xFFF8FAFC),
           ),
-          textTheme: GoogleFonts.poppinsTextTheme(
-            Theme.of(context).textTheme,
-          ),
+          textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.white,
             elevation: 0,
             centerTitle: true,
-            titleTextStyle: GoogleFonts.poppins(
-              color: const Color(0xFF1E293B),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            titleTextStyle: GoogleFonts.poppins(color: const Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600),
             iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
           ),
         ),
