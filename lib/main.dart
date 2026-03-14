@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/config/app_config.dart';
 import 'package:wallet_ai/providers/counter_provider.dart';
+import 'package:wallet_ai/providers/chat_provider.dart';
 import 'package:wallet_ai/services/api_service.dart';
 import 'package:wallet_ai/services/storage_service.dart';
 
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
           create: (context) => ApiService(config: context.read<AppConfig>()),
         ),
         ChangeNotifierProvider(create: (_) => CounterProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
