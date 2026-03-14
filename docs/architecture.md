@@ -8,6 +8,7 @@ Tech Stack:
 - Language: Dart.
 - State Management: Provider package for dependency injection and state updates.
 - Networking: http package (standard library approach, chosen for simplicity over Dio).
+- Storage: SharedPreferences (wrapped in a singleton for synchronous access).
 
 Core Patterns:
 - MultiProvider: Root-level provider setup in main.dart for global service access.

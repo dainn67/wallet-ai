@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/config/app_config.dart';
 import 'package:wallet_ai/providers/counter_provider.dart';
 import 'package:wallet_ai/services/api_service.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
   runApp(const MyApp());
 }
 
@@ -16,6 +19,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider(create: (_) => AppConfig()),
+        Provider(create: (_) => StorageService()),
         Provider(
           create: (context) => ApiService(
             config: context.read<AppConfig>(),
