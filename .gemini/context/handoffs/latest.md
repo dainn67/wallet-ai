@@ -1,22 +1,29 @@
-# Handoff: Task #8 - Implement dynamic environment switching in AppConfig
+# Handoff: Task #9 - Refine ApiService and ApiException
 
 ## Status
-- [x] Task #8 completed.
-- [x] `AppConfig` updated to use `const String.fromEnvironment('ENVIRONMENT')`.
-- [x] Added `AppEnvironment` enum for better type safety.
-- [x] Implemented default to `dev` environment.
-- [x] Created `test/config/app_config_test.dart` and verified switching logic.
+- [x] Task #9 completed.
+- [x] `ApiService` refined to use `AppConfig` for initialization.
+- [x] `ApiException` refined with granular error mapping for HTTP status codes (401, 404, 500).
+- [x] Core HTTP methods (GET, POST, PUT, DELETE) implemented with error handling.
+- [x] Added unit tests for `ApiException` and `ApiService`.
+- [x] Added `mocktail` to `dev_dependencies` for testing.
 
 ## Changes
-- `lib/config/app_config.dart`:
-    - Changed `environment` to `final` and initialized it using `_getEnvironment()` helper.
-    - `_getEnvironment()` uses `const String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev')`.
-- `test/config/app_config_test.dart`:
-    - New test file to verify `AppConfig` properties and environment switching.
+- `lib/services/api_exception.dart`:
+    - Updated `fromDioException` to handle specific status codes in `badResponse`.
+- `lib/services/api_service.dart`:
+    - Constructor now sets `BaseOptions` and adds `PrettyDioLogger`.
+    - Methods now wrap `DioException` and throw `ApiException`.
+- `test/services/api_exception_test.dart`:
+    - New unit tests for error mapping.
+- `test/services/api_service_test.dart`:
+    - New unit tests for initialization and method calls using `mocktail`.
+- `pubspec.yaml`:
+    - Added `mocktail: ^1.0.4` to `dev_dependencies`.
 
 ## Verification
-- Ran `fvm flutter test test/config/app_config_test.dart` (Passed).
-- Ran `fvm flutter test --dart-define=ENVIRONMENT=prod test/config/app_config_test.dart` (Passed).
+- Ran `fvm flutter test test/services/api_exception_test.dart test/services/api_service_test.dart` (All 11 tests passed).
 
 ## Next Steps
-- Continue with the next tasks in the `api-service-and-config` epic, potentially involving API client setup using this configuration.
+- Use `ApiService` for implementing specific feature repositories or services.
+- Task #10: Integrate ApiService with AuthProvider (if applicable).

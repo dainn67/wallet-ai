@@ -19,9 +19,16 @@ class ApiException implements Exception {
         return ApiException(message: 'Connection timed out.');
       case DioExceptionType.badResponse:
         final response = dioException.response;
+        final statusCode = response?.statusCode;
+        final message = switch (statusCode) {
+          401 => 'Unauthorized. Please login again.',
+          404 => 'Resource not found.',
+          500 => 'Internal server error.',
+          _ => response?.statusMessage ?? 'API returned an error.',
+        };
         return ApiException(
-          message: response?.statusMessage ?? 'API returned an error.',
-          statusCode: response?.statusCode,
+          message: message,
+          statusCode: statusCode,
           data: response?.data,
         );
       case DioExceptionType.cancel:
