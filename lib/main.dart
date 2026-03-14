@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wallet_ai/config/app_config.dart';
 import 'package:wallet_ai/providers/counter_provider.dart';
+import 'package:wallet_ai/services/api_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,6 +15,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider(create: (_) => AppConfig()),
+        Provider(
+          create: (context) => ApiService(
+            config: context.read<AppConfig>(),
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => CounterProvider()),
       ],
       child: MaterialApp(
