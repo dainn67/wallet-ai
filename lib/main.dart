@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/config/app_config.dart';
 import 'package:wallet_ai/providers/counter_provider.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
+import 'package:wallet_ai/screens/chat_screen.dart';
 import 'package:wallet_ai/services/api_service.dart';
 import 'package:wallet_ai/services/storage_service.dart';
 
@@ -28,44 +29,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Wallet AI',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        home: const MyHomePage(title: 'Flutter Demo Home Page'),
-      ),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '${context.watch<CounterProvider>().count}',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.read<CounterProvider>().increment(),
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        home: const ChatScreen(),
       ),
     );
   }
