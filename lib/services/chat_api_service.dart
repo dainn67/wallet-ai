@@ -16,7 +16,11 @@ class ChatApiService {
 
   Stream<String> streamChat(String message) async* {
     try {
-      final inputs = {'user': '123', 'query': message, 'inputs': {}};
+      final inputs = {
+        'user': '123',
+        'query': message,
+        'inputs': {'language': 'English'},
+      };
       final stream = await ApiService().postStream('/api/chat-flow/wallet-ai-chatbot', data: inputs, token: _config.mainChatApiKey);
 
       if (stream == null) {
