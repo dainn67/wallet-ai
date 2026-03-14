@@ -79,5 +79,6 @@
         ]
       }
     ]
-  }
+  },
+  "approvalMode": "yolo"
 }
