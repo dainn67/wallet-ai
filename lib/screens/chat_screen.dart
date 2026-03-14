@@ -98,12 +98,6 @@ class _ChatScreenState extends State<ChatScreen> {
               builder: (context, provider, child) {
                 final messages = provider.messages;
 
-                if (messages.isEmpty) {
-                  return const Center(
-                    child: Text('How can I help you today?'),
-                  );
-                }
-
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16.0),

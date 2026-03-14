@@ -6,14 +6,14 @@ Tech Stack:
 - SDK Manager: FVM (Flutter Version Management) pinned to version 3.35.7 in .fvmrc.
 - Framework: Flutter SDK version ^3.9.2.
 - Language: Dart.
-- State Management: Provider package for dependency injection and state updates.
-- Networking: http package (standard library approach, chosen for simplicity over Dio).
-- Storage: SharedPreferences (wrapped in a singleton for synchronous access).
+- State Management: Provider package for reactive UI state.
+- Networking: http package with APIHelper utility for standardized requests. services (ApiService, ChatApiService) wrap this helper and use a singleton pattern.
+- Storage: SharedPreferences wrapped in StorageService singleton for synchronous access.
+- Environment: flutter_dotenv for managing API tokens and secrets.
 
 Core Patterns:
-- MultiProvider: Root-level provider setup in main.dart for global service access.
-- Service Layer: All external logic is isolated in service classes (e.g., ApiService).
-- Configuration: Centralized AppConfig singleton for environment-specific variables like baseUrl and timeouts.
-- State Updates: ChangeNotifier used within providers to notify UI of data changes.
-- Testing: flutter_test with mocktail for dependency mocking.
-- Async Logic: Strict use of async/await for all network and heavy operations.
+- Service Layer: External logic isolated in singleton services (ApiService, ChatApiService, StorageService). Called directly where needed.
+- Configuration: Centralized AppConfig singleton manages environment-specific variables and secrets from .env.
+- Provider Pattern: Used for ChangeNotifier-based state (e.g., ChatProvider).
+- Initialization: Heavy services (Storage, DotEnv) are initialized in main() before runApp().
+- Testing: flutter_test with mocktail. services support DI in their factories for test mocking.

@@ -3,16 +3,15 @@
 This document defines the implementation guidelines for simplicity and maintainability.
 
 Guiding Principles:
-- Simplicity: Choose the most direct solution. Avoid over-engineering and complex abstractions.
-- Standard Tools: Prioritize Dart/Flutter standard libraries and lightweight packages over feature-heavy alternatives.
-- Minimal Boilerplate: Keep code concise and readable. If a solution is too verbose, find a simpler way.
-- AI-Friendly: Write clear, predictable code that is easy for AI to assist with and humans to maintain.
+- Simplicity: Choose the most direct solution. Avoid over-engineering.
+- Singleton Services: Services that don't hold conversational state should be singletons called directly (e.g. ApiService()).
+- Minimal Boilerplate: Use standardized utilities like APIHelper for repeated logic.
+- AI-Friendly: Clean, predictable code.
 
 Technical Rules:
-- Networking: Use ApiService for all calls. Do not instantiate http.Client in UI or providers.
-- State: Keep providers small and focused on one responsibility.
-- Errors: Always throw or return ApiException for network-related failures.
-- Async: Never block the UI thread. Use Future/Stream correctly.
-- Tests: Every service or provider must have a corresponding test file in the test/ directory.
-- Mocks: Use mocktail for mocks to keep test setups clean and readable.
-- Formatting: Run 'dart format .' before every commit.
+- Secrets: Never hardcode keys. Use .env and access via AppConfig.
+- Networking: All network calls must go through `ApiService`. Specialized services (e.g., `ChatApiService`) should utilize `ApiService` rather than calling `APIHelper` directly to maintain centralized URL and connection management.
+- State: Use Providers only for UI-reactive state. Services handle the raw logic.
+- Async: Initialize critical sync dependencies in main() (e.g. StorageService.init()).
+- Tests: Every service or provider must have a corresponding test.
+- Mocks: Factory constructors in services allow injecting mocks/clients for testing.

@@ -4,12 +4,15 @@ import 'package:wallet_ai/config/app_config.dart';
 import 'package:wallet_ai/providers/counter_provider.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
 import 'package:wallet_ai/screens/chat_screen.dart';
-import 'package:wallet_ai/services/api_service.dart';
 import 'package:wallet_ai/services/storage_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await StorageService.init();
+  await Future.wait([
+    StorageService.init(),
+    dotenv.load(fileName: ".env"),
+  ]);
   runApp(const MyApp());
 }
 
@@ -22,9 +25,6 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
-        Provider(
-          create: (context) => ApiService(config: context.read<AppConfig>()),
-        ),
         ChangeNotifierProvider(create: (_) => CounterProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],

@@ -3,20 +3,22 @@
 This document provides a map of the codebase and service responsibilities.
 
 File Structure:
-- lib/config/app_config.dart: Environment and app-wide settings.
-- lib/services/api_service.dart: Centralized http client and request logic.
-- lib/services/api_exception.dart: Standardized error model for network failures.
-- lib/services/storage_service.dart: Synchronous persistent storage using SharedPreferences.
-- lib/providers/counter_provider.dart: Example state management implementation.
-- lib/main.dart: App entry, MultiProvider configuration, and root widget.
-- test/services/: Unit tests for API and error handling.
+- .env: Local secrets (ignored by git).
+- .env.example: Template for environment variables.
+- lib/config/app_config.dart: Environment settings and secrets access.
+- lib/helpers/api_helper.dart: Core utility for making HTTP requests (GET, POST, Stream).
+- lib/services/api_service.dart: Singleton for general REST requests (wraps APIHelper).
+- lib/services/chat_api_service.dart: Singleton for streaming chat requests (wraps ApiService).
+- lib/services/storage_service.dart: Singleton for synchronous persistent storage.
+- lib/providers/chat_provider.dart: Manages chat UI state and stream subscriptions.
+- lib/main.dart: App entry and startup initialization.
 - docs/: AI context and project documentation.
 
-Key Components and Responsibilities:
-- ApiService: Manages GET, POST, PUT, DELETE requests. Uses http client. Handles JSON encoding/decoding and timeouts.
-- StorageService: Handles persistent data storage. Uses singleton pattern for synchronous access.
-- AppConfig: Returns environment-specific baseUrl (Dev/Prod) and Duration objects for timeouts.
-- MultiProvider: Injects AppConfig, ApiService, and StorageService so they are available via context.read<T>().
+Key Components:
+- ApiService: Standard GET/POST/etc using APIHelper.
+- ChatApiService: SSE (Server-Sent Events) streaming for LLM interactions using ApiService.
+- StorageService: Sync access to SharedPreferences.
+- AppConfig: Source of truth for URLs and API keys (via flutter_dotenv).
 
 Commands:
 - Install: fvm flutter pub get
