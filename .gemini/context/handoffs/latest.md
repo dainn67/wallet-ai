@@ -1,29 +1,17 @@
-# Handoff: Task #16 - ChatApiService Implementation
+# Handoff: Task #20 - Integration verification & cleanup
 
 ## Status
-- [x] Task #16 completed.
-- [x] `ChatApiService` implemented in `lib/services/chat_api_service.dart`.
-- [x] Singleton pattern with optional dependency injection for testing.
-- [x] Streamed SSE parsing with extraction of `content` field or raw data fallback.
-- [x] Unit tests for streaming, error handling, and malformed data in `test/services/chat_api_service_test.dart`.
+Completed. Final quality gate for the chatbot-feature epic.
 
 ## Changes
-- `lib/services/chat_api_service.dart`:
-    - New service for streaming chat responses.
-- `test/services/chat_api_service_test.dart`:
-    - New file with unit tests for `ChatApiService`.
+- Verified all epic tasks (15-19) are closed.
+- Successfully ran full test suite: `fvm flutter test` (38 tests passed).
+- Successfully built the project for web: `fvm flutter build web`.
+- Reviewed `chat_screen.dart` and `chat_provider.dart` for proper disposal and resource cleanup.
 
-## Decisions Made
-- Implemented `ChatApiService` as a Singleton using a factory constructor that allows overriding `client` and `config` for testing.
-- Used `StreamedResponse` and `LineSplitter` for efficient memory usage when handling long-lived SSE connections.
-- Added graceful degradation for SSE data: it tries to parse as JSON and extract `content`, but if it fails, it yields the raw data.
-- Handled the `[DONE]` signal common in many LLM streaming implementations.
+## Decisions
+- Confirmed that existing tests and build stability meet the acceptance criteria for epic completion.
+- Verified that `ChatApiService` and `ChatProvider` correctly handle SSE streams and resource management.
 
-## Verification
-- Ran `fvm flutter test test/services/chat_api_service_test.dart` (All 5 tests passed).
-- Ran `fvm flutter analyze` (No issues found).
-- Ran `dart format` (All files formatted).
-
-## Next Steps
-- Task #10: AI Chat Provider (will use `ChatApiService` to stream responses to the UI).
-- Task #2: Chat Repository (may use `ChatApiService` or be used alongside it for message persistence).
+## Warnings
+- The epic `chatbot-feature` is now complete. Future tasks should focus on expanding the AI capabilities or integrating more complex wallet interactions.
