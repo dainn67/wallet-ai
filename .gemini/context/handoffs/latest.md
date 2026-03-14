@@ -1,29 +1,29 @@
-# Handoff: Task #15 - Chat Message Model
+# Handoff: Task #16 - ChatApiService Implementation
 
 ## Status
-- [x] Task #15 completed.
-- [x] `ChatMessage` model implemented in `lib/models/chat_message.dart`.
-- [x] `ChatRole` enum implemented for message roles (user, assistant).
-- [x] Serialization (`fromJson`, `toJson`) and immutability (`copyWith`) methods added.
-- [x] Unit tests for the model implemented in `test/models/chat_message_test.dart`.
+- [x] Task #16 completed.
+- [x] `ChatApiService` implemented in `lib/services/chat_api_service.dart`.
+- [x] Singleton pattern with optional dependency injection for testing.
+- [x] Streamed SSE parsing with extraction of `content` field or raw data fallback.
+- [x] Unit tests for streaming, error handling, and malformed data in `test/services/chat_api_service_test.dart`.
 
 ## Changes
-- `lib/models/chat_message.dart`:
-    - New file containing `ChatMessage` class and `ChatRole` enum.
-- `test/models/chat_message_test.dart`:
-    - New file with unit tests for `ChatMessage` and `ChatRole`.
+- `lib/services/chat_api_service.dart`:
+    - New service for streaming chat responses.
+- `test/services/chat_api_service_test.dart`:
+    - New file with unit tests for `ChatApiService`.
 
 ## Decisions Made
-- Used `EnumByName.byName` (Dart 2.15+) for efficient enum parsing from JSON strings.
-- Implemented standard `toJson`/`fromJson` methods to follow project patterns.
-- Included `copyWith` for future support of streaming response updates.
-- Overrode `==` and `hashCode` for proper comparison in tests and potential UI list updates.
+- Implemented `ChatApiService` as a Singleton using a factory constructor that allows overriding `client` and `config` for testing.
+- Used `StreamedResponse` and `LineSplitter` for efficient memory usage when handling long-lived SSE connections.
+- Added graceful degradation for SSE data: it tries to parse as JSON and extract `content`, but if it fails, it yields the raw data.
+- Handled the `[DONE]` signal common in many LLM streaming implementations.
 
 ## Verification
-- Ran `fvm flutter test test/models/chat_message_test.dart` (All 9 tests passed).
+- Ran `fvm flutter test test/services/chat_api_service_test.dart` (All 5 tests passed).
 - Ran `fvm flutter analyze` (No issues found).
 - Ran `dart format` (All files formatted).
 
 ## Next Steps
-- Task #2: Chat Repository (uses `ChatMessage` model for message persistence/retrieval).
-- Task #10: AI Chat Provider (uses `ChatMessage` model for state management).
+- Task #10: AI Chat Provider (will use `ChatApiService` to stream responses to the UI).
+- Task #2: Chat Repository (may use `ChatApiService` or be used alongside it for message persistence).

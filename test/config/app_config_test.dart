@@ -8,7 +8,7 @@ void main() {
       // Since we are running tests normally, it should default to 'dev'
       // unless flutter test is called with --dart-define=ENVIRONMENT=prod
       const envStr = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
-      
+
       if (envStr == 'prod') {
         expect(config.environment, AppEnvironment.prod);
         expect(config.baseUrl, 'https://api.wallet-ai.com');

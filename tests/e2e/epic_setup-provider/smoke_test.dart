@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wallet_ai/main.dart';
 
 void main() {
-  testWidgets('Smoke Test: App launches and counter increments correctly', (WidgetTester tester) async {
+  testWidgets('Smoke Test: App launches and counter increments correctly', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
@@ -12,7 +14,7 @@ void main() {
 
     // Tap the '+' icon.
     await tester.tap(find.byIcon(Icons.add));
-    
+
     // Trigger a frame after the tap.
     await tester.pump();
 

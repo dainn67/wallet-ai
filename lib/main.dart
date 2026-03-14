@@ -21,9 +21,7 @@ class MyApp extends StatelessWidget {
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
         Provider(
-          create: (context) => ApiService(
-            config: context.read<AppConfig>(),
-          ),
+          create: (context) => ApiService(config: context.read<AppConfig>()),
         ),
         ChangeNotifierProvider(create: (_) => CounterProvider()),
       ],

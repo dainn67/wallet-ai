@@ -8,29 +8,37 @@ class ApiService {
   final AppConfig _config;
 
   ApiService({http.Client? client, AppConfig? config})
-      : _client = client ?? http.Client(),
-        _config = config ?? AppConfig();
+    : _client = client ?? http.Client(),
+      _config = config ?? AppConfig();
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
 
   Uri _getUri(String path, [Map<String, dynamic>? queryParameters]) {
     final baseUrl = _config.baseUrl.replaceFirst(RegExp(r'^https?://'), '');
     final isHttps = _config.baseUrl.startsWith('https');
-    
+
     // Extract host and base path if any
     final parts = baseUrl.split('/');
     final host = parts[0];
     final basePath = parts.skip(1).join('/');
-    
+
     final fullPath = basePath.isEmpty ? path : '/$basePath$path';
 
     if (isHttps) {
-      return Uri.https(host, fullPath, queryParameters?.map((k, v) => MapEntry(k, v.toString())));
+      return Uri.https(
+        host,
+        fullPath,
+        queryParameters?.map((k, v) => MapEntry(k, v.toString())),
+      );
     } else {
-      return Uri.http(host, fullPath, queryParameters?.map((k, v) => MapEntry(k, v.toString())));
+      return Uri.http(
+        host,
+        fullPath,
+        queryParameters?.map((k, v) => MapEntry(k, v.toString())),
+      );
     }
   }
 
@@ -60,12 +68,14 @@ class ApiService {
     );
   }
 
-  Future<http.Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<http.Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await _client.get(
-        _getUri(path, queryParameters),
-        headers: _headers,
-      ).timeout(_config.connectTimeout);
+      final response = await _client
+          .get(_getUri(path, queryParameters), headers: _headers)
+          .timeout(_config.connectTimeout);
       return _handleResponse(response);
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -73,13 +83,19 @@ class ApiService {
     }
   }
 
-  Future<http.Response> post(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async {
+  Future<http.Response> post(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await _client.post(
-        _getUri(path, queryParameters),
-        headers: _headers,
-        body: data != null ? jsonEncode(data) : null,
-      ).timeout(_config.connectTimeout);
+      final response = await _client
+          .post(
+            _getUri(path, queryParameters),
+            headers: _headers,
+            body: data != null ? jsonEncode(data) : null,
+          )
+          .timeout(_config.connectTimeout);
       return _handleResponse(response);
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -87,13 +103,19 @@ class ApiService {
     }
   }
 
-  Future<http.Response> put(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async {
+  Future<http.Response> put(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await _client.put(
-        _getUri(path, queryParameters),
-        headers: _headers,
-        body: data != null ? jsonEncode(data) : null,
-      ).timeout(_config.connectTimeout);
+      final response = await _client
+          .put(
+            _getUri(path, queryParameters),
+            headers: _headers,
+            body: data != null ? jsonEncode(data) : null,
+          )
+          .timeout(_config.connectTimeout);
       return _handleResponse(response);
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -101,13 +123,19 @@ class ApiService {
     }
   }
 
-  Future<http.Response> delete(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async {
+  Future<http.Response> delete(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await _client.delete(
-        _getUri(path, queryParameters),
-        headers: _headers,
-        body: data != null ? jsonEncode(data) : null,
-      ).timeout(_config.connectTimeout);
+      final response = await _client
+          .delete(
+            _getUri(path, queryParameters),
+            headers: _headers,
+            body: data != null ? jsonEncode(data) : null,
+          )
+          .timeout(_config.connectTimeout);
       return _handleResponse(response);
     } catch (e) {
       if (e is ApiException) rethrow;
