@@ -19,3 +19,8 @@ Core Patterns:
 - Provider Pattern: Used for ChangeNotifier-based state (e.g., `ChatProvider`).
 - Initialization: Heavy services (`StorageService`, `DatabaseService`, `DotEnv`) are initialized in `main()` before `runApp()`.
 - Testing: flutter_test with mocktail. Services support dependency injection in their factories for test mocking.
+
+Chat Data Flow:
+- Response Format: `display_text--//--source--//--amount--//--category--//--description--//--type`.
+- Delimiter Logic: The UI stops rendering text after the first `--//--`. The `ChatProvider` continues processing the stream to extract relational data for `Record` creation.
+- Session Management: `conversationId` is persisted in `ChatProvider` and sent in the `inputs` payload of subsequent requests to maintain context.

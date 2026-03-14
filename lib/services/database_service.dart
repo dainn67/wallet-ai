@@ -148,6 +148,22 @@ class DatabaseService {
     }
   }
 
+  Future<MoneySource?> getMoneySourceByName(String name) async {
+    try {
+      final List<Map<String, dynamic>> maps = await database.query(
+        'MoneySource',
+        where: 'LOWER(source_name) = ?',
+        whereArgs: [name.toLowerCase()],
+        limit: 1,
+      );
+      if (maps.isEmpty) return null;
+      return MoneySource.fromMap(maps.first);
+    } catch (e) {
+      print("Error fetching money source by name: $e");
+      return null;
+    }
+  }
+
   Future<int> updateMoneySource(MoneySource source) async {
     try {
       if (source.sourceId == null) throw Exception("Source ID cannot be null for update");
