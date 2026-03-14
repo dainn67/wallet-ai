@@ -6,14 +6,17 @@ import 'package:wallet_ai/services/chat_api_service.dart';
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [];
   bool _isStreaming = false;
+  String? _error;
   StreamSubscription<String>? _streamSubscription;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
+  String? get error => _error;
 
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
 
+    _error = null;
     final userMessage = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       role: ChatRole.user,
@@ -55,6 +58,7 @@ class ChatProvider extends ChangeNotifier {
         },
         onError: (error) {
           _isStreaming = false;
+          _error = error.toString();
           // You might want to update the message to indicate error
           final index = _messages.indexWhere((m) => m.id == assistantMessageId);
           if (index != -1) {

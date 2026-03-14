@@ -13,12 +13,32 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late ChatProvider _chatProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for changes in ChatProvider to handle auto-scroll during streaming
+    _chatProvider = context.read<ChatProvider>();
+    _chatProvider.addListener(_onChatProviderUpdate);
+  }
 
   @override
   void dispose() {
+    // Correctly remove the listener before disposing the controller
+    _chatProvider.removeListener(_onChatProviderUpdate);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onChatProviderUpdate() {
+    if (!mounted) return;
+    
+    final provider = context.read<ChatProvider>();
+    if (provider.isStreaming) {
+      _scrollToBottomIfNearBottom();
+    }
   }
 
   void _scrollToBottom() {
@@ -31,13 +51,36 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _handleSend() {
+  void _scrollToBottomIfNearBottom() {
+    if (_scrollController.hasClients) {
+      final position = _scrollController.position;
+      // If we are within 100 pixels of the bottom, auto-scroll
+      final isNearBottom = position.pixels >= position.maxScrollExtent - 100;
+      
+      if (isNearBottom) {
+        _scrollToBottom();
+      }
+    }
+  }
+
+  Future<void> _handleSend() async {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
-      context.read<ChatProvider>().sendMessage(text);
       _controller.clear();
-      // Scroll to bottom after message is added
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      try {
+        await context.read<ChatProvider>().sendMessage(text);
+        // Scroll to bottom after message is added (initial scroll)
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
     }
   }
 
