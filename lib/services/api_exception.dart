@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-
 class ApiException implements Exception {
   final String message;
   final int? statusCode;
@@ -10,36 +8,6 @@ class ApiException implements Exception {
     this.statusCode,
     this.data,
   });
-
-  factory ApiException.fromDioException(DioException dioException) {
-    switch (dioException.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return ApiException(message: 'Connection timed out.');
-      case DioExceptionType.badResponse:
-        final response = dioException.response;
-        final statusCode = response?.statusCode;
-        final message = switch (statusCode) {
-          401 => 'Unauthorized. Please login again.',
-          404 => 'Resource not found.',
-          500 => 'Internal server error.',
-          _ => response?.statusMessage ?? 'API returned an error.',
-        };
-        return ApiException(
-          message: message,
-          statusCode: statusCode,
-          data: response?.data,
-        );
-      case DioExceptionType.cancel:
-        return ApiException(message: 'Request was cancelled.');
-      case DioExceptionType.connectionError:
-        return ApiException(message: 'No internet connection.');
-      case DioExceptionType.unknown:
-      default:
-        return ApiException(message: 'An unexpected error occurred.');
-    }
-  }
 
   @override
   String toString() => 'ApiException: $message (Status: $statusCode)';
