@@ -1,22 +1,22 @@
-# Handoff: Task #4 - Integrate MultiProvider and Update UI
+# Handoff: Task #8 - Implement dynamic environment switching in AppConfig
 
 ## Status
-- [x] Task #4 completed.
-- [x] `CounterProvider` integrated into `lib/main.dart` using `MultiProvider`.
-- [x] `MyHomePage` refactored from `StatefulWidget` to `StatelessWidget`.
-- [x] UI updated to consume state from `CounterProvider`.
-- [x] Tests verified and passing.
+- [x] Task #8 completed.
+- [x] `AppConfig` updated to use `const String.fromEnvironment('ENVIRONMENT')`.
+- [x] Added `AppEnvironment` enum for better type safety.
+- [x] Implemented default to `dev` environment.
+- [x] Created `test/config/app_config_test.dart` and verified switching logic.
 
 ## Changes
-- `lib/main.dart`:
-    - Added `provider` and `CounterProvider` imports.
-    - Wrapped `MaterialApp` with `MultiProvider` in `MyApp.build`.
-    - Refactored `MyHomePage` to `StatelessWidget`.
-    - Updated `MyHomePage` to use `context.watch<CounterProvider>().count` and `context.read<CounterProvider>().increment()`.
-- `.gemini/epics/setup-provider/4.md`:
-    - Updated status to `closed`.
-    - Updated checkboxes and timestamp.
+- `lib/config/app_config.dart`:
+    - Changed `environment` to `final` and initialized it using `_getEnvironment()` helper.
+    - `_getEnvironment()` uses `const String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev')`.
+- `test/config/app_config_test.dart`:
+    - New test file to verify `AppConfig` properties and environment switching.
+
+## Verification
+- Ran `fvm flutter test test/config/app_config_test.dart` (Passed).
+- Ran `fvm flutter test --dart-define=ENVIRONMENT=prod test/config/app_config_test.dart` (Passed).
 
 ## Next Steps
-- Task #5: Implement complex state management or additional providers (as per epic plan).
-- Continue with the next phase of the `setup-provider` epic.
+- Continue with the next tasks in the `api-service-and-config` epic, potentially involving API client setup using this configuration.

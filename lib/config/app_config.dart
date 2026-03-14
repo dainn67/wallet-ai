@@ -7,7 +7,18 @@ class AppConfig {
 
   AppConfig._internal();
 
-  AppEnvironment environment = AppEnvironment.dev;
+  final AppEnvironment environment = _getEnvironment();
+
+  static AppEnvironment _getEnvironment() {
+    const env = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
+    switch (env) {
+      case 'prod':
+        return AppEnvironment.prod;
+      case 'dev':
+      default:
+        return AppEnvironment.dev;
+    }
+  }
 
   String get baseUrl {
     switch (environment) {
