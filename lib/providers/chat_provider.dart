@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:wallet_ai/models/chat_message.dart';
 import 'package:wallet_ai/models/chat_stream_response.dart';
@@ -75,37 +76,43 @@ class ChatProvider extends ChangeNotifier {
               }
             },
             onDone: () async {
-              print('onDone: full: $fullText');
               _isStreaming = false;
 
               final parts = fullText.split('--//--');
-              // Format: text --//-- source --//-- amount --//-- category --//-- description --//-- type
-              if (parts.length >= 6) {
-                final sourceName = parts[1].trim();
-                final amountStr = parts[2].trim();
-                final category = parts[3].trim();
-                final description = parts[4].trim();
-                final typeStr = parts[5].trim().toLowerCase();
+              if (parts.length >= 2) {
+                final jsonString = parts[1].trim();
+                try {
+                  final List<dynamic> recordsJson = jsonDecode(jsonString);
+                  final List<Record> records = [];
 
-                final amount = double.tryParse(amountStr) ?? 0.0;
-                final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
+                  final dbService = DatabaseService();
 
-                // Find money source ID
-                final dbService = DatabaseService();
-                final source = await dbService.getMoneySourceByName(sourceName);
-                final sourceId = source?.sourceId ?? 1; // Default to 1 (Wallet) if not found
+                  for (var item in recordsJson) {
+                    final sourceName = item['source']?.toString().trim() ?? '';
+                    final amountStr = item['amount']?.toString().trim() ?? '0';
+                    final category = item['category']?.toString().trim() ?? '';
+                    final description = item['description']?.toString().trim() ?? '';
+                    final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
 
-                final record = Record(
-                  moneySourceId: sourceId,
-                  amount: amount,
-                  currency: 'VND', // Default to VND as per Vietnam context (100k)
-                  description: '$category: $description',
-                  type: type,
-                );
+                    final amount = double.tryParse(amountStr) ?? 0.0;
+                    final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
 
-                final index = _messages.indexWhere((m) => m.id == currentAssistantId);
-                if (index != -1) {
-                  _messages[index] = _messages[index].copyWith(records: [record]);
+                    final source = await dbService.getMoneySourceByName(sourceName);
+                    final sourceId = source?.sourceId ?? 1;
+
+                    records.add(
+                      Record(moneySourceId: sourceId, amount: amount, currency: 'VND', description: category.isNotEmpty ? '$category: $description' : description, type: type),
+                    );
+                  }
+
+                  if (records.isNotEmpty) {
+                    final index = _messages.indexWhere((m) => m.id == currentAssistantId);
+                    if (index != -1) {
+                      _messages[index] = _messages[index].copyWith(records: records);
+                    }
+                  }
+                } catch (e) {
+                  debugPrint('Error parsing records JSON: $e');
                 }
               }
 
