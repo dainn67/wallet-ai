@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wallet_ai/config/app_config.dart';
+import 'package:wallet_ai/configs/app_config.dart';
 import 'package:wallet_ai/services/api_service.dart';
 import 'package:mocktail/mocktail.dart';
 

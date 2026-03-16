@@ -5,7 +5,7 @@ import 'package:wallet_ai/models/chat_message.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
 import 'package:wallet_ai/services/chat_api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:wallet_ai/config/app_config.dart';
+import 'package:wallet_ai/configs/app_config.dart';
 
 class MockChatApiService extends Mock implements ChatApiService {}
 

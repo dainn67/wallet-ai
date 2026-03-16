@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wallet_ai/config/app_config.dart';
-import 'package:wallet_ai/providers/counter_provider.dart';
-import 'package:wallet_ai/providers/chat_provider.dart';
-import 'package:wallet_ai/screens/chat_screen.dart';
-import 'package:wallet_ai/services/storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/screens/screens.dart';
+import 'package:wallet_ai/services/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

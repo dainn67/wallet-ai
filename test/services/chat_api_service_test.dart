@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:wallet_ai/config/app_config.dart';
+import 'package:wallet_ai/configs/app_config.dart';
 import 'package:wallet_ai/services/chat_api_service.dart';
 
 class MockAppConfig extends Mock implements AppConfig {}

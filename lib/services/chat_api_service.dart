@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:wallet_ai/config/app_config.dart';
-import 'package:wallet_ai/models/chat_stream_response.dart';
+import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/api_exception.dart';
 import 'package:wallet_ai/services/api_service.dart';
 

@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:wallet_ai/models/chat_message.dart';
-import 'package:wallet_ai/models/chat_stream_response.dart';
-import 'package:wallet_ai/models/record.dart';
-import 'package:wallet_ai/services/chat_api_service.dart';
-import 'package:wallet_ai/services/database_service.dart';
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/services/services.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [ChatMessage(id: 'welcome', role: ChatRole.assistant, content: 'Hello! How can I help you today?', timestamp: DateTime.now())];
@@ -100,9 +97,17 @@ class ChatProvider extends ChangeNotifier {
                     final source = await dbService.getMoneySourceByName(sourceName);
                     final sourceId = source?.sourceId ?? 1;
 
-                    records.add(
-                      Record(moneySourceId: sourceId, amount: amount, currency: 'VND', description: category.isNotEmpty ? '$category: $description' : description, type: type),
+                    final record = Record(
+                      moneySourceId: sourceId,
+                      amount: amount,
+                      currency: 'VND',
+                      description: category.isNotEmpty ? '$category: $description' : description,
+                      type: type,
                     );
+
+                    // Save to database
+                    await dbService.createRecord(record);
+                    records.add(record);
                   }
 
                   if (records.isNotEmpty) {

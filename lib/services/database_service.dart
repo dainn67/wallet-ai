@@ -5,8 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import '../models/record.dart';
-import '../models/money_source.dart';
+import 'package:wallet_ai/models/models.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();

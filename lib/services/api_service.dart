@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
-import 'package:wallet_ai/config/app_config.dart';
-import 'package:wallet_ai/helpers/api_helper.dart';
+import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/helpers/helpers.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
