@@ -4,7 +4,7 @@
 
 ## Mandatory Context
 
-BEFORE implementing any task, you MUST read all files in the `docs/` directory to understand the project architecture, context, and coding style.
+BEFORE implementing any task, you MUST read the files in the `project_context/` directory carefully to understand the project: architecture.md (fvm, flutter, provider, services, singletons, repositories, init flow), context.md (what the app does, where to find files and logic), and coding_style.md (simplicity, avoid complex code, existing patterns). Use this understanding to implement any feature correctly.
 
 ## Project-Specific Instructions
 
