@@ -6,24 +6,11 @@ class Record {
   final String description;
   final String type; // 'income' or 'expense'
 
-  Record({
-    this.recordId,
-    required this.moneySourceId,
-    required this.amount,
-    required this.currency,
-    required this.description,
-    required this.type,
-  }) : assert(type == 'income' || type == 'expense', 'Type must be income or expense');
+  Record({this.recordId, required this.moneySourceId, required this.amount, required this.currency, required this.description, required this.type})
+    : assert(type == 'income' || type == 'expense', 'Type must be income or expense');
 
   Map<String, dynamic> toMap() {
-    return {
-      if (recordId != null) 'record_id': recordId,
-      'money_source_id': moneySourceId,
-      'amount': amount,
-      'currency': currency,
-      'description': description,
-      'type': type,
-    };
+    return {if (recordId != null) 'record_id': recordId, 'money_source_id': moneySourceId, 'amount': amount, 'currency': currency, 'description': description, 'type': type};
   }
 
   factory Record.fromMap(Map<String, dynamic> map) {
@@ -37,14 +24,7 @@ class Record {
     );
   }
 
-  Record copyWith({
-    int? recordId,
-    int? moneySourceId,
-    double? amount,
-    String? currency,
-    String? description,
-    String? type,
-  }) {
+  Record copyWith({int? recordId, int? moneySourceId, double? amount, String? currency, String? description, String? type}) {
     return Record(
       recordId: recordId ?? this.recordId,
       moneySourceId: moneySourceId ?? this.moneySourceId,
@@ -53,5 +33,10 @@ class Record {
       description: description ?? this.description,
       type: type ?? this.type,
     );
+  }
+
+  @override
+  String toString() {
+    return 'Record(recordId: $recordId, moneySourceId: $moneySourceId, amount: $amount, currency: $currency, description: $description, type: $type)';
   }
 }

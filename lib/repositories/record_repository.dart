@@ -7,13 +7,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wallet_ai/models/models.dart';
 
-class DatabaseService {
-  static final DatabaseService _instance = DatabaseService._internal();
+class RecordRepository {
+  static final RecordRepository _instance = RecordRepository._internal();
   static Database? _database;
 
-  factory DatabaseService() => _instance;
+  factory RecordRepository() => _instance;
 
-  DatabaseService._internal();
+  RecordRepository._internal();
 
   @visibleForTesting
   static void setMockDatabase(Database db) {
@@ -22,7 +22,7 @@ class DatabaseService {
 
   Database get database {
     if (_database == null) {
-      throw Exception("DatabaseService must be initialized before use.");
+      throw Exception("RecordRepository must be initialized before use.");
     }
     return _database!;
   }
@@ -182,3 +182,4 @@ class DatabaseService {
     }
   }
 }
+

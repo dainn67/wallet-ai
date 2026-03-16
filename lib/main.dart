@@ -4,12 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:wallet_ai/screens/screens.dart';
 import 'package:wallet_ai/services/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([StorageService.init(), dotenv.load(fileName: ".env")]);
+  await Future.wait([
+      StorageService.init(),
+      RecordRepository.init(),
+      dotenv.load(fileName: ".env"),
+    ]);
   runApp(const MyApp());
 }
 
@@ -22,7 +27,6 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
-        ChangeNotifierProvider(create: (_) => CounterProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(

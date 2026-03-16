@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/repositories/repositories.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,6 +22,13 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _chatProvider = context.read<ChatProvider>();
     _chatProvider.addListener(_onChatProviderUpdate);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final recordRepository = RecordRepository();
+      recordRepository.getAllRecords().then((records) {
+        print('Records: ${records.join(', ')}');
+      });
+    });
   }
 
   @override

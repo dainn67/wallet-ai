@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/services.dart';
+import 'package:wallet_ai/repositories/record_repository.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [ChatMessage(id: 'welcome', role: ChatRole.assistant, content: 'Hello! How can I help you today?', timestamp: DateTime.now())];
@@ -81,8 +82,7 @@ class ChatProvider extends ChangeNotifier {
                 try {
                   final List<dynamic> recordsJson = jsonDecode(jsonString);
                   final List<Record> records = [];
-
-                  final dbService = DatabaseService();
+                  final recordRepository = RecordRepository();
 
                   for (var item in recordsJson) {
                     final sourceName = item['source']?.toString().trim() ?? '';
@@ -94,7 +94,16 @@ class ChatProvider extends ChangeNotifier {
                     final amount = double.tryParse(amountStr) ?? 0.0;
                     final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
 
-                    final source = await dbService.getMoneySourceByName(sourceName);
+                    var source = await recordRepository.getMoneySourceByName(sourceName);
+
+                    // If the source does not exist yet and we have a name, create it.
+                    if (source == null && sourceName.isNotEmpty) {
+                      final sourceId = await recordRepository.createMoneySource(
+                        MoneySource(sourceName: sourceName),
+                      );
+                      source = MoneySource(sourceId: sourceId, sourceName: sourceName);
+                    }
+
                     final sourceId = source?.sourceId ?? 1;
 
                     final record = Record(
@@ -105,8 +114,8 @@ class ChatProvider extends ChangeNotifier {
                       type: type,
                     );
 
-                    // Save to database
-                    await dbService.createRecord(record);
+                    // Save to repository
+                    await recordRepository.createRecord(record);
                     records.add(record);
                   }
 
