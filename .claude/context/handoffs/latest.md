@@ -1,25 +1,26 @@
-# Handoff Note (Task #31: Filtering & Sorting Implementation)
+# Handoff Note (Task #32: CRUD Delegation & State Sync Implementation)
 
 ## Completed
-- Extended `RecordProvider` with filter state variables: `_selectedSourceId`, `_selectedType`, and `_selectedDateRange`.
-- Implemented setters for filters that call `notifyListeners()`.
-- Added a `clearFilters()` method.
-- Implemented `filteredRecords` getter that applies the selected filters and sorts records by `recordId` descending by default.
-- Added comprehensive unit tests in `test/providers/record_provider_test.dart` for filtering, sorting, and performance.
+- Implemented Record CRUD methods in `RecordProvider`: `addRecord`, `updateRecord`, and `deleteRecord`.
+- Implemented MoneySource CRUD methods in `RecordProvider`: `addMoneySource`, `updateMoneySource`, and `deleteMoneySource`.
+- All CRUD methods follow the "Write-to-DB then Update-State" pattern (AD-1).
+- Error handling in CRUD methods automatically reloads all data using `loadAll()` to ensure state consistency with the database.
+- Added comprehensive unit tests in `test/providers/record_provider_test.dart` for all CRUD operations and error handling/reloading.
+- Verified that `isLoading` state is correctly managed during all async operations.
 
 ## Decisions Made
-- Since the `Record` model currently lacks a `date` field, the `_selectedDateRange` filter is implemented but does not affect the output. Sorting is done using `recordId` in descending order as per instructions.
-- All filtering logic is performed in-memory for high performance.
-- Case-insensitive comparison is used for filtering by record type.
+- Chose to call `loadAll()` in the `catch` block of all CRUD operations to guarantee state consistency even if individual state updates fail.
+- Used `mocktail` for unit testing with `Fake` classes for `Record` and `MoneySource` to support `any()` matchers.
+- Did not modify `RecordRepository` as it was not listed as a target file, but confirmed the Provider handles potential database errors (like foreign key violations) correctly by reloading.
 
 ## State of Tests
-- `fvm flutter test test/providers/record_provider_test.dart` passed successfully.
-- Performance test verified that filtering 1,000+ records in memory takes < 1ms.
+- All 17 tests in `test/providers/record_provider_test.dart` passed successfully.
+- Verified that the build still completes successfully.
 
 ## Files Changed
-- `lib/providers/record_provider.dart`: Added filter state and logic.
-- `test/providers/record_provider_test.dart`: Added unit and performance tests.
+- `lib/providers/record_provider.dart`: Added CRUD methods.
+- `test/providers/record_provider_test.dart`: Added unit tests for CRUD operations.
 
 ## Warnings for next task
-- Ensure future modifications to the `Record` model (like adding a `date` field) update the `filteredRecords` logic to apply `_selectedDateRange`.
-- Next tasks will likely focus on UI integration of these filters.
+- Be aware that `RecordRepository` does not currently enable `PRAGMA foreign_keys = ON;`, so foreign key violations might not actually occur in the SQLite database unless that's changed in future tasks.
+- Next tasks will likely involve integrating these CRUD methods into the UI (e.g., adding/editing records from a screen).

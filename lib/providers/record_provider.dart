@@ -88,9 +88,104 @@ class RecordProvider extends ChangeNotifier {
       _moneySources = results[1] as List<MoneySource>;
     } catch (e) {
       debugPrint('Error loading data in RecordProvider: $e');
-      // Keep existing data or clear? Acceptance criteria says "Initialize with empty lists" for edge cases.
-      // If it fails, we might want to keep what we have or clear it. 
-      // Given "Initial Load" task, clearing or keeping empty is fine.
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Record CRUD
+  Future<void> addRecord(Record record) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final id = await _repository.createRecord(record);
+      _records.add(record.copyWith(recordId: id));
+    } catch (e) {
+      debugPrint('Error adding record in RecordProvider: $e');
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateRecord(Record record) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.updateRecord(record);
+      final index = _records.indexWhere((r) => r.recordId == record.recordId);
+      if (index != -1) {
+        _records[index] = record;
+      }
+    } catch (e) {
+      debugPrint('Error updating record in RecordProvider: $e');
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteRecord(int id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.deleteRecord(id);
+      _records.removeWhere((r) => r.recordId == id);
+    } catch (e) {
+      debugPrint('Error deleting record in RecordProvider: $e');
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // MoneySource CRUD
+  Future<void> addMoneySource(MoneySource source) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final id = await _repository.createMoneySource(source);
+      _moneySources.add(source.copyWith(sourceId: id));
+    } catch (e) {
+      debugPrint('Error adding money source in RecordProvider: $e');
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateMoneySource(MoneySource source) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.updateMoneySource(source);
+      final index = _moneySources.indexWhere((ms) => ms.sourceId == source.sourceId);
+      if (index != -1) {
+        _moneySources[index] = source;
+      }
+    } catch (e) {
+      debugPrint('Error updating money source in RecordProvider: $e');
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMoneySource(int id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.deleteMoneySource(id);
+      _moneySources.removeWhere((ms) => ms.sourceId == id);
+    } catch (e) {
+      debugPrint('Error deleting money source in RecordProvider: $e');
+      await loadAll();
     } finally {
       _isLoading = false;
       notifyListeners();
