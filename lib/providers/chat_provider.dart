@@ -10,12 +10,20 @@ class ChatProvider extends ChangeNotifier {
   bool _isStreaming = false;
   String? _error;
   String? _conversationId;
+  int _dbUpdateVersion = 0;
   StreamSubscription<ChatStreamResponse>? _streamSubscription;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
   String? get error => _error;
   String? get conversationId => _conversationId;
+  int get dbUpdateVersion => _dbUpdateVersion;
+
+  @visibleForTesting
+  void incrementDbUpdateVersionForTest() {
+    _dbUpdateVersion++;
+    notifyListeners();
+  }
 
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
@@ -124,6 +132,7 @@ class ChatProvider extends ChangeNotifier {
                     if (index != -1) {
                       _messages[index] = _messages[index].copyWith(records: records);
                     }
+                    _dbUpdateVersion++;
                   }
                 } catch (e) {
                   debugPrint('Error parsing records JSON: $e');

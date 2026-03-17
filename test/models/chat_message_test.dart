@@ -28,6 +28,7 @@ void main() {
         role: role,
         content: content,
         timestamp: timestamp,
+        records: null,
       );
 
       final json = message.toJson();
@@ -37,6 +38,7 @@ void main() {
         'role': 'assistant',
         'content': content,
         'timestamp': timestamp.toIso8601String(),
+        'records': null,
       });
     });
 
@@ -46,6 +48,7 @@ void main() {
         'role': 'assistant',
         'content': content,
         'timestamp': timestamp.toIso8601String(),
+        'records': null,
       };
 
       final message = ChatMessage.fromJson(json);
@@ -54,6 +57,7 @@ void main() {
       expect(message.role, role);
       expect(message.content, content);
       expect(message.timestamp, timestamp);
+      expect(message.records, isNull);
     });
 
     test('copyWith() should return new instance with updated content', () {
@@ -62,6 +66,7 @@ void main() {
         role: role,
         content: content,
         timestamp: timestamp,
+        records: null,
       );
 
       const newContent = 'Updated content';
@@ -71,6 +76,7 @@ void main() {
       expect(updatedMessage.role, message.role);
       expect(updatedMessage.content, newContent);
       expect(updatedMessage.timestamp, message.timestamp);
+      expect(updatedMessage.records, message.records);
       expect(updatedMessage, isNot(same(message)));
     });
 
@@ -80,6 +86,7 @@ void main() {
         role: role,
         content: content,
         timestamp: timestamp,
+        records: null,
       );
 
       final newTimestamp = DateTime(2026, 3, 15);
@@ -93,6 +100,7 @@ void main() {
       expect(updatedMessage.role, ChatRole.user);
       expect(updatedMessage.content, message.content);
       expect(updatedMessage.timestamp, newTimestamp);
+      expect(updatedMessage.records, message.records);
     });
 
     test('operator == should return true for identical instances', () {
@@ -101,12 +109,14 @@ void main() {
         role: role,
         content: content,
         timestamp: timestamp,
+        records: null,
       );
       final message2 = ChatMessage(
         id: id,
         role: role,
         content: content,
         timestamp: timestamp,
+        records: null,
       );
 
       expect(message1 == message2, isTrue);

@@ -22,13 +22,6 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _chatProvider = context.read<ChatProvider>();
     _chatProvider.addListener(_onChatProviderUpdate);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final recordRepository = RecordRepository();
-      recordRepository.getAllRecords().then((records) {
-        print('Records: ${records.join(', ')}');
-      });
-    });
   }
 
   @override

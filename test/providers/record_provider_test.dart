@@ -1,0 +1,248 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/record_provider.dart';
+import 'package:wallet_ai/repositories/record_repository.dart';
+
+class MockRecordRepository extends Mock implements RecordRepository {}
+
+class RecordFake extends Fake implements Record {}
+class MoneySourceFake extends Fake implements MoneySource {}
+
+void main() {
+  setUpAll(() {
+    registerFallbackValue(RecordFake());
+    registerFallbackValue(MoneySourceFake());
+  });
+
+  late RecordProvider recordProvider;
+  late MockRecordRepository mockRepository;
+
+  setUp(() {
+    mockRepository = MockRecordRepository();
+    recordProvider = RecordProvider(repository: mockRepository);
+  });
+
+  group('RecordProvider', () {
+    test('initial state is correct', () {
+      expect(recordProvider.records, isEmpty);
+      expect(recordProvider.moneySources, isEmpty);
+      expect(recordProvider.isLoading, false);
+    });
+
+    test('loadAll sets isLoading to true then false', () async {
+      when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+      when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+
+      final future = recordProvider.loadAll();
+      expect(recordProvider.isLoading, true);
+
+      await future;
+      expect(recordProvider.isLoading, false);
+    });
+
+    test('loadAll populates records and moneySources from repository', () async {
+      final mockRecords = [
+        Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Test', type: 'expense'),
+      ];
+      final mockMoneySources = [
+        MoneySource(sourceId: 1, sourceName: 'Test Source'),
+      ];
+
+      when(() => mockRepository.getAllRecords()).thenAnswer((_) async => mockRecords);
+      when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => mockMoneySources);
+
+      await recordProvider.loadAll();
+
+      expect(recordProvider.records.length, 1);
+      expect(recordProvider.records[0].amount, 100.0);
+      expect(recordProvider.moneySources.length, 1);
+      expect(recordProvider.moneySources[0].sourceName, 'Test Source');
+    });
+
+    test('loadAll handles error gracefully', () async {
+      when(() => mockRepository.getAllRecords()).thenThrow(Exception('DB Error'));
+      when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+
+      await recordProvider.loadAll();
+
+      expect(recordProvider.isLoading, false);
+      expect(recordProvider.records, isEmpty);
+    });
+
+    group('CRUD operations', () {
+      test('addRecord adds to internal list and calls repository', () async {
+        final newRecord = Record(moneySourceId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
+        when(() => mockRepository.createRecord(newRecord)).thenAnswer((_) async => 10);
+
+        await recordProvider.addRecord(newRecord);
+
+        expect(recordProvider.records.length, 1);
+        expect(recordProvider.records[0].recordId, 10);
+        verify(() => mockRepository.createRecord(newRecord)).called(1);
+      });
+
+      test('updateRecord updates internal list and calls repository', () async {
+        final initialRecord = Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Old', type: 'expense');
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [initialRecord]);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        await recordProvider.loadAll();
+
+        final updatedRecord = initialRecord.copyWith(amount: 150.0);
+        when(() => mockRepository.updateRecord(updatedRecord)).thenAnswer((_) async => 1);
+
+        await recordProvider.updateRecord(updatedRecord);
+
+        expect(recordProvider.records[0].amount, 150.0);
+        verify(() => mockRepository.updateRecord(updatedRecord)).called(1);
+      });
+
+      test('deleteRecord removes from internal list and calls repository', () async {
+        final recordToDelete = Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Delete me', type: 'expense');
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [recordToDelete]);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        await recordProvider.loadAll();
+
+        when(() => mockRepository.deleteRecord(1)).thenAnswer((_) async => 1);
+
+        await recordProvider.deleteRecord(1);
+
+        expect(recordProvider.records, isEmpty);
+        verify(() => mockRepository.deleteRecord(1)).called(1);
+      });
+
+      test('addMoneySource adds to internal list and calls repository', () async {
+        final newSource = MoneySource(sourceName: 'New Bank');
+        when(() => mockRepository.createMoneySource(newSource)).thenAnswer((_) async => 5);
+
+        await recordProvider.addMoneySource(newSource);
+
+        expect(recordProvider.moneySources.length, 1);
+        expect(recordProvider.moneySources[0].sourceId, 5);
+        verify(() => mockRepository.createMoneySource(newSource)).called(1);
+      });
+
+      test('updateMoneySource updates internal list and calls repository', () async {
+        final initialSource = MoneySource(sourceId: 1, sourceName: 'Old Bank');
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => [initialSource]);
+        await recordProvider.loadAll();
+
+        final updatedSource = initialSource.copyWith(sourceName: 'New Bank');
+        when(() => mockRepository.updateMoneySource(updatedSource)).thenAnswer((_) async => 1);
+
+        await recordProvider.updateMoneySource(updatedSource);
+
+        expect(recordProvider.moneySources[0].sourceName, 'New Bank');
+        verify(() => mockRepository.updateMoneySource(updatedSource)).called(1);
+      });
+
+      test('deleteMoneySource removes from internal list and calls repository', () async {
+        final sourceToDelete = MoneySource(sourceId: 1, sourceName: 'Delete me');
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => [sourceToDelete]);
+        await recordProvider.loadAll();
+
+        when(() => mockRepository.deleteMoneySource(1)).thenAnswer((_) async => 1);
+
+        await recordProvider.deleteMoneySource(1);
+
+        expect(recordProvider.moneySources, isEmpty);
+        verify(() => mockRepository.deleteMoneySource(1)).called(1);
+      });
+
+      test('CRUD methods reload data on error', () async {
+        when(() => mockRepository.createRecord(any())).thenThrow(Exception('DB Error'));
+        // For reload
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+
+        final record = Record(moneySourceId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
+        await recordProvider.addRecord(record);
+
+        verify(() => mockRepository.getAllRecords()).called(1);
+        verify(() => mockRepository.getAllMoneySources()).called(1);
+      });
+    });
+
+    group('filtering and sorting', () {
+      final mockRecords = [
+        Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Exp 1', type: 'expense'),
+        Record(recordId: 2, moneySourceId: 2, amount: 200.0, currency: 'VND', description: 'Inc 1', type: 'income'),
+        Record(recordId: 3, moneySourceId: 1, amount: 300.0, currency: 'VND', description: 'Inc 2', type: 'income'),
+      ];
+
+      setUp(() async {
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => mockRecords);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        await recordProvider.loadAll();
+      });
+
+      test('filteredRecords returns all records sorted by recordId descending by default', () {
+        final filtered = recordProvider.filteredRecords;
+        expect(filtered.length, 3);
+        expect(filtered[0].recordId, 3);
+        expect(filtered[1].recordId, 2);
+        expect(filtered[2].recordId, 1);
+      });
+
+      test('filtering by moneySourceId returns correct records', () {
+        recordProvider.selectedSourceId = 1;
+        final filtered = recordProvider.filteredRecords;
+        expect(filtered.length, 2);
+        expect(filtered.every((r) => r.moneySourceId == 1), isTrue);
+      });
+
+      test('filtering by type returns correct records', () {
+        recordProvider.selectedType = 'income';
+        final filtered = recordProvider.filteredRecords;
+        expect(filtered.length, 2);
+        expect(filtered.every((r) => r.type == 'income'), isTrue);
+      });
+
+      test('filtering by both moneySourceId and type returns correct records', () {
+        recordProvider.selectedSourceId = 1;
+        recordProvider.selectedType = 'income';
+        final filtered = recordProvider.filteredRecords;
+        expect(filtered.length, 1);
+        expect(filtered[0].recordId, 3);
+      });
+
+      test('clearFilters resets all filters', () {
+        recordProvider.selectedSourceId = 1;
+        recordProvider.selectedType = 'income';
+        recordProvider.clearFilters();
+
+        expect(recordProvider.selectedSourceId, isNull);
+        expect(recordProvider.selectedType, isNull);
+        expect(recordProvider.filteredRecords.length, 3);
+      });
+
+      test('filtering 1000+ records is instantaneous', () async {
+        final thousandRecords = List.generate(1000, (i) => Record(
+          recordId: i,
+          moneySourceId: i % 5,
+          amount: i.toDouble(),
+          currency: 'VND',
+          description: 'Record $i',
+          type: i % 2 == 0 ? 'income' : 'expense',
+        ));
+
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => thousandRecords);
+        await recordProvider.loadAll();
+
+        final stopwatch = Stopwatch()..start();
+        
+        recordProvider.selectedSourceId = 1;
+        recordProvider.selectedType = 'income';
+        final filtered = recordProvider.filteredRecords;
+        
+        stopwatch.stop();
+
+        expect(filtered.length, 100); // 1000 / 5 / 2 = 100
+        expect(stopwatch.elapsedMilliseconds, lessThan(16));
+        print('Filtering 1000 records took: ${stopwatch.elapsedMilliseconds}ms');
+      });
+    });
+  });
+}
