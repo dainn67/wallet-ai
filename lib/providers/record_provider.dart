@@ -8,6 +8,7 @@ class RecordProvider extends ChangeNotifier {
   List<Record> _records = [];
   List<MoneySource> _moneySources = [];
   bool _isLoading = false;
+  int _lastDbUpdateVersion = 0;
 
   // Filter state
   int? _selectedSourceId;
@@ -20,6 +21,11 @@ class RecordProvider extends ChangeNotifier {
   List<Record> get records => List.unmodifiable(_records);
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
   bool get isLoading => _isLoading;
+  int get lastDbUpdateVersion => _lastDbUpdateVersion;
+
+  set lastDbUpdateVersion(int value) {
+    _lastDbUpdateVersion = value;
+  }
 
   // Filter getters
   int? get selectedSourceId => _selectedSourceId;

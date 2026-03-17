@@ -28,7 +28,17 @@ class MyApp extends StatelessWidget {
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
-        ChangeNotifierProvider(create: (_) => RecordProvider()..loadAll()),
+        ChangeNotifierProxyProvider<ChatProvider, RecordProvider>(
+          create: (_) => RecordProvider()..loadAll(),
+          update: (_, chatProvider, recordProvider) {
+            if (recordProvider == null) return RecordProvider()..loadAll();
+            if (recordProvider.lastDbUpdateVersion != chatProvider.dbUpdateVersion) {
+              recordProvider.lastDbUpdateVersion = chatProvider.dbUpdateVersion;
+              recordProvider.loadAll();
+            }
+            return recordProvider;
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'Wallet AI',
