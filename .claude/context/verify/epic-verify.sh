@@ -97,7 +97,13 @@ run_tier() {
 
   # Detect runner for this directory
   local cmd
-  if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "conftest.py" ]; then
+  if [ -f "pubspec.yaml" ]; then
+    local flutter_cmd="flutter"
+    if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
+      flutter_cmd="fvm flutter"
+    fi
+    cmd="$flutter_cmd test $test_dir"
+  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "conftest.py" ]; then
     cmd="python3 -m pytest $test_dir -v --tb=short"
   elif [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
     cmd="npx jest $test_dir --verbose"
