@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => RecordProvider()..loadAll()),
       ],
       child: MaterialApp(
         title: 'Wallet AI',
