@@ -15,8 +15,7 @@ class RecordProvider extends ChangeNotifier {
   String? _selectedType;
   DateTimeRange? _selectedDateRange;
 
-  RecordProvider({RecordRepository? repository})
-      : _repository = repository ?? RecordRepository();
+  RecordProvider({RecordRepository? repository}) : _repository = repository ?? RecordRepository();
 
   List<Record> get records => List.unmodifiable(_records);
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
@@ -66,7 +65,7 @@ class RecordProvider extends ChangeNotifier {
       filtered = filtered.where((r) => r.type.toLowerCase() == _selectedType!.toLowerCase()).toList();
     }
 
-    // Note: Record model currently lacks a date field. 
+    // Note: Record model currently lacks a date field.
     // If it's added in the future, apply date range filtering here.
     // For now, we ignore _selectedDateRange as record.date does not exist.
 
@@ -85,10 +84,7 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await Future.wait([
-        _repository.getAllRecords(),
-        _repository.getAllMoneySources(),
-      ]);
+      final results = await Future.wait([_repository.getAllRecords(), _repository.getAllMoneySources()]);
 
       _records = results[0] as List<Record>;
       _moneySources = results[1] as List<MoneySource>;
