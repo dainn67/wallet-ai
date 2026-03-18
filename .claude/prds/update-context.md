@@ -1,7 +1,7 @@
 ---
 name: update-context
 description: Reorganize and expand project documentation into a feature-centric, AI-friendly "Living Docs" structure.
-status: backlog
+status: complete
 priority: P1
 scale: small
 created: 2026-03-18T12:00:00Z
