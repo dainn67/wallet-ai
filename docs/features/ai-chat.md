@@ -54,3 +54,16 @@ sequenceDiagram
     
     CP->>UI: notifyListeners() (Final Update)
 ```
+
+## Chat Data Flow
+
+### Response Format
+The streaming API returns text in the following format:
+`display_text--//--source--//--amount--//--category--//--description--//--type`
+
+### Delimiter Logic
+- **UI Rendering:** The UI stops rendering text after the first occurrence of the `--//--` delimiter to prevent raw JSON/metadata from being shown to the user.
+- **Data Extraction:** The `ChatProvider` continues processing the full stream in the background to extract the relational data following the delimiter for `Record` creation.
+
+### Session Management
+- **Conversation ID:** A unique `conversationId` is persisted in `ChatProvider` and included in the `inputs` payload of subsequent requests to maintain context throughout the chat session.
