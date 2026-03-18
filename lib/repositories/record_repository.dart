@@ -59,14 +59,14 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 2;
+  static const int _dbVersion = 4;
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE MoneySource (
         source_id INTEGER PRIMARY KEY AUTOINCREMENT,
         source_name TEXT NOT NULL,
-        total REAL NOT NULL DEFAULT 0
+        amount REAL NOT NULL DEFAULT 0
       )
     ''');
 
@@ -78,25 +78,60 @@ class RecordRepository {
         currency TEXT NOT NULL,
         description TEXT,
         type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+        created_at INTEGER NOT NULL,
         FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id)
       )
     ''');
 
+    await db.execute('CREATE INDEX idx_record_money_source_id ON record(money_source_id)');
+    await db.execute('CREATE INDEX idx_record_type ON record(type)');
+    await db.execute('CREATE INDEX idx_record_created_at ON record(created_at)');
+
     // Initial Data
-    await db.insert('MoneySource', {'source_name': 'Wallet', 'total': 0});
-    await db.insert('MoneySource', {'source_name': 'Bank', 'total': 0});
+    await db.insert('MoneySource', {'source_name': 'Wallet', 'total': 0, 'total_income': 0, 'total_expense': 0});
+    await db.insert('MoneySource', {'source_name': 'Bank', 'total': 0, 'total_income': 0, 'total_expense': 0});
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('ALTER TABLE MoneySource ADD COLUMN total REAL NOT NULL DEFAULT 0');
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE record ADD COLUMN created_at INTEGER');
+      await db.execute('''
+        UPDATE record
+        SET created_at =
+          CASE
+            WHEN record_id IS NOT NULL AND record_id > 1000000000000 THEN record_id
+            ELSE CAST(strftime('%s','now') AS INTEGER) * 1000
+          END
+        WHERE created_at IS NULL
+      ''');
+
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_record_money_source_id ON record(money_source_id)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_record_type ON record(type)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_record_created_at ON record(created_at)');
     }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE MoneySource ADD COLUMN amount REAL NOT NULL DEFAULT 0');
+      await db.execute('UPDATE MoneySource SET amount = COALESCE(amount, 0)');
+    }
+  }
+
+  Future<void> _adjustMoneySourceAmount(DatabaseExecutor txn, {required int sourceId, required double delta}) async {
+    await txn.rawUpdate(
+      'UPDATE MoneySource SET amount = amount + ? WHERE source_id = ?',
+      [delta, sourceId],
+    );
   }
 
   // Record Management
   Future<int> createRecord(Record record) async {
     try {
-      return await database.insert('record', record.toMap());
+      await database.transaction((txn) async {
+        await txn.insert('record', record.toMap());
+        final delta = record.type == 'income' ? record.amount : -record.amount;
+        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: delta);
+      });
+
+      return record.recordId;
     } catch (e) {
       print("Error creating record: $e");
       rethrow;
@@ -113,10 +148,31 @@ class RecordRepository {
     }
   }
 
+  Future<Record?> getRecordById(int id) async {
+    try {
+      final maps = await database.query('record', where: 'record_id = ?', whereArgs: [id], limit: 1);
+      if (maps.isEmpty) return null;
+      return Record.fromMap(maps.first);
+    } catch (e) {
+      print("Error fetching record by id: $e");
+      return null;
+    }
+  }
+
   Future<int> updateRecord(Record record) async {
     try {
-      if (record.recordId == null) throw Exception("Record ID cannot be null for update");
-      return await database.update('record', record.toMap(), where: 'record_id = ?', whereArgs: [record.recordId]);
+      final existing = await getRecordById(record.recordId);
+      if (existing == null) throw Exception("Record not found for update: ${record.recordId}");
+
+      await database.transaction((txn) async {
+        final oldSigned = existing.type == 'income' ? existing.amount : -existing.amount;
+        final newSigned = record.type == 'income' ? record.amount : -record.amount;
+        final delta = newSigned - oldSigned;
+        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: delta);
+        await txn.update('record', record.toMap(), where: 'record_id = ?', whereArgs: [record.recordId]);
+      });
+
+      return 1;
     } catch (e) {
       print("Error updating record: $e");
       rethrow;
@@ -125,7 +181,16 @@ class RecordRepository {
 
   Future<int> deleteRecord(int id) async {
     try {
-      return await database.delete('record', where: 'record_id = ?', whereArgs: [id]);
+      final existing = await getRecordById(id);
+      if (existing == null) return 0;
+
+      await database.transaction((txn) async {
+        final delta = existing.type == 'income' ? -existing.amount : existing.amount;
+        await _adjustMoneySourceAmount(txn, sourceId: existing.moneySourceId, delta: delta);
+        await txn.delete('record', where: 'record_id = ?', whereArgs: [id]);
+      });
+
+      return 1;
     } catch (e) {
       print("Error deleting record: $e");
       rethrow;
@@ -176,6 +241,14 @@ class RecordRepository {
       print("Error updating money source: $e");
       rethrow;
     }
+  }
+
+  Future<void> setMoneySourceAmount({required int sourceId, required double amount}) async {
+    await database.update('MoneySource', {'amount': amount}, where: 'source_id = ?', whereArgs: [sourceId]);
+  }
+
+  Future<void> adjustMoneySourceAmount({required int sourceId, required double delta}) async {
+    await _adjustMoneySourceAmount(database, sourceId: sourceId, delta: delta);
   }
 
   Future<int> deleteMoneySource(int id) async {

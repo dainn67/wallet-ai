@@ -65,15 +65,16 @@ class RecordProvider extends ChangeNotifier {
       filtered = filtered.where((r) => r.type.toLowerCase() == _selectedType!.toLowerCase()).toList();
     }
 
-    // Note: Record model currently lacks a date field.
-    // If it's added in the future, apply date range filtering here.
-    // For now, we ignore _selectedDateRange as record.date does not exist.
+    if (_selectedDateRange != null) {
+      filtered = filtered.where((r) {
+        final created = DateTime.fromMillisecondsSinceEpoch(r.createdAt);
+        return !created.isBefore(_selectedDateRange!.start) && !created.isAfter(_selectedDateRange!.end);
+      }).toList();
+    }
 
     // Sort by recordId descending as default
     filtered.sort((a, b) {
-      final idA = a.recordId ?? 0;
-      final idB = b.recordId ?? 0;
-      return idB.compareTo(idA);
+      return b.recordId.compareTo(a.recordId);
     });
 
     return List.unmodifiable(filtered);
