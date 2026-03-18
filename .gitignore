@@ -50,4 +50,4 @@ GEMINI.md
 
 # FVM Version Cache
 .fvm/
-.fvm
+.fvmtask-*

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'tabs/chat_tab.dart';
+import 'tabs/records_tab.dart';
+import 'tabs/test_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,9 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
         body: const SafeArea(
           child: TabBarView(
             children: [
-              Placeholder(fallbackHeight: 100, color: Colors.blue),
-              Placeholder(fallbackHeight: 100, color: Colors.green),
-              Placeholder(fallbackHeight: 100, color: Colors.orange),
+              ChatTab(),
+              RecordsTab(),
+              TestTab(),
             ],
           ),
         ),
