@@ -52,18 +52,21 @@ class RecordRepository {
         debugPrint("Database already exists at $path");
       }
 
-      _database = await openDatabase(path, version: 1, onCreate: _onCreate, onUpgrade: _onUpgrade);
+      _database = await openDatabase(path, version: _dbVersion, onCreate: _onCreate, onUpgrade: _onUpgrade);
     } catch (e) {
       debugPrint("Error initializing database: $e");
       rethrow;
     }
   }
 
+  static const int _dbVersion = 2;
+
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE MoneySource (
         source_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        source_name TEXT NOT NULL
+        source_name TEXT NOT NULL,
+        total REAL NOT NULL DEFAULT 0
       )
     ''');
 
@@ -80,12 +83,14 @@ class RecordRepository {
     ''');
 
     // Initial Data
-    await db.insert('MoneySource', {'source_name': 'Wallet'});
-    await db.insert('MoneySource', {'source_name': 'Bank'});
+    await db.insert('MoneySource', {'source_name': 'Wallet', 'total': 0});
+    await db.insert('MoneySource', {'source_name': 'Bank', 'total': 0});
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Handle future migrations through versioning as requested
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE MoneySource ADD COLUMN total REAL NOT NULL DEFAULT 0');
+    }
   }
 
   // Record Management
@@ -182,4 +187,3 @@ class RecordRepository {
     }
   }
 }
-

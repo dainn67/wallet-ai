@@ -45,8 +45,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# FVM Version Cache
-.fvm/.gemini/designs/
-
 .gemini/
 GEMINI.md
+
+# FVM Version Cache
+.fvm/
+.fvm
