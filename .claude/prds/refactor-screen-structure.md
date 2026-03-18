@@ -1,7 +1,7 @@
 ---
 name: refactor-screen-structure
 description: Reorganize monolithic screen structure into a clean, tab-based home folder architecture.
-status: backlog
+status: complete
 priority: P1
 scale: small
 created: 2026-03-18T12:00:00Z
