@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/chat_message.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
-import 'package:wallet_ai/screens/chat_screen.dart';
+import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 
 class MockChatProvider extends Mock implements ChatProvider {}
 
@@ -17,11 +17,13 @@ void main() {
     when(() => mockChatProvider.isStreaming).thenReturn(false);
   });
 
-  Widget createChatScreen() {
+  Widget createChatTabWidget() {
     return MaterialApp(
-      home: ChangeNotifierProvider<ChatProvider>.value(
-        value: mockChatProvider,
-        child: const ChatScreen(),
+      home: Scaffold(
+        body: ChangeNotifierProvider<ChatProvider>.value(
+          value: mockChatProvider,
+          child: const ChatTab(),
+        ),
       ),
     );
   }
@@ -31,10 +33,10 @@ void main() {
       throw Exception('API Error');
     });
 
-    await tester.pumpWidget(createChatScreen());
+    await tester.pumpWidget(createChatTabWidget());
 
     await tester.enterText(find.byType(TextField), 'Hello');
-    await tester.tap(find.byIcon(Icons.send));
+    await tester.tap(find.byIcon(Icons.send_rounded));
     
     // We need to pump multiple times because of the Snack bar animation and the async call
     await tester.pump(); // Start sendMessage
@@ -55,7 +57,7 @@ void main() {
       ),
     ]);
     
-    await tester.pumpWidget(createChatScreen());
+    await tester.pumpWidget(createChatTabWidget());
     final listView = tester.widget<ListView>(find.byType(ListView));
     expect(listView.controller, isNotNull);
   });

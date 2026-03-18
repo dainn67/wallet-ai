@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
             iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
           ),
         ),
-        home: const ChatScreen(),
+        home: const HomeScreen(),
       ),
     );
   }
