@@ -6,7 +6,7 @@ The Expense Records feature handles the persistence and management of financial 
 ## Technical Mapping
 
 ### UI Layer
-- **RecordsTab**: Displays the list of financial transactions and summary metrics (total income, spent). Uses `Consumer<RecordProvider>` to listen for changes.
+- **RecordsTab**: Displays a high-level overview box (Total Balance, Income, Spent, and Source Balances) and a detailed list of recent financial transactions. Uses `Consumer<RecordProvider>` to listen for changes to both records and money sources.
 
 ### Provider Layer
 - **RecordProvider**: Acts as the central state manager for the records and money sources.
