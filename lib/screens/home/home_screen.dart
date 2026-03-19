@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
     // Check if the app was opened from a widget
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
       if (uri != null) {
@@ -39,15 +40,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _handleWidgetClick(Uri? uri) {
+    debugPrint('Widget Clicked: $uri');
     if (uri?.host == 'record') {
-      // Navigate to Chat tab first
       _tabController.animateTo(0);
-
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          _recordingFocusNode.requestFocus();
-        }
-      });
+      _recordingFocusNode.requestFocus();
     }
   }
 
