@@ -9,11 +9,17 @@ import 'package:wallet_ai/models/models.dart';
 
 class RecordRepository {
   static final RecordRepository _instance = RecordRepository._internal();
+  static RecordRepository? _mockInstance;
   static Database? _database;
 
-  factory RecordRepository() => _instance;
+  factory RecordRepository() => _mockInstance ?? _instance;
 
   RecordRepository._internal();
+
+  @visibleForTesting
+  static void setMockInstance(RecordRepository? instance) {
+    _mockInstance = instance;
+  }
 
   @visibleForTesting
   static void setMockDatabase(Database db) {

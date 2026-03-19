@@ -53,6 +53,7 @@ class ChatProvider extends ChangeNotifier {
     final categoryList = ChatApiService.formatCategories(_recordProvider?.categories ?? []);
     final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources ?? []);
 
+    final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
@@ -107,32 +108,25 @@ class ChatProvider extends ChangeNotifier {
                   final recordRepository = RecordRepository();
 
                   for (var item in recordsJson) {
-                    final sourceName = item['source']?.toString().trim() ?? '';
+                    final sourceIdRaw = item['source_id'];
+                    final categoryIdRaw = item['category_id'];
                     final amountStr = item['amount']?.toString().trim() ?? '0';
-                    final category = item['category']?.toString().trim() ?? '';
+                    final categoryName = item['category']?.toString().trim() ?? '';
                     final description = item['description']?.toString().trim() ?? '';
                     final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
 
                     final amount = double.tryParse(amountStr) ?? 0.0;
                     final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
 
-                    var source = await recordRepository.getMoneySourceByName(sourceName);
-
-                    // If the source does not exist yet and we have a name, create it.
-                    if (source == null && sourceName.isNotEmpty) {
-                      final sourceId = await recordRepository.createMoneySource(
-                        MoneySource(sourceName: sourceName),
-                      );
-                      source = MoneySource(sourceId: sourceId, sourceName: sourceName);
-                    }
-
-                    final sourceId = source?.sourceId ?? 1;
+                    final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
+                    final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
 
                     final record = Record(
                       moneySourceId: sourceId,
+                      categoryId: categoryId,
                       amount: amount,
                       currency: 'VND',
-                      description: category.isNotEmpty ? '$category: $description' : description,
+                      description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
                       type: type,
                     );
 
@@ -155,6 +149,7 @@ class ChatProvider extends ChangeNotifier {
               }
 
               notifyListeners();
+              completer.complete();
             },
             onError: (error) {
               _isStreaming = false;
@@ -164,9 +159,11 @@ class ChatProvider extends ChangeNotifier {
                 _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error');
               }
               notifyListeners();
+              completer.completeError(error);
             },
             cancelOnError: true,
           );
+      return completer.future;
     } catch (e) {
       _isStreaming = false;
       notifyListeners();

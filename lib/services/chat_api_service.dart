@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/api_exception.dart';
@@ -6,14 +7,20 @@ import 'package:wallet_ai/services/api_service.dart';
 
 class ChatApiService {
   static final ChatApiService _instance = ChatApiService._internal();
+  static ChatApiService? _mockInstance;
   static AppConfig _config = AppConfig();
 
   factory ChatApiService({AppConfig? config}) {
     if (config != null) _config = config;
-    return _instance;
+    return _mockInstance ?? _instance;
   }
 
   ChatApiService._internal();
+
+  @visibleForTesting
+  static void setMockInstance(ChatApiService? instance) {
+    _mockInstance = instance;
+  }
 
   static String formatMoneySources(List<MoneySource> sources) {
     if (sources.isEmpty) return 'No money sources available';

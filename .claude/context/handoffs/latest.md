@@ -1,27 +1,30 @@
-# Handoff Note (Task #010: Integrate Providers)
+# Handoff Note (Task #020: Refactor AI Parser)
 
 ## Completed
-- Updated `ChatProvider` to hold a reference to `RecordProvider`.
-- Modified `ChatProvider.sendMessage` to fetch formatted category and money source context from `RecordProvider` using `ChatApiService` helpers.
-- These context strings are now passed to `ChatApiService.streamChat` to provide the AI with necessary IDs and names.
-- Updated `ChatProvider.onDone` to call `_recordProvider?.loadAll()` whenever new records are successfully created via chat. This ensures the record list and balances stay synchronized.
-- Refactored `main.dart` to reverse the provider dependency: `RecordProvider` is now a standalone `ChangeNotifierProvider`, and `ChatProvider` is a `ChangeNotifierProxyProvider<RecordProvider, ChatProvider>`.
-- Refactored `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart` to match the new dependency structure.
+- Refactored the AI record parser in `ChatProvider.sendMessage.onDone` to use `source_id` and `category_id` from the AI's JSON response.
+- Implemented robust fallback logic: missing or invalid IDs now default to 1.
+- Removed legacy `getMoneySourceByName` and automatic money source creation logic.
+- Refactored `ChatApiService` and `RecordRepository` to support singleton mocking for unit tests.
+- Made `ChatProvider.sendMessage` awaitable by using a `Completer` that resolves when the stream finishes processing.
+- Added a new unit test `test/providers/chat_provider_test.dart` to verify parsing and fallback behavior.
+- Fixed a name conflict in `ChatApiService` between `foundation.dart` and `models.dart`.
 
 ## Decisions Made
-- Chose to have `ChatProvider` explicitly call `recordProvider.loadAll()` rather than relying on a reverse dependency through `ChangeNotifierProxyProvider`. This avoids a circular dependency while still ensuring state synchronization.
-- Kept `_dbUpdateVersion` in `ChatProvider` as an internal state counter, although it's no longer used for the primary sync mechanism in `main.dart`.
+- Chose to use `Completer` in `sendMessage` to make the entire asynchronous process (including database updates) awaitable, which improves testability and UI feedback potential.
+- Maintained the singleton pattern for `ChatApiService` and `RecordRepository` but added `@visibleForTesting` methods to set mock instances, avoiding the need for dependency injection throughout the app while still allowing isolation in tests.
 
 ## State of Tests
-- Integration test `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart` passed successfully.
-- Code analysis (`fvm flutter analyze`) and basic unit tests pass.
+- New unit test `test/providers/chat_provider_test.dart` passes.
+- Integration test `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart` continues to pass.
+- Code analysis (`fvm flutter analyze`) is clean.
 
 ## Files Changed
-- `lib/providers/chat_provider.dart`: Added `RecordProvider` dependency and context injection logic.
-- `lib/main.dart`: Updated provider tree to resolve dependency reversal.
-- `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart`: Updated to reflect new provider architecture.
-- `.claude/epics/update-message-body/010.md`: Marked task as closed.
+- `lib/providers/chat_provider.dart`: Refactored parser and made `sendMessage` awaitable.
+- `lib/services/chat_api_service.dart`: Added mocking support and fixed import conflict.
+- `lib/repositories/record_repository.dart`: Added mocking support.
+- `test/providers/chat_provider_test.dart`: New unit test file.
+- `.claude/epics/update-message-body/020.md`: Marked task as closed.
 
 ## Warnings for next task
-- Task #020 will involve refactoring the AI parser to use the newly provided IDs instead of string matching.
-- Ensure that the AI prompt on the server side (Dify) is updated to handle `category_list` and `money_source_list` inputs.
+- Task #090 will involve final verification and cleanup.
+- Ensure that the server-side prompts are indeed sending the JSON in the new format with `source_id` and `category_id`.
