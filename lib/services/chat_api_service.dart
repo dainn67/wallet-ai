@@ -22,22 +22,17 @@ class ChatApiService {
     _mockInstance = instance;
   }
 
-  static String formatMoneySources(List<MoneySource> sources) {
-    if (sources.isEmpty) return 'No money sources available';
+  static String formatMoneySources(List<MoneySource>? sources) {
+    if (sources == null || sources.isEmpty) return 'No money sources available';
     return sources.map((s) => '${s.sourceId}-${s.sourceName}').join(', ');
   }
 
-  static String formatCategories(List<Category> categories) {
-    if (categories.isEmpty) return 'No categories available';
+  static String formatCategories(List<Category>? categories) {
+    if (categories == null || categories.isEmpty) return 'No categories available';
     return categories.map((c) => '${c.categoryId}-${c.name}').join(', ');
   }
 
-  Stream<ChatStreamResponse> streamChat(
-    String message, {
-    String? conversationId,
-    String? categoryList,
-    String? moneySourceList,
-  }) async* {
+  Stream<ChatStreamResponse> streamChat(String message, {String? conversationId, String? categoryList, String? moneySourceList}) async* {
     try {
       final inputs = {
         'user': '123',

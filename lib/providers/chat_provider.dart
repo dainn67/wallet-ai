@@ -50,19 +50,14 @@ class ChatProvider extends ChangeNotifier {
     String fullText = '';
     bool displayTextCompleted = false;
 
-    final categoryList = ChatApiService.formatCategories(_recordProvider?.categories ?? []);
-    final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources ?? []);
+    final categoryList = ChatApiService.formatCategories(_recordProvider?.categories);
+    final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources);
 
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(
-            content,
-            conversationId: _conversationId,
-            categoryList: categoryList,
-            moneySourceList: moneySourceList,
-          )
+          .streamChat(content, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList)
           .listen(
             (response) {
               if (response.conversationId != null) {
