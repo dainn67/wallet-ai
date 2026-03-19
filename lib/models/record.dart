@@ -4,6 +4,7 @@ class Record {
   final int moneySourceId;
   final int categoryId;
   final String? categoryName;
+  final String? sourceName;
   final double amount;
   final String currency;
   final String description;
@@ -15,6 +16,7 @@ class Record {
     required this.moneySourceId,
     this.categoryId = 1, // Default to Uncategorized
     this.categoryName,
+    this.sourceName,
     required this.amount,
     required this.currency,
     required this.description,
@@ -43,6 +45,7 @@ class Record {
       moneySourceId: map['money_source_id'] as int,
       categoryId: map['category_id'] as int? ?? 1,
       categoryName: map['category_name'] as String?,
+      sourceName: map['source_name'] as String?,
       amount: (map['amount'] as num).toDouble(),
       currency: map['currency'] as String,
       description: map['description'] as String,
@@ -56,6 +59,7 @@ class Record {
     int? moneySourceId,
     int? categoryId,
     String? categoryName,
+    String? sourceName,
     double? amount,
     String? currency,
     String? description,
@@ -67,6 +71,7 @@ class Record {
       moneySourceId: moneySourceId ?? this.moneySourceId,
       categoryId: categoryId ?? this.categoryId,
       categoryName: categoryName ?? this.categoryName,
+      sourceName: sourceName ?? this.sourceName,
       amount: amount ?? this.amount,
       currency: currency ?? this.currency,
       description: description ?? this.description,
@@ -76,6 +81,6 @@ class Record {
 
   @override
   String toString() {
-    return 'Record(recordId: $recordId, createdAt: $createdAt, moneySourceId: $moneySourceId, categoryId: $categoryId, categoryName: $categoryName, amount: $amount, currency: $currency, description: $description, type: $type)';
+    return 'Record(recordId: $recordId, createdAt: $createdAt, moneySourceId: $moneySourceId, categoryId: $categoryId, categoryName: $categoryName, sourceName: $sourceName, amount: $amount, currency: $currency, description: $description, type: $type)';
   }
 }

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -173,9 +173,10 @@ class RecordRepository {
   Future<List<Record>> getAllRecords() async {
     try {
       final List<Map<String, dynamic>> maps = await database.rawQuery('''
-        SELECT r.*, c.name as category_name
+        SELECT r.*, c.name as category_name, ms.source_name
         FROM record r
         LEFT JOIN Category c ON r.category_id = c.category_id
+        LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
         ORDER BY r.created_at DESC
       ''');
       return List.generate(maps.length, (i) => Record.fromMap(maps[i]));
@@ -188,9 +189,10 @@ class RecordRepository {
   Future<Record?> getRecordById(int id) async {
     try {
       final maps = await database.rawQuery('''
-        SELECT r.*, c.name as category_name
+        SELECT r.*, c.name as category_name, ms.source_name
         FROM record r
         LEFT JOIN Category c ON r.category_id = c.category_id
+        LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
         WHERE r.record_id = ?
         LIMIT 1
       ''', [id]);
