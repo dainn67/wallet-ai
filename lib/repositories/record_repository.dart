@@ -302,4 +302,15 @@ class RecordRepository {
       rethrow;
     }
   }
+
+  // Category Management
+  Future<List<Category>> getAllCategories() async {
+    try {
+      final List<Map<String, dynamic>> maps = await database.query('Category');
+      return List.generate(maps.length, (i) => Category.fromMap(maps[i]));
+    } catch (e) {
+      print("Error fetching categories: $e");
+      rethrow;
+    }
+  }
 }
