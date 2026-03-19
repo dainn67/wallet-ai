@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/services.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [ChatMessage(id: 'welcome', role: ChatRole.assistant, content: 'Hello! How can I help you today?', timestamp: DateTime.now())];
@@ -12,12 +13,17 @@ class ChatProvider extends ChangeNotifier {
   String? _conversationId;
   int _dbUpdateVersion = 0;
   StreamSubscription<ChatStreamResponse>? _streamSubscription;
+  RecordProvider? _recordProvider;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
   String? get error => _error;
   String? get conversationId => _conversationId;
   int get dbUpdateVersion => _dbUpdateVersion;
+
+  set recordProvider(RecordProvider? value) {
+    _recordProvider = value;
+  }
 
   @visibleForTesting
   void incrementDbUpdateVersionForTest() {
@@ -44,10 +50,19 @@ class ChatProvider extends ChangeNotifier {
     String fullText = '';
     bool displayTextCompleted = false;
 
+    final categoryList = ChatApiService.formatCategories(_recordProvider?.categories ?? []);
+    final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources ?? []);
+
+    final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(content, conversationId: _conversationId)
+          .streamChat(
+            content,
+            conversationId: _conversationId,
+            categoryList: categoryList,
+            moneySourceList: moneySourceList,
+          )
           .listen(
             (response) {
               if (response.conversationId != null) {
@@ -93,32 +108,25 @@ class ChatProvider extends ChangeNotifier {
                   final recordRepository = RecordRepository();
 
                   for (var item in recordsJson) {
-                    final sourceName = item['source']?.toString().trim() ?? '';
+                    final sourceIdRaw = item['source_id'];
+                    final categoryIdRaw = item['category_id'];
                     final amountStr = item['amount']?.toString().trim() ?? '0';
-                    final category = item['category']?.toString().trim() ?? '';
+                    final categoryName = item['category']?.toString().trim() ?? '';
                     final description = item['description']?.toString().trim() ?? '';
                     final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
 
                     final amount = double.tryParse(amountStr) ?? 0.0;
                     final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
 
-                    var source = await recordRepository.getMoneySourceByName(sourceName);
-
-                    // If the source does not exist yet and we have a name, create it.
-                    if (source == null && sourceName.isNotEmpty) {
-                      final sourceId = await recordRepository.createMoneySource(
-                        MoneySource(sourceName: sourceName),
-                      );
-                      source = MoneySource(sourceId: sourceId, sourceName: sourceName);
-                    }
-
-                    final sourceId = source?.sourceId ?? 1;
+                    final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
+                    final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
 
                     final record = Record(
                       moneySourceId: sourceId,
+                      categoryId: categoryId,
                       amount: amount,
                       currency: 'VND',
-                      description: category.isNotEmpty ? '$category: $description' : description,
+                      description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
                       type: type,
                     );
 
@@ -133,6 +141,7 @@ class ChatProvider extends ChangeNotifier {
                       _messages[index] = _messages[index].copyWith(records: records);
                     }
                     _dbUpdateVersion++;
+                    await _recordProvider?.loadAll();
                   }
                 } catch (e) {
                   debugPrint('Error parsing records JSON: $e');
@@ -140,6 +149,7 @@ class ChatProvider extends ChangeNotifier {
               }
 
               notifyListeners();
+              completer.complete();
             },
             onError: (error) {
               _isStreaming = false;
@@ -149,9 +159,11 @@ class ChatProvider extends ChangeNotifier {
                 _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error');
               }
               notifyListeners();
+              completer.completeError(error);
             },
             cancelOnError: true,
           );
+      return completer.future;
     } catch (e) {
       _isStreaming = false;
       notifyListeners();

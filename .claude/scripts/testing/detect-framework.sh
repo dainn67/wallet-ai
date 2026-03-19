@@ -8,8 +8,21 @@ test_dir=""
 config_file=""
 test_count=0
 
+# Flutter/Dart (High Priority)
+if [ -f "pubspec.yaml" ]; then
+  detected="flutter"
+  flutter_cmd="flutter"
+  if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
+    flutter_cmd="fvm flutter"
+  fi
+  test_cmd="$flutter_cmd test"
+  test_dir="test"
+  config_file="pubspec.yaml"
+  test_count=$(find . -name "*_test.dart" 2>/dev/null | wc -l | tr -d ' ')
+fi
+
 # JavaScript/Node.js
-if [ -f "package.json" ]; then
+if [ -z "$detected" ] && [ -f "package.json" ]; then
   if grep -qE '"jest"' package.json 2>/dev/null || [ -f "jest.config.js" ] || [ -f "jest.config.ts" ]; then
     detected="jest"
     test_cmd="npx jest --verbose"
@@ -111,15 +124,6 @@ if [ -z "$detected" ] && [ -f "Package.swift" ]; then
   test_dir="Tests"
   config_file="Package.swift"
   test_count=$(find . -name "*Test.swift" -o -name "*Tests.swift" 2>/dev/null | wc -l | tr -d ' ')
-fi
-
-# Flutter/Dart
-if [ -z "$detected" ] && [ -f "pubspec.yaml" ]; then
-  detected="flutter"
-  test_cmd="flutter test --verbose"
-  test_dir="test"
-  config_file="pubspec.yaml"
-  test_count=$(find . -name "*_test.dart" 2>/dev/null | wc -l | tr -d ' ')
 fi
 
 # C/C++

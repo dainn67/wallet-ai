@@ -62,7 +62,13 @@ detect_test_command() {
   fi
 
   # Fallback auto-detect
-  if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -d "tests" ]; then
+  if [ -f "pubspec.yaml" ]; then
+    local flutter_cmd="flutter"
+    if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
+      flutter_cmd="fvm flutter"
+    fi
+    echo "$flutter_cmd test && $flutter_cmd analyze"
+  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -d "tests" ] && [ ! -f "pubspec.yaml" ]; then
     echo "python3 -m pytest tests/ -v --tb=short"
   elif [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
     echo "npm test"

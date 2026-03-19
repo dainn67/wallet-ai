@@ -1,26 +1,18 @@
-# Handoff Note (Task #32: CRUD Delegation & State Sync Implementation)
+# Handoff: Epic 'update-message-body' Completion
 
-## Completed
-- Implemented Record CRUD methods in `RecordProvider`: `addRecord`, `updateRecord`, and `deleteRecord`.
-- Implemented MoneySource CRUD methods in `RecordProvider`: `addMoneySource`, `updateMoneySource`, and `deleteMoneySource`.
-- All CRUD methods follow the "Write-to-DB then Update-State" pattern (AD-1).
-- Error handling in CRUD methods automatically reloads all data using `loadAll()` to ensure state consistency with the database.
-- Added comprehensive unit tests in `test/providers/record_provider_test.dart` for all CRUD operations and error handling/reloading.
-- Verified that `isLoading` state is correctly managed during all async operations.
+## Summary
+The epic 'update-message-body' is now complete. The goal was to streamline the AI record creation process by providing specific schema context (money sources and categories with IDs) to the AI and refactoring the parser to use these IDs directly.
 
-## Decisions Made
-- Chose to call `loadAll()` in the `catch` block of all CRUD operations to guarantee state consistency even if individual state updates fail.
-- Used `mocktail` for unit testing with `Fake` classes for `Record` and `MoneySource` to support `any()` matchers.
-- Did not modify `RecordRepository` as it was not listed as a target file, but confirmed the Provider handles potential database errors (like foreign key violations) correctly by reloading.
+## Key Changes
+- **Service Layer**: Added `formatMoneySources` and `formatCategories` to `ChatApiService`. Updated `streamChat` to accept and send these as inputs to the Dify API.
+- **Provider Layer**: Updated `ChatProvider` to hold a reference to `RecordProvider` and pass context strings during `sendMessage`.
+- **Parser Refactor**: Completely rewrote the AI response parser in `ChatProvider` to use `source_id` and `category_id`. Removed legacy string-matching logic and added robust fallbacks.
+- **Verification**: All tests passed, and code analysis confirms no major issues in the modified files.
 
-## State of Tests
-- All 17 tests in `test/providers/record_provider_test.dart` passed successfully.
-- Verified that the build still completes successfully.
+## Admin
+- All tasks in `.claude/epics/update-message-body/` are closed.
+- Epic status updated to `closed` in `epic.md`.
+- Integration verification and cleanup completed.
 
-## Files Changed
-- `lib/providers/record_provider.dart`: Added CRUD methods.
-- `test/providers/record_provider_test.dart`: Added unit tests for CRUD operations.
-
-## Warnings for next task
-- Be aware that `RecordRepository` does not currently enable `PRAGMA foreign_keys = ON;`, so foreign key violations might not actually occur in the SQLite database unless that's changed in future tasks.
-- Next tasks will likely involve integrating these CRUD methods into the UI (e.g., adding/editing records from a screen).
+## Next Steps
+- Ensure server-side prompts in Dify are updated to match the new `category_list` and `money_source_list` inputs and return the expected JSON structure with IDs.

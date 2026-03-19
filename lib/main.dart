@@ -27,16 +27,11 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()),
-        ChangeNotifierProxyProvider<ChatProvider, RecordProvider>(
-          create: (_) => RecordProvider()..loadAll(),
-          update: (_, chatProvider, recordProvider) {
-            if (recordProvider == null) return RecordProvider()..loadAll();
-            if (recordProvider.lastDbUpdateVersion != chatProvider.dbUpdateVersion) {
-              recordProvider.lastDbUpdateVersion = chatProvider.dbUpdateVersion;
-              recordProvider.loadAll();
-            }
-            return recordProvider;
+        ChangeNotifierProvider(create: (_) => RecordProvider()..loadAll()),
+        ChangeNotifierProxyProvider<RecordProvider, ChatProvider>(
+          create: (_) => ChatProvider(),
+          update: (_, recordProvider, chatProvider) {
+            return (chatProvider ?? ChatProvider())..recordProvider = recordProvider;
           },
         ),
       ],
