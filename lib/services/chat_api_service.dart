@@ -25,12 +25,22 @@ class ChatApiService {
     return categories.map((c) => '${c.categoryId}-${c.name}').join(', ');
   }
 
-  Stream<ChatStreamResponse> streamChat(String message, {String? conversationId}) async* {
+  Stream<ChatStreamResponse> streamChat(
+    String message, {
+    String? conversationId,
+    String? categoryList,
+    String? moneySourceList,
+  }) async* {
     try {
       final inputs = {
         'user': '123',
         'query': message,
-        'inputs': {'language': 'English', if (conversationId != null) 'conversation_id': conversationId},
+        'inputs': {
+          'language': 'English',
+          if (conversationId != null) 'conversation_id': conversationId,
+          if (categoryList != null && categoryList.isNotEmpty) 'category_list': categoryList,
+          if (moneySourceList != null && moneySourceList.isNotEmpty) 'money_source_list': moneySourceList,
+        },
       };
       final stream = await ApiService().postStream('/api/chat-flow/wallet-ai-chatbot', data: inputs, token: _config.mainChatApiKey);
 
