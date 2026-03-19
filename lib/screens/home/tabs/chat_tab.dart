@@ -5,7 +5,8 @@ import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
 class ChatTab extends StatefulWidget {
-  const ChatTab({super.key});
+  final FocusNode? focusNode;
+  const ChatTab({super.key, this.focusNode});
 
   @override
   State<ChatTab> createState() => _ChatTabState();
@@ -41,11 +42,7 @@ class _ChatTabState extends State<ChatTab> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     }
   }
 
@@ -68,13 +65,9 @@ class _ChatTabState extends State<ChatTab> {
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Theme.of(context).colorScheme.error, behavior: SnackBarBehavior.floating));
         }
       }
     }
@@ -112,25 +105,17 @@ class _ChatTabState extends State<ChatTab> {
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          )
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
       child: Row(
         children: [
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(24.0),
-              ),
+              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(24.0)),
               child: TextField(
                 controller: _controller,
+                focusNode: widget.focusNode,
                 style: GoogleFonts.poppins(fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'Ask me anything...',
@@ -149,14 +134,7 @@ class _ChatTabState extends State<ChatTab> {
               decoration: BoxDecoration(
                 color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  if (!isStreaming)
-                    BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                ],
+                boxShadow: [if (!isStreaming) BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
               ),
               child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
             ),
@@ -204,22 +182,9 @@ class ChatBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(isUser ? 20 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      )
-                    ],
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))],
                   ),
-                  child: Text(
-                    message.content,
-                    style: GoogleFonts.poppins(
-                      color: isUser ? Colors.white : const Color(0xFF1E293B),
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
+                  child: Text(message.content, style: GoogleFonts.poppins(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
                 ),
                 if (message.records != null && message.records!.isNotEmpty) ...[
                   const SizedBox(height: 8),
@@ -244,27 +209,14 @@ class ChatBubble extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          )
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: (isExpense ? Colors.red : Colors.green).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded,
-              color: isExpense ? Colors.red : Colors.green,
-              size: 16,
-            ),
+            decoration: BoxDecoration(color: (isExpense ? Colors.red : Colors.green).withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded, color: isExpense ? Colors.red : Colors.green, size: 16),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -273,26 +225,15 @@ class ChatBubble extends StatelessWidget {
               children: [
                 Text(
                   record.description,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
-                  ),
+                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                 ),
-                Text(
-                  isExpense ? 'Expense' : 'Income',
-                  style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B)),
-                ),
+                Text(isExpense ? 'Expense' : 'Income', style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
               ],
             ),
           ),
           Text(
             '${isExpense ? '-' : '+'}${record.amount.toStringAsFixed(0)} ${record.currency}',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: isExpense ? Colors.red : Colors.green,
-            ),
+            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: isExpense ? Colors.red : Colors.green),
           ),
         ],
       ),
@@ -311,21 +252,10 @@ class _StreamingIndicator extends StatelessWidget {
         children: [
           Text(
             'AI is typing',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 8),
-          const SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-            ),
-          ),
+          const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.grey))),
         ],
       ),
     );

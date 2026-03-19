@@ -20,10 +20,7 @@ void main() {
   Widget createChatTab() {
     return MaterialApp(
       home: Scaffold(
-        body: ChangeNotifierProvider<ChatProvider>.value(
-          value: mockChatProvider,
-          child: const ChatTab(),
-        ),
+        body: ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider, child: const ChatTab()),
       ),
     );
   }
@@ -37,18 +34,8 @@ void main() {
 
   testWidgets('ChatTab displays messages from provider', (tester) async {
     final messages = [
-      ChatMessage(
-        id: '1',
-        role: ChatRole.user,
-        content: 'Hello',
-        timestamp: DateTime.now(),
-      ),
-      ChatMessage(
-        id: '2',
-        role: ChatRole.assistant,
-        content: 'Hi there! How can I help you?',
-        timestamp: DateTime.now(),
-      ),
+      ChatMessage(id: '1', role: ChatRole.user, content: 'Hello', timestamp: DateTime.now()),
+      ChatMessage(id: '2', role: ChatRole.assistant, content: 'Hi there! How can I help you?', timestamp: DateTime.now()),
     ];
 
     when(() => mockChatProvider.messages).thenReturn(messages);
@@ -77,12 +64,7 @@ void main() {
 
     await tester.pumpWidget(createChatTab());
 
-    final sendButton = tester.widget<GestureDetector>(
-      find.ancestor(
-        of: find.byIcon(Icons.send_rounded),
-        matching: find.byType(GestureDetector),
-      ),
-    );
+    final sendButton = tester.widget<GestureDetector>(find.ancestor(of: find.byIcon(Icons.send_rounded), matching: find.byType(GestureDetector)));
     expect(sendButton.onTap, isNull);
   });
 }

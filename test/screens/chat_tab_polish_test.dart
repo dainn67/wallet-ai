@@ -20,10 +20,7 @@ void main() {
   Widget createChatTabWidget() {
     return MaterialApp(
       home: Scaffold(
-        body: ChangeNotifierProvider<ChatProvider>.value(
-          value: mockChatProvider,
-          child: const ChatTab(),
-        ),
+        body: ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider, child: const ChatTab()),
       ),
     );
   }
@@ -37,7 +34,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), 'Hello');
     await tester.tap(find.byIcon(Icons.send_rounded));
-    
+
     // We need to pump multiple times because of the Snack bar animation and the async call
     await tester.pump(); // Start sendMessage
     await tester.pump(); // Handle error and show SnackBar
@@ -48,15 +45,8 @@ void main() {
   });
 
   testWidgets('Auto-scrolls when messages update while streaming', (WidgetTester tester) async {
-    when(() => mockChatProvider.messages).thenReturn([
-      ChatMessage(
-        id: '1',
-        role: ChatRole.user,
-        content: 'Hello',
-        timestamp: DateTime.now(),
-      ),
-    ]);
-    
+    when(() => mockChatProvider.messages).thenReturn([ChatMessage(id: '1', role: ChatRole.user, content: 'Hello', timestamp: DateTime.now())]);
+
     await tester.pumpWidget(createChatTabWidget());
     final listView = tester.widget<ListView>(find.byType(ListView));
     expect(listView.controller, isNotNull);

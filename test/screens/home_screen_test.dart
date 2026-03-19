@@ -7,6 +7,7 @@ import 'package:wallet_ai/providers/providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockChatProvider extends Mock implements ChatProvider {}
+
 class MockRecordProvider extends Mock implements RecordProvider {}
 
 void main() {
@@ -21,7 +22,7 @@ void main() {
     when(() => mockChatProvider.isStreaming).thenReturn(false);
     when(() => mockChatProvider.addListener(any())).thenReturn(null);
     when(() => mockChatProvider.removeListener(any())).thenReturn(null);
-    
+
     when(() => mockRecordProvider.records).thenReturn([]);
     when(() => mockRecordProvider.filteredRecords).thenReturn([]);
     when(() => mockRecordProvider.isLoading).thenReturn(false);
@@ -33,9 +34,7 @@ void main() {
         ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider),
         ChangeNotifierProvider<RecordProvider>.value(value: mockRecordProvider),
       ],
-      child: const MaterialApp(
-        home: HomeScreen(),
-      ),
+      child: const MaterialApp(home: HomeScreen()),
     );
   }
 

@@ -12,9 +12,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  final FocusNode _recordingFocusNode = FocusNode();
+  late final TabController _tabController;
+
   @override
   void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     // Check if the app was opened from a widget
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
       if (uri != null) {
@@ -24,46 +29,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Listen for clicks while the app is in the background
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
+  }
 
-    super.initState();
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _recordingFocusNode.dispose();
+    super.dispose();
   }
 
   void _handleWidgetClick(Uri? uri) {
-    print('ccc $uri');
-    if (uri?.host == 'wallet') {
-      // Navigator.pushNamed(context, '/wallet');
-      print("Widget clicked! Navigate to wallet.");
+    if (uri?.host == 'record') {
+      // Navigate to Chat tab first
+      _tabController.animateTo(0);
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          _recordingFocusNode.requestFocus();
+        }
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
-        appBar: AppBar(
-          title: Column(
-            children: [
-              Text('Wallet AI', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-              Text(
-                'Always active',
-                style: GoogleFonts.poppins(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-          actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
-          bottom: TabBar(
-            labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            tabs: const [
-              Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
-              Tab(icon: Icon(Icons.receipt_long), text: 'Records'),
-              Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
+      appBar: AppBar(
+        title: Column(
+          children: [
+            Text('Wallet AI', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+            Text(
+              'Always active',
+              style: GoogleFonts.poppins(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
-        drawer: _buildAppDrawer(context),
-        body: const SafeArea(child: TabBarView(children: [ChatTab(), RecordsTab(), TestTab()])),
+        actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
+        bottom: TabBar(
+          controller: _tabController,
+          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          tabs: const [
+            Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
+            Tab(icon: Icon(Icons.receipt_long), text: 'Records'),
+            Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
+          ],
+        ),
+      ),
+      drawer: _buildAppDrawer(context),
+      body: SafeArea(
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            ChatTab(focusNode: _recordingFocusNode),
+            const RecordsTab(),
+            const TestTab(),
+          ],
+        ),
       ),
     );
   }
@@ -100,8 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: const Icon(Icons.chat_bubble_outline),
             title: const Text('Chat'),
             onTap: () {
-              final controller = DefaultTabController.of(context);
-              controller.animateTo(0);
+              _tabController.animateTo(0);
               Navigator.of(context).pop();
             },
           ),
@@ -109,8 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: const Icon(Icons.receipt_long),
             title: const Text('Records'),
             onTap: () {
-              final controller = DefaultTabController.of(context);
-              controller.animateTo(1);
+              _tabController.animateTo(1);
               Navigator.of(context).pop();
             },
           ),
@@ -118,8 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: const Icon(Icons.science_outlined),
             title: const Text('Test'),
             onTap: () {
-              final controller = DefaultTabController.of(context);
-              controller.animateTo(2);
+              _tabController.animateTo(2);
               Navigator.of(context).pop();
             },
           ),
