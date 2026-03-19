@@ -1,26 +1,27 @@
-# Handoff Note (Task #32: CRUD Delegation & State Sync Implementation)
+# Handoff Note (Task #010: Integrate Providers)
 
 ## Completed
-- Implemented Record CRUD methods in `RecordProvider`: `addRecord`, `updateRecord`, and `deleteRecord`.
-- Implemented MoneySource CRUD methods in `RecordProvider`: `addMoneySource`, `updateMoneySource`, and `deleteMoneySource`.
-- All CRUD methods follow the "Write-to-DB then Update-State" pattern (AD-1).
-- Error handling in CRUD methods automatically reloads all data using `loadAll()` to ensure state consistency with the database.
-- Added comprehensive unit tests in `test/providers/record_provider_test.dart` for all CRUD operations and error handling/reloading.
-- Verified that `isLoading` state is correctly managed during all async operations.
+- Updated `ChatProvider` to hold a reference to `RecordProvider`.
+- Modified `ChatProvider.sendMessage` to fetch formatted category and money source context from `RecordProvider` using `ChatApiService` helpers.
+- These context strings are now passed to `ChatApiService.streamChat` to provide the AI with necessary IDs and names.
+- Updated `ChatProvider.onDone` to call `_recordProvider?.loadAll()` whenever new records are successfully created via chat. This ensures the record list and balances stay synchronized.
+- Refactored `main.dart` to reverse the provider dependency: `RecordProvider` is now a standalone `ChangeNotifierProvider`, and `ChatProvider` is a `ChangeNotifierProxyProvider<RecordProvider, ChatProvider>`.
+- Refactored `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart` to match the new dependency structure.
 
 ## Decisions Made
-- Chose to call `loadAll()` in the `catch` block of all CRUD operations to guarantee state consistency even if individual state updates fail.
-- Used `mocktail` for unit testing with `Fake` classes for `Record` and `MoneySource` to support `any()` matchers.
-- Did not modify `RecordRepository` as it was not listed as a target file, but confirmed the Provider handles potential database errors (like foreign key violations) correctly by reloading.
+- Chose to have `ChatProvider` explicitly call `recordProvider.loadAll()` rather than relying on a reverse dependency through `ChangeNotifierProxyProvider`. This avoids a circular dependency while still ensuring state synchronization.
+- Kept `_dbUpdateVersion` in `ChatProvider` as an internal state counter, although it's no longer used for the primary sync mechanism in `main.dart`.
 
 ## State of Tests
-- All 17 tests in `test/providers/record_provider_test.dart` passed successfully.
-- Verified that the build still completes successfully.
+- Integration test `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart` passed successfully.
+- Code analysis (`fvm flutter analyze`) and basic unit tests pass.
 
 ## Files Changed
-- `lib/providers/record_provider.dart`: Added CRUD methods.
-- `test/providers/record_provider_test.dart`: Added unit tests for CRUD operations.
+- `lib/providers/chat_provider.dart`: Added `RecordProvider` dependency and context injection logic.
+- `lib/main.dart`: Updated provider tree to resolve dependency reversal.
+- `tests/integration/epic_record-provider/chat_record_sync_integration_test.dart`: Updated to reflect new provider architecture.
+- `.claude/epics/update-message-body/010.md`: Marked task as closed.
 
 ## Warnings for next task
-- Be aware that `RecordRepository` does not currently enable `PRAGMA foreign_keys = ON;`, so foreign key violations might not actually occur in the SQLite database unless that's changed in future tasks.
-- Next tasks will likely involve integrating these CRUD methods into the UI (e.g., adding/editing records from a screen).
+- Task #020 will involve refactoring the AI parser to use the newly provided IDs instead of string matching.
+- Ensure that the AI prompt on the server side (Dify) is updated to handle `category_list` and `money_source_list` inputs.

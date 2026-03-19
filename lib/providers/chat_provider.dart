@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/services.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [ChatMessage(id: 'welcome', role: ChatRole.assistant, content: 'Hello! How can I help you today?', timestamp: DateTime.now())];
@@ -12,12 +13,17 @@ class ChatProvider extends ChangeNotifier {
   String? _conversationId;
   int _dbUpdateVersion = 0;
   StreamSubscription<ChatStreamResponse>? _streamSubscription;
+  RecordProvider? _recordProvider;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
   String? get error => _error;
   String? get conversationId => _conversationId;
   int get dbUpdateVersion => _dbUpdateVersion;
+
+  set recordProvider(RecordProvider? value) {
+    _recordProvider = value;
+  }
 
   @visibleForTesting
   void incrementDbUpdateVersionForTest() {
@@ -44,10 +50,18 @@ class ChatProvider extends ChangeNotifier {
     String fullText = '';
     bool displayTextCompleted = false;
 
+    final categoryList = ChatApiService.formatCategories(_recordProvider?.categories ?? []);
+    final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources ?? []);
+
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(content, conversationId: _conversationId)
+          .streamChat(
+            content,
+            conversationId: _conversationId,
+            categoryList: categoryList,
+            moneySourceList: moneySourceList,
+          )
           .listen(
             (response) {
               if (response.conversationId != null) {
@@ -133,6 +147,7 @@ class ChatProvider extends ChangeNotifier {
                       _messages[index] = _messages[index].copyWith(records: records);
                     }
                     _dbUpdateVersion++;
+                    await _recordProvider?.loadAll();
                   }
                 } catch (e) {
                   debugPrint('Error parsing records JSON: $e');
