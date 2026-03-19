@@ -33,6 +33,7 @@ void main() {
     test('loadAll sets isLoading to true then false', () async {
       when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
       when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+      when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
       final future = recordProvider.loadAll();
       expect(recordProvider.isLoading, true);
@@ -48,9 +49,13 @@ void main() {
       final mockMoneySources = [
         MoneySource(sourceId: 1, sourceName: 'Test Source'),
       ];
+      final mockCategories = [
+        Category(categoryId: 1, name: 'Food', type: 'expense'),
+      ];
 
       when(() => mockRepository.getAllRecords()).thenAnswer((_) async => mockRecords);
       when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => mockMoneySources);
+      when(() => mockRepository.getAllCategories()).thenAnswer((_) async => mockCategories);
 
       await recordProvider.loadAll();
 
@@ -58,11 +63,14 @@ void main() {
       expect(recordProvider.records[0].amount, 100.0);
       expect(recordProvider.moneySources.length, 1);
       expect(recordProvider.moneySources[0].sourceName, 'Test Source');
+      expect(recordProvider.categories.length, 1);
+      expect(recordProvider.categories[0].name, 'Food');
     });
 
     test('loadAll handles error gracefully', () async {
       when(() => mockRepository.getAllRecords()).thenThrow(Exception('DB Error'));
       when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+      when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
       await recordProvider.loadAll();
 
@@ -72,7 +80,7 @@ void main() {
 
     group('CRUD operations', () {
       test('addRecord adds to internal list and calls repository', () async {
-        final newRecord = Record(moneySourceId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
+        final newRecord = Record(moneySourceId: 1, categoryId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
         when(() => mockRepository.createRecord(newRecord)).thenAnswer((_) async => 10);
 
         await recordProvider.addRecord(newRecord);
@@ -83,9 +91,10 @@ void main() {
       });
 
       test('updateRecord updates internal list and calls repository', () async {
-        final initialRecord = Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Old', type: 'expense');
+        final initialRecord = Record(recordId: 1, moneySourceId: 1, categoryId: 1, amount: 100.0, currency: 'VND', description: 'Old', type: 'expense');
         when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [initialRecord]);
         when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
         await recordProvider.loadAll();
 
         final updatedRecord = initialRecord.copyWith(amount: 150.0);
@@ -98,9 +107,10 @@ void main() {
       });
 
       test('deleteRecord removes from internal list and calls repository', () async {
-        final recordToDelete = Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Delete me', type: 'expense');
+        final recordToDelete = Record(recordId: 1, moneySourceId: 1, categoryId: 1, amount: 100.0, currency: 'VND', description: 'Delete me', type: 'expense');
         when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [recordToDelete]);
         when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
         await recordProvider.loadAll();
 
         when(() => mockRepository.deleteRecord(1)).thenAnswer((_) async => 1);
@@ -126,6 +136,7 @@ void main() {
         final initialSource = MoneySource(sourceId: 1, sourceName: 'Old Bank');
         when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
         when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => [initialSource]);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
         await recordProvider.loadAll();
 
         final updatedSource = initialSource.copyWith(sourceName: 'New Bank');
@@ -141,6 +152,7 @@ void main() {
         final sourceToDelete = MoneySource(sourceId: 1, sourceName: 'Delete me');
         when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
         when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => [sourceToDelete]);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
         await recordProvider.loadAll();
 
         when(() => mockRepository.deleteMoneySource(1)).thenAnswer((_) async => 1);
@@ -156,25 +168,28 @@ void main() {
         // For reload
         when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
         when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
-        final record = Record(moneySourceId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
+        final record = Record(moneySourceId: 1, categoryId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
         await recordProvider.addRecord(record);
 
         verify(() => mockRepository.getAllRecords()).called(1);
         verify(() => mockRepository.getAllMoneySources()).called(1);
+        verify(() => mockRepository.getAllCategories()).called(1);
       });
     });
 
     group('filtering and sorting', () {
       final mockRecords = [
-        Record(recordId: 1, moneySourceId: 1, amount: 100.0, currency: 'VND', description: 'Exp 1', type: 'expense'),
-        Record(recordId: 2, moneySourceId: 2, amount: 200.0, currency: 'VND', description: 'Inc 1', type: 'income'),
-        Record(recordId: 3, moneySourceId: 1, amount: 300.0, currency: 'VND', description: 'Inc 2', type: 'income'),
+        Record(recordId: 1, moneySourceId: 1, categoryId: 1, amount: 100.0, currency: 'VND', description: 'Exp 1', type: 'expense'),
+        Record(recordId: 2, moneySourceId: 2, categoryId: 2, amount: 200.0, currency: 'VND', description: 'Inc 1', type: 'income'),
+        Record(recordId: 3, moneySourceId: 1, categoryId: 1, amount: 300.0, currency: 'VND', description: 'Inc 2', type: 'income'),
       ];
 
       setUp(() async {
         when(() => mockRepository.getAllRecords()).thenAnswer((_) async => mockRecords);
         when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
         await recordProvider.loadAll();
       });
 

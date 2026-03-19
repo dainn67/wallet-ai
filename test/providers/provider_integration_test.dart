@@ -16,6 +16,7 @@ void main() {
     // Default mock behavior
     when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+    when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
   });
 
   testWidgets('RecordProvider.loadAll is triggered when ChatProvider.dbUpdateVersion changes', (WidgetTester tester) async {
@@ -52,6 +53,7 @@ void main() {
     // Initial load should have been called
     verify(() => mockRepository.getAllRecords()).called(1);
     verify(() => mockRepository.getAllMoneySources()).called(1);
+    verify(() => mockRepository.getAllCategories()).called(1);
 
     // Increment version in chatProvider
     chatProvider.incrementDbUpdateVersionForTest();
@@ -62,5 +64,6 @@ void main() {
     // loadAll should be called again
     verify(() => mockRepository.getAllRecords()).called(1);
     verify(() => mockRepository.getAllMoneySources()).called(1);
+    verify(() => mockRepository.getAllCategories()).called(1);
   });
 }
