@@ -172,7 +172,12 @@ class RecordRepository {
 
   Future<List<Record>> getAllRecords() async {
     try {
-      final List<Map<String, dynamic>> maps = await database.query('record');
+      final List<Map<String, dynamic>> maps = await database.rawQuery('''
+        SELECT r.*, c.name as category_name
+        FROM record r
+        LEFT JOIN Category c ON r.category_id = c.category_id
+        ORDER BY r.created_at DESC
+      ''');
       return List.generate(maps.length, (i) => Record.fromMap(maps[i]));
     } catch (e) {
       print("Error fetching records: $e");
@@ -182,7 +187,13 @@ class RecordRepository {
 
   Future<Record?> getRecordById(int id) async {
     try {
-      final maps = await database.query('record', where: 'record_id = ?', whereArgs: [id], limit: 1);
+      final maps = await database.rawQuery('''
+        SELECT r.*, c.name as category_name
+        FROM record r
+        LEFT JOIN Category c ON r.category_id = c.category_id
+        WHERE r.record_id = ?
+        LIMIT 1
+      ''', [id]);
       if (maps.isEmpty) return null;
       return Record.fromMap(maps.first);
     } catch (e) {
