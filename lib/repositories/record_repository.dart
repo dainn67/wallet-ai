@@ -59,9 +59,17 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 4;
+  static const int _dbVersion = 5;
 
   static Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE Category (
+        category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL
+      )
+    ''');
+
     await db.execute('''
       CREATE TABLE MoneySource (
         source_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,22 +82,39 @@ class RecordRepository {
       CREATE TABLE record (
         record_id INTEGER PRIMARY KEY AUTOINCREMENT,
         money_source_id INTEGER NOT NULL,
+        category_id INTEGER NOT NULL DEFAULT 1,
         amount REAL NOT NULL,
         currency TEXT NOT NULL,
         description TEXT,
         type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
         created_at INTEGER NOT NULL,
-        FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id)
+        FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
+        FOREIGN KEY (category_id) REFERENCES Category (category_id)
       )
     ''');
 
     await db.execute('CREATE INDEX idx_record_money_source_id ON record(money_source_id)');
+    await db.execute('CREATE INDEX idx_record_category_id ON record(category_id)');
     await db.execute('CREATE INDEX idx_record_type ON record(type)');
     await db.execute('CREATE INDEX idx_record_created_at ON record(created_at)');
 
     // Initial Data
-    await db.insert('MoneySource', {'source_name': 'Wallet', 'total': 0, 'total_income': 0, 'total_expense': 0});
-    await db.insert('MoneySource', {'source_name': 'Bank', 'total': 0, 'total_income': 0, 'total_expense': 0});
+    await _seedDatabase(db);
+  }
+
+  static Future<void> _seedDatabase(Database db) async {
+    // Seed Categories
+    await db.insert('Category', {'name': 'Uncategorized', 'type': 'expense'}); // ID: 1
+    await db.insert('Category', {'name': 'Food', 'type': 'expense'});
+    await db.insert('Category', {'name': 'Transport', 'type': 'expense'});
+    await db.insert('Category', {'name': 'Entertainment', 'type': 'expense'});
+    await db.insert('Category', {'name': 'Salary', 'type': 'income'});
+    await db.insert('Category', {'name': 'Rent', 'type': 'expense'});
+    await db.insert('Category', {'name': 'Health', 'type': 'expense'});
+
+    // Seed MoneySources
+    await db.insert('MoneySource', {'source_name': 'Wallet', 'amount': 0});
+    await db.insert('MoneySource', {'source_name': 'Bank', 'amount': 0});
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -112,6 +137,13 @@ class RecordRepository {
     if (oldVersion < 4) {
       await db.execute('ALTER TABLE MoneySource ADD COLUMN amount REAL NOT NULL DEFAULT 0');
       await db.execute('UPDATE MoneySource SET amount = COALESCE(amount, 0)');
+    }
+    if (oldVersion < 5) {
+      // User requested fresh start for this version
+      await db.execute('DROP TABLE IF EXISTS record');
+      await db.execute('DROP TABLE IF EXISTS MoneySource');
+      await db.execute('DROP TABLE IF EXISTS Category');
+      await _onCreate(db, newVersion);
     }
   }
 
