@@ -78,7 +78,10 @@ class RecordsTab extends StatelessWidget {
                               record.description,
                               style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                             ),
-                            Text(isExpense ? 'Expense' : 'Income', style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
+                            Text(
+                              '${record.categoryName ?? (isExpense ? 'Expense' : 'Income')} • ${record.sourceName ?? 'Unknown'}',
+                              style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B)),
+                            ),
                           ],
                         ),
                       ),

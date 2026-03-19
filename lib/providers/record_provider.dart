@@ -7,6 +7,8 @@ class RecordProvider extends ChangeNotifier {
 
   List<Record> _records = [];
   List<MoneySource> _moneySources = [];
+  List<Category> _categories = [];
+  Map<int, String> _categoryCache = {};
   bool _isLoading = false;
   int _lastDbUpdateVersion = 0;
 
@@ -19,8 +21,13 @@ class RecordProvider extends ChangeNotifier {
 
   List<Record> get records => List.unmodifiable(_records);
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
+  List<Category> get categories => List.unmodifiable(_categories);
   bool get isLoading => _isLoading;
   int get lastDbUpdateVersion => _lastDbUpdateVersion;
+
+  String getCategoryName(int id) {
+    return _categoryCache[id] ?? 'Unknown';
+  }
 
   set lastDbUpdateVersion(int value) {
     _lastDbUpdateVersion = value;
@@ -85,10 +92,21 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await Future.wait([_repository.getAllRecords(), _repository.getAllMoneySources()]);
+      final results = await Future.wait([
+        _repository.getAllRecords(),
+        _repository.getAllMoneySources(),
+        _repository.getAllCategories(),
+      ]);
 
       _records = results[0] as List<Record>;
       _moneySources = results[1] as List<MoneySource>;
+      _categories = results[2] as List<Category>;
+
+      // Update cache
+      _categoryCache = {
+        for (var c in _categories)
+          if (c.categoryId != null) c.categoryId!: c.name
+      };
     } catch (e) {
       debugPrint('Error loading data in RecordProvider: $e');
     } finally {
