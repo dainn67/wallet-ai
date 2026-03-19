@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:home_widget/home_widget.dart';
 
 class TestTab extends StatelessWidget {
   const TestTab({super.key});
@@ -23,9 +24,7 @@ class TestTab extends StatelessWidget {
       await provider.addRecord(r);
     }
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added ${demoRecords.length} demo records'), behavior: SnackBarBehavior.floating),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${demoRecords.length} demo records'), behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -36,9 +35,7 @@ class TestTab extends StatelessWidget {
       await provider.addMoneySource(s);
     }
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added ${demoSources.length} demo money sources'), behavior: SnackBarBehavior.floating),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${demoSources.length} demo money sources'), behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -49,17 +46,10 @@ class TestTab extends StatelessWidget {
       children: [
         Text(
           'Demo data',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF1E293B),
-          ),
+          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
         ),
         const SizedBox(height: 8),
-        Text(
-          'Add sample records and money sources for testing.',
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF64748B)),
-        ),
+        Text('Add sample records and money sources for testing.', style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF64748B))),
         const SizedBox(height: 24),
         FilledButton.icon(
           onPressed: () => _addDemoRecords(context),
@@ -80,7 +70,24 @@ class TestTab extends StatelessWidget {
             textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
         ),
+        FilledButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.account_balance_wallet),
+          label: const Text('Add demo money sources'),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+        ),
       ],
+    );
+  }
+
+  Future<void> updateAndroidWidget() async {
+    await HomeWidget.saveWidgetData<String>('title', 'Hello from Flutter!');
+
+    await HomeWidget.updateWidget(
+      androidName: 'MyWidgetReceiver', // Name of your Receiver class
     );
   }
 }
