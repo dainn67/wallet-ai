@@ -1,8 +1,8 @@
 ---
 name: add-category-table
-status: backlog
+status: completed
 created: 2026-03-18T12:35:00Z
-progress: 0%
+progress: 100%
 priority: P1
 prd: .claude/prds/add-category-table.md
 task_count: 5

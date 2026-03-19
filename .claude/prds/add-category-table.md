@@ -1,7 +1,7 @@
 ---
 name: add-category-table
 description: Implement a structured categorization system for financial records by adding a Category table and updating the Record model and UI.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-03-18T12:30:00Z
