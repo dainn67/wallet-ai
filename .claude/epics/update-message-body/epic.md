@@ -1,7 +1,9 @@
 ---
 name: update-message-body
-status: closed
+status: completed
 created: 2026-03-19T06:35:00Z
+updated: 2026-03-19T10:25:00Z
+completed: 2026-03-19T10:25:00Z
 progress: 100%
 priority: P1
 prd: .claude/prds/update-message-body.md
@@ -9,10 +11,11 @@ task_count: 5
 github: "https://github.com/dainn67/wallet-ai/issues/63"
 ---
 
-# Epic: update-message-body
+# Epic: update-message-body (Completed)
 
-## Overview
-This epic streamlines the AI record creation process by providing the AI with specific schema context (money sources and categories with their IDs). By including these as "inputs" in the chat request, we enable the AI to return structured JSON with direct ID mappings. This allows us to remove the "find and match" string logic in `ChatProvider`, making the app's financial tracking more robust and less susceptible to name variations or typos.
+## Final Summary
+Streamlined the AI record creation process by providing specific schema context (money sources and categories with their IDs) to the AI. Refactored the `ChatProvider` parser to use these direct ID mappings, removing brittle string-matching logic and improving system robustness. Added comprehensive unit and integration tests to verify the new flow.
+
 
 ## Architecture Decisions
 ### AD-1: Serialized Context Strings
