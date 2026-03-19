@@ -15,6 +15,16 @@ class ChatApiService {
 
   ChatApiService._internal();
 
+  static String formatMoneySources(List<MoneySource> sources) {
+    if (sources.isEmpty) return 'No money sources available';
+    return sources.map((s) => '${s.sourceId}-${s.sourceName}').join(', ');
+  }
+
+  static String formatCategories(List<Category> categories) {
+    if (categories.isEmpty) return 'No categories available';
+    return categories.map((c) => '${c.categoryId}-${c.name}').join(', ');
+  }
+
   Stream<ChatStreamResponse> streamChat(String message, {String? conversationId}) async* {
     try {
       final inputs = {
