@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:home_widget/home_widget.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
 import 'tabs/test_tab.dart';
@@ -12,6 +13,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    // Check if the app was opened from a widget
+    HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
+      if (uri != null) {
+        _handleWidgetClick(uri);
+      }
+    });
+
+    // Listen for clicks while the app is in the background
+    HomeWidget.widgetClicked.listen(_handleWidgetClick);
+
+    super.initState();
+  }
+
+  void _handleWidgetClick(Uri? uri) {
+    print('ccc $uri');
+    if (uri?.host == 'wallet') {
+      // Navigator.pushNamed(context, '/wallet');
+      print("Widget clicked! Navigate to wallet.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -39,15 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         drawer: _buildAppDrawer(context),
-        body: const SafeArea(
-          child: TabBarView(
-            children: [
-              ChatTab(),
-              RecordsTab(),
-              TestTab(),
-            ],
-          ),
-        ),
+        body: const SafeArea(child: TabBarView(children: [ChatTab(), RecordsTab(), TestTab()])),
       ),
     );
   }
@@ -58,9 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary]),
-            ),
+            decoration: BoxDecoration(gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary])),
             child: Align(
               alignment: Alignment.bottomLeft,
               child: Column(
