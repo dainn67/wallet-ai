@@ -88,7 +88,6 @@ class AppWidget : GlanceAppWidget() {
     }
 
     @Composable
-    @Composable
     private fun LargeDashboard(context: Context, prefs: android.content.SharedPreferences, surfaceColor: Color, accentColor: Color) {
         val balance = prefs.getString("total_balance", "0") ?: "0"
         val income = prefs.getString("total_income", "0") ?: "0"

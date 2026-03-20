@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: Colors.white.withOpacity(0.15),
+                    backgroundColor: Colors.white.withValues(alpha: 0.15),
                     child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white),
                   ),
                   const SizedBox(height: 12),
@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     AppConfig().appName,
                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
                   ),
-                  Text('Personal finance copilot', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.9), fontSize: 12)),
+                  Text('Personal finance copilot', style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
                 ],
               ),
             ),

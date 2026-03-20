@@ -103,6 +103,7 @@ class APIHelper {
       final request = await client.postUrl(Uri.parse(url));
       request.headers.set('Content-Type', 'application/json; charset=utf-8');
       request.headers.set('Accept', 'text/event-stream');
+      request.headers.set('ngrok-skip-browser-warning', 'true');
       if (token != null) {
         request.headers.set('Authorization', 'Bearer $token');
       }
@@ -116,6 +117,7 @@ class APIHelper {
       await request
           .close()
           .then((response) {
+            print('xxx response: $response');
             if (response.statusCode == 200) {
               final stream = response
                   .transform(utf8.decoder)
