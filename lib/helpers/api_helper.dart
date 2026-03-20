@@ -117,7 +117,6 @@ class APIHelper {
       await request
           .close()
           .then((response) {
-            print('xxx response: $response');
             if (response.statusCode == 200) {
               final stream = response
                   .transform(utf8.decoder)
