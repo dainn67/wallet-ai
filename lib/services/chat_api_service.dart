@@ -47,7 +47,7 @@ class ChatApiService {
       final stream = await ApiService().postStream('/api/chat-flow/wallet-ai-chatbot', data: inputs, token: _config.mainChatApiKey);
 
       if (stream == null) {
-        throw ApiException(message: 'Failed to connect to chat stream.');
+        throw ApiException(message: 'Error: stream in streamChat = null');
       }
 
       yield* stream.map((data) {

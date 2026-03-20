@@ -150,13 +150,13 @@ class APIHelper {
       if (callback != null) {
         callback(e);
       }
-      log('postStream socket error: $e - $url');
+      debugPrint('postStream socket error: $e - $url');
       completer.complete(null);
     } catch (e) {
       if (callback != null) {
         callback(e);
       }
-      log('postStream error: $e - $url');
+      debugPrint('postStream error: $e - $url');
       completer.complete(null);
     }
     return completer.future;

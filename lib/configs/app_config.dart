@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 enum AppEnvironment { dev, prod }
 
@@ -9,7 +13,23 @@ class AppConfig {
 
   AppConfig._internal();
 
+  final String appName = 'Wallet AI';
+
+  bool _devMode = kDebugMode;
+  bool get devMode => _devMode;
+
   final AppEnvironment environment = _getEnvironment();
+
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _devMode = prefs.getBool('dev_mode') ?? kDebugMode;
+  }
+
+  Future<void> toggleDevMode() async {
+    _devMode = !_devMode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('dev_mode', _devMode);
+  }
 
   static AppEnvironment _getEnvironment() {
     const env = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
@@ -25,7 +45,7 @@ class AppConfig {
   String get baseUrl {
     switch (environment) {
       case AppEnvironment.dev:
-        return 'http://localhost:8000';
+        return '${Platform.isIOS ? 'http://localhost' : 'http://192.168.30.111'}:8000';
       case AppEnvironment.prod:
         return 'https://4138-2405-4802-1d39-c3e0-a8b6-cb7d-92a5-977f.ngrok-free.app';
     }

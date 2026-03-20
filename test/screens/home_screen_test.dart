@@ -5,6 +5,7 @@ import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockChatProvider extends Mock implements ChatProvider {}
 
@@ -15,6 +16,7 @@ void main() {
   late MockRecordProvider mockRecordProvider;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     mockChatProvider = MockChatProvider();
     mockRecordProvider = MockRecordProvider();
 

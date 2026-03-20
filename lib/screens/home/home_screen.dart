@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:home_widget/home_widget.dart';
+import '../../configs/app_config.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
 import 'tabs/test_tab.dart';
@@ -16,6 +17,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   final FocusNode _recordingFocusNode = FocusNode();
   late final TabController _tabController;
 
+  // Dev mode toggle logic
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+
   @override
   void initState() {
     super.initState();
@@ -23,9 +28,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     // Check if the app was opened from a widget
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
-      if (uri != null) {
-        _handleWidgetClick(uri);
-      }
+      if (uri != null) _handleWidgetClick(uri);
     });
 
     // Listen for clicks while the app is in the background
@@ -42,9 +45,51 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void _handleWidgetClick(Uri? uri) {
     debugPrint('Widget Clicked: $uri');
     if (uri?.host == 'record') {
+      // Switch to chat tab
       _tabController.animateTo(0);
-      _recordingFocusNode.requestFocus();
+
+      // Wait for tab animation to finish before requesting focus
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) _recordingFocusNode.requestFocus();
+      });
     }
+  }
+
+  void _handleTitleTap() {
+    final now = DateTime.now();
+    if (_lastTapTime == null || now.difference(_lastTapTime!) > const Duration(seconds: 5)) {
+      _tapCount = 1;
+    } else {
+      _tapCount++;
+    }
+    _lastTapTime = now;
+
+    if (_tapCount >= 10) {
+      _tapCount = 0;
+      AppConfig().toggleDevMode().then((_) {
+        if (mounted) {
+          setState(() {});
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Developer mode ${AppConfig().devMode ? 'enabled' : 'disabled'}'), duration: const Duration(seconds: 2)));
+        }
+      });
+    }
+  }
+
+  Widget _buildAppBarTitle() {
+    return GestureDetector(
+      onTap: _handleTitleTap,
+      child: Column(
+        children: [
+          Text(AppConfig().appName, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+          Text(
+            'Expense Tracker ${AppConfig().devMode ? '(dev)' : ''}',
+            style: GoogleFonts.poppins(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -52,15 +97,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
       appBar: AppBar(
-        title: Column(
-          children: [
-            Text('Wallet AI', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-            Text(
-              'Always active',
-              style: GoogleFonts.poppins(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
+        title: _buildAppBarTitle(),
         actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
         bottom: TabBar(
           controller: _tabController,
@@ -106,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Wallet AI',
+                    AppConfig().appName,
                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
                   ),
                   Text('Personal finance copilot', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.9), fontSize: 12)),

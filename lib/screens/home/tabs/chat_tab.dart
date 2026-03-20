@@ -105,7 +105,7 @@ class _ChatTabState extends State<ChatTab> {
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
       child: Row(
         children: [
@@ -134,7 +134,7 @@ class _ChatTabState extends State<ChatTab> {
               decoration: BoxDecoration(
                 color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary,
                 shape: BoxShape.circle,
-                boxShadow: [if (!isStreaming) BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                boxShadow: [if (!isStreaming) BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
               ),
               child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
             ),
@@ -163,7 +163,7 @@ class ChatBubble extends StatelessWidget {
           if (!isUser) ...[
             CircleAvatar(
               radius: 14,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: Icon(Icons.auto_awesome, size: 14, color: Theme.of(context).colorScheme.primary),
             ),
             const SizedBox(width: 8),
@@ -182,14 +182,11 @@ class ChatBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(isUser ? 20 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))],
                   ),
-                  child: Text(message.content, style: GoogleFonts.poppins(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
+                  child: Text(message.content.trim(), style: GoogleFonts.poppins(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
                 ),
-                if (message.records != null && message.records!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ...message.records!.map((record) => _buildRecordCard(context, record)).toList(),
-                ],
+                if (message.records != null && message.records!.isNotEmpty) ...[const SizedBox(height: 8), ...message.records!.map((record) => _buildRecordCard(context, record))],
               ],
             ),
           ),
@@ -209,13 +206,13 @@ class ChatBubble extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: (isExpense ? Colors.red : Colors.green).withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded, color: isExpense ? Colors.red : Colors.green, size: 16),
           ),
           const SizedBox(width: 12),

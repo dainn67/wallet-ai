@@ -10,11 +10,14 @@ import 'package:wallet_ai/services/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([
-      StorageService.init(),
-      RecordRepository.init(),
-      dotenv.load(fileName: ".env"),
-    ]);
+  await Future.wait([StorageService.init(), RecordRepository.init(), dotenv.load(fileName: ".env")]);
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Initialize AppConfig (loads devMode etc.)
+  await AppConfig().init();
+
   runApp(const MyApp());
 }
 
@@ -36,7 +39,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Wallet AI',
+        title: AppConfig().appName,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
