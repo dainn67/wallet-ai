@@ -1,0 +1,197 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:wallet_ai/models/models.dart';
+
+/// A component that displays a financial overview including total balance,
+/// income, expenses, and a horizontal list of money sources.
+class RecordsOverview extends StatelessWidget {
+  final double totalBalance;
+  final double totalIncome;
+  final double totalExpense;
+  final List<MoneySource> sources;
+
+  const RecordsOverview({
+    super.key,
+    required this.totalBalance,
+    required this.totalIncome,
+    required this.totalExpense,
+    required this.sources,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Total Balance Section
+          _buildBalanceHeader(),
+          const SizedBox(height: 24),
+
+          // Income and Expense Summary
+          Row(
+            children: [
+              _buildSummaryItem('Income', totalIncome, Colors.greenAccent),
+              const SizedBox(width: 40),
+              _buildSummaryItem('Spent', totalExpense, Colors.orangeAccent),
+            ],
+          ),
+
+          // Sources Section (Horizontal List)
+          if (sources.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(color: Colors.white10, height: 1),
+            ),
+            Text(
+              'Sources',
+              style: GoogleFonts.poppins(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 54,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: sources.length,
+                itemBuilder: (context, index) {
+                  final source = sources[index];
+                  return _buildSourceCard(source);
+                },
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Total Balance',
+              style: GoogleFonts.poppins(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              totalBalance.toStringAsFixed(0),
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.account_balance_wallet_rounded,
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryItem(String label, double amount, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          amount.toStringAsFixed(0),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSourceCard(MoneySource source) {
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            source.sourceName,
+            style: GoogleFonts.poppins(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 10,
+            ),
+          ),
+          Text(
+            source.amount.toStringAsFixed(0),
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

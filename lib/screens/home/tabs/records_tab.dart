@@ -15,14 +15,22 @@ class RecordsTab extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final filteredRecords = provider.filteredRecords;
+        final records = provider.filteredRecords;
+        final totalIncome = records.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
+        final totalExpense = records.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
+        final totalBalance = provider.moneySources.fold<double>(0, (sum, s) => sum + s.amount);
 
         return ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
           children: [
-            _buildOverviewCard(context, provider),
+            RecordsOverview(
+              totalBalance: totalBalance,
+              totalIncome: totalIncome,
+              totalExpense: totalExpense,
+              sources: provider.moneySources,
+            ),
             const SizedBox(height: 24),
-            if (filteredRecords.isEmpty)
+            if (records.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 60),
                 child: Column(
@@ -51,7 +59,7 @@ class RecordsTab extends StatelessWidget {
                   style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                 ),
               ),
-              ...filteredRecords.map((record) => Padding(
+              ...records.map((record) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: RecordWidget(record: record),
                   )),
@@ -59,119 +67,6 @@ class RecordsTab extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildOverviewCard(BuildContext context, RecordProvider provider) {
-    final records = provider.filteredRecords;
-    final totalIncome = records.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
-    final totalExpense = records.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
-
-    final totalBalance = provider.moneySources.fold<double>(0, (sum, s) => sum + s.amount);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Balance',
-                    style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    totalBalance.toStringAsFixed(0),
-                    style: GoogleFonts.poppins(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
-                child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 24),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              _buildSummaryMiniItem('Income', totalIncome, Colors.greenAccent),
-              const SizedBox(width: 40),
-              _buildSummaryMiniItem('Spent', totalExpense, Colors.orangeAccent),
-            ],
-          ),
-          if (provider.moneySources.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Divider(color: Colors.white10),
-            ),
-            Text('Sources', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.6), fontSize: 12)),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: provider.moneySources.map((source) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(source.sourceName, style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.5), fontSize: 10)),
-                        Text(
-                          source.amount.toStringAsFixed(0),
-                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryMiniItem(String label, double amount, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 6),
-            Text(label, style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.5), fontSize: 11)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          amount.toStringAsFixed(0),
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
-        ),
-      ],
     );
   }
 }
