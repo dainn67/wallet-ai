@@ -9,17 +9,11 @@ class RecordWidget extends StatelessWidget {
   final Record record;
   final VoidCallback? onTap;
 
-  const RecordWidget({
-    super.key,
-    required this.record,
-    this.onTap,
-  });
+  const RecordWidget({super.key, required this.record, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isExpense = record.type == 'expense';
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     // Use established colors for income/expense
     final recordColor = isExpense ? Colors.red : Colors.green;
@@ -35,33 +29,18 @@ class RecordWidget extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [
             // Icon Container
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isExpense
-                    ? Icons.arrow_outward_rounded
-                    : Icons.call_received_rounded,
-                color: recordColor,
-                size: 16,
-              ),
+              decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
+              child: Icon(isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded, color: recordColor, size: 16),
             ),
             const SizedBox(width: 12),
-            
+
             // Description and Subtitle
             Expanded(
               child: Column(
@@ -71,33 +50,19 @@ class RecordWidget extends StatelessWidget {
                     record.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1E293B),
-                    ),
+                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    _buildSubtitle(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: const Color(0xFF64748B),
-                    ),
-                  ),
+                  Text(_buildSubtitle(), style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
                 ],
               ),
             ),
-            
+
             // Amount
             const SizedBox(width: 8),
             Text(
               '${isExpense ? '-' : '+'}${record.amount.toStringAsFixed(0)} ${record.currency}',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: recordColor,
-              ),
+              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
             ),
           ],
         ),
@@ -108,7 +73,7 @@ class RecordWidget extends StatelessWidget {
   String _buildSubtitle() {
     final isExpense = record.type == 'expense';
     final parts = <String>[];
-    
+
     // Add category if available
     if (record.categoryName != null && record.categoryName!.isNotEmpty) {
       parts.add(record.categoryName!);

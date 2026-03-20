@@ -1,11 +1,11 @@
 ---
 name: refactor-ui-components
 description: Refactor record UI into reusable components and redesign the records overview with Material 3.
-status: backlog
+status: completed
 priority: P1
 scale: medium
 created: 2026-03-20T03:46:51Z
-updated: null
+updated: 2026-03-20T04:26:00Z
 ---
 
 # PRD: refactor-ui-components

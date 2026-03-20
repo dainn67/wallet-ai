@@ -102,10 +102,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         bottom: TabBar(
           controller: _tabController,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          tabs: const [
-            Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
-            Tab(icon: Icon(Icons.receipt_long), text: 'Records'),
-            Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
+          tabs: [
+            const Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
+            const Tab(icon: Icon(Icons.receipt_long), text: 'Records'),
+            if (AppConfig().devMode) const Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
           ],
         ),
       ),
@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           children: [
             ChatTab(focusNode: _recordingFocusNode),
             const RecordsTab(),
-            const TestTab(),
+            if (AppConfig().devMode) const TestTab(),
           ],
         ),
       ),
