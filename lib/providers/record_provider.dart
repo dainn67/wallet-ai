@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import 'package:home_widget/home_widget.dart';
 
 class RecordProvider extends ChangeNotifier {
   final RecordRepository _repository;
@@ -112,7 +113,30 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
+  }
+
+  void _updateWidget() {
+    double totalBalance = 0;
+    for (var source in _moneySources) {
+      totalBalance += source.amount;
+    }
+
+    double totalIncome = 0;
+    double totalSpend = 0;
+    for (var record in _records) {
+      if (record.type.toLowerCase() == 'income') {
+        totalIncome += record.amount;
+      } else if (record.type.toLowerCase() == 'expense') {
+        totalSpend += record.amount;
+      }
+    }
+
+    HomeWidget.saveWidgetData<String>('total_balance', 'VND ${totalBalance.toStringAsFixed(0)}');
+    HomeWidget.saveWidgetData<String>('total_income', totalIncome.toStringAsFixed(0));
+    HomeWidget.saveWidgetData<String>('total_spend', totalSpend.toStringAsFixed(0));
+    HomeWidget.updateWidget(androidName: 'MyWidgetReceiver');
   }
 
   // Record CRUD
@@ -128,6 +152,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
   }
 
@@ -146,6 +171,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
   }
 
@@ -161,6 +187,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
   }
 
@@ -177,6 +204,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
   }
 
@@ -195,6 +223,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
   }
 
@@ -210,6 +239,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      _updateWidget();
     }
   }
 }

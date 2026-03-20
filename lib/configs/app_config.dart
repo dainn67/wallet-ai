@@ -43,12 +43,8 @@ class AppConfig {
   }
 
   String get baseUrl {
-    switch (environment) {
-      case AppEnvironment.dev:
-        return '${Platform.isIOS ? 'http://localhost' : 'http://192.168.30.111'}:8000';
-      case AppEnvironment.prod:
-        return 'https://4138-2405-4802-1d39-c3e0-a8b6-cb7d-92a5-977f.ngrok-free.app';
-    }
+    if (!devMode) return 'https://4138-2405-4802-1d39-c3e0-a8b6-cb7d-92a5-977f.ngrok-free.app';
+    return '${Platform.isIOS ? 'http://localhost' : 'http://[IP_ADDRESS]'}:8000';
   }
 
   Duration get connectTimeout => const Duration(seconds: 10);
