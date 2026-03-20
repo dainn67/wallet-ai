@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/helpers/currency_helper.dart';
 
 /// A component that displays a financial overview including total balance,
 /// income, expenses, and a horizontal list of money sources.
@@ -103,7 +104,7 @@ class RecordsOverview extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              totalBalance.toStringAsFixed(0),
+              CurrencyHelper.format(totalBalance),
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 28,
@@ -151,7 +152,7 @@ class RecordsOverview extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          amount.toStringAsFixed(0),
+          CurrencyHelper.format(amount),
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18,
@@ -183,7 +184,7 @@ class RecordsOverview extends StatelessWidget {
             ),
           ),
           Text(
-            source.amount.toStringAsFixed(0),
+            CurrencyHelper.format(source.amount),
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 14,

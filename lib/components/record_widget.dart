@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/helpers/currency_helper.dart';
 
 /// A reusable component for displaying a [Record] (income or expense).
 ///
@@ -61,7 +62,7 @@ class RecordWidget extends StatelessWidget {
             // Amount
             const SizedBox(width: 8),
             Text(
-              '${isExpense ? '-' : '+'}${record.amount.toStringAsFixed(0)} ${record.currency}',
+              '${isExpense ? '-' : '+'}${CurrencyHelper.format(record.amount)} ${record.currency}',
               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
             ),
           ],

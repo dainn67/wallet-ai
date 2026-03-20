@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:wallet_ai/helpers/currency_helper.dart';
 
 class RecordProvider extends ChangeNotifier {
   final RecordRepository _repository;
@@ -133,9 +134,10 @@ class RecordProvider extends ChangeNotifier {
       }
     }
 
-    HomeWidget.saveWidgetData<String>('total_balance', 'VND ${totalBalance.toStringAsFixed(0)}');
-    HomeWidget.saveWidgetData<String>('total_income', totalIncome.toStringAsFixed(0));
-    HomeWidget.saveWidgetData<String>('total_spend', totalSpend.toStringAsFixed(0));
+    HomeWidget.saveWidgetData<String>('total_balance', CurrencyHelper.format(totalBalance));
+    HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(totalIncome));
+    HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(totalSpend));
+    HomeWidget.saveWidgetData<String>('currency', 'VND');
     HomeWidget.updateWidget(androidName: 'MyWidgetReceiver');
   }
 
