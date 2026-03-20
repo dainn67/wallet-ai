@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
@@ -186,51 +187,12 @@ class ChatBubble extends StatelessWidget {
                   ),
                   child: Text(message.content.trim(), style: GoogleFonts.poppins(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
                 ),
-                if (message.records != null && message.records!.isNotEmpty) ...[const SizedBox(height: 8), ...message.records!.map((record) => _buildRecordCard(context, record))],
+                if (message.records != null && message.records!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ...message.records!.map((record) => RecordWidget(record: record))
+                ],
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecordCard(BuildContext context, dynamic record) {
-    final isExpense = record.type == 'expense';
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: (isExpense ? Colors.red : Colors.green).withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: Icon(isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded, color: isExpense ? Colors.red : Colors.green, size: 16),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  record.description,
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
-                ),
-                Text(isExpense ? 'Expense' : 'Income', style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
-              ],
-            ),
-          ),
-          Text(
-            '${isExpense ? '-' : '+'}${record.amount.toStringAsFixed(0)} ${record.currency}',
-            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: isExpense ? Colors.red : Colors.green),
           ),
         ],
       ),
