@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
       appBar: AppBar(
         title: _buildAppBarTitle(),
-        actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
+        // actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
         bottom: TabBar(
           controller: _tabController,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ],
         ),
       ),
-      drawer: _buildAppDrawer(context),
+      // drawer: _buildAppDrawer(context),
       body: SafeArea(
         child: TabBarView(
           controller: _tabController,
