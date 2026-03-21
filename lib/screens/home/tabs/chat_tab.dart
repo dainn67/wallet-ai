@@ -187,10 +187,7 @@ class ChatBubble extends StatelessWidget {
                   ),
                   child: Text(message.content.trim(), style: GoogleFonts.poppins(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
                 ),
-                if (message.records != null && message.records!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ...message.records!.map((record) => RecordWidget(record: record))
-                ],
+                if (message.records != null && message.records!.isNotEmpty) ...[const SizedBox(height: 8), ...message.records!.map((record) => RecordWidget(record: record))],
               ],
             ),
           ),

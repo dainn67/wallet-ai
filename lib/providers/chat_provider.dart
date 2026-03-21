@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/services.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import '../configs/configs.dart';
 import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
@@ -73,11 +74,10 @@ class ChatProvider extends ChangeNotifier {
                 }
 
                 String displayText = assistantMessage.content;
-                final partialDelimiter = '--'; // Partial delimiter of --//--
 
                 if (!displayTextCompleted) {
-                  if (response.answer.contains(partialDelimiter)) {
-                    displayText = displayText + response.answer.split(partialDelimiter).first;
+                  if (response.answer.contains(ChatConfig.partialDelimiter) || response.answer.contains(ChatConfig.jsonStart)) {
+                    displayText = displayText + response.answer.split(ChatConfig.partialDelimiter).first.split(ChatConfig.jsonStart).first;
                     displayTextCompleted = true;
                   } else {
                     displayText = displayText + response.answer;
@@ -94,7 +94,7 @@ class ChatProvider extends ChangeNotifier {
             onDone: () async {
               _isStreaming = false;
 
-              final parts = fullText.split('--//--');
+              final parts = fullText.split(ChatConfig.delimiter);
               if (parts.length >= 2) {
                 final jsonString = parts[1].trim();
                 try {
