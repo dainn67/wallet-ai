@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           ListTile(
             leading: const Icon(Icons.chat_bubble_outline),
-            title: const Text('Chat'),
+            title: Text('Chat', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
             onTap: () {
               _tabController.animateTo(0);
               Navigator.of(context).pop();
@@ -161,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           ListTile(
             leading: const Icon(Icons.receipt_long),
-            title: const Text('Records'),
+            title: Text('Records', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
             onTap: () {
               _tabController.animateTo(1);
               Navigator.of(context).pop();
@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           ListTile(
             leading: const Icon(Icons.science_outlined),
-            title: const Text('Test'),
+            title: Text('Test', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
             onTap: () {
               _tabController.animateTo(2);
               Navigator.of(context).pop();

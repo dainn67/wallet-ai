@@ -10,6 +10,7 @@ class RecordsOverview extends StatelessWidget {
   final double totalIncome;
   final double totalExpense;
   final List<MoneySource> sources;
+  final Function(MoneySource)? onSourceTap;
 
   const RecordsOverview({
     super.key,
@@ -17,6 +18,7 @@ class RecordsOverview extends StatelessWidget {
     required this.totalIncome,
     required this.totalExpense,
     required this.sources,
+    this.onSourceTap,
   });
 
   @override
@@ -166,32 +168,52 @@ class RecordsOverview extends StatelessWidget {
   Widget _buildSourceCard(MoneySource source) {
     return Container(
       margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+      constraints: const BoxConstraints(minWidth: 100),
+      child: InkWell(
+        onTap: () => onSourceTap?.call(source),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            source.sourceName,
-            style: GoogleFonts.poppins(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 10,
-            ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
-          Text(
-            CurrencyHelper.format(source.amount),
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+          child: Stack(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    source.sourceName,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontSize: 10,
+                    ),
+                  ),
+                  Text(
+                    CurrencyHelper.format(source.amount),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Icon(
+                  Icons.edit_rounded,
+                  size: 10,
+                  color: Colors.white.withValues(alpha: 0.3),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

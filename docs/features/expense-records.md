@@ -13,6 +13,7 @@ The Expense Records feature handles the persistence and management of financial 
   - `loadAll()`: Fetches all data from the repository on initialization.
   - `addRecord(record)`: Orchestrates the creation of a new record through the repository.
   - `updateRecord(record)`, `deleteRecord(id)`: Handle standard CRUD logic with state synchronization.
+  - `updateMoneySource(source)`: Updates the balance of a money source through the repository.
   - `filteredRecords`: Reactive getter providing filtered and sorted records to the UI.
 
 ### Repository Layer

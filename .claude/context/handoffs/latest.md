@@ -1,18 +1,18 @@
-# Handoff: Epic 'update-message-body' Completion
+# Handoff: Task #001 - Verify Model & Add Dependency (add-record-timestamp)
 
 ## Summary
-The epic 'update-message-body' is now complete. The goal was to streamline the AI record creation process by providing specific schema context (money sources and categories with IDs) to the AI and refactoring the parser to use these IDs directly.
+Added `intl` dependency and verified the `Record` model and repository for consistent `createdAt` timestamp handling (milliseconds since epoch).
 
 ## Key Changes
-- **Service Layer**: Added `formatMoneySources` and `formatCategories` to `ChatApiService`. Updated `streamChat` to accept and send these as inputs to the Dify API.
-- **Provider Layer**: Updated `ChatProvider` to hold a reference to `RecordProvider` and pass context strings during `sendMessage`.
-- **Parser Refactor**: Completely rewrote the AI response parser in `ChatProvider` to use `source_id` and `category_id`. Removed legacy string-matching logic and added robust fallbacks.
-- **Verification**: All tests passed, and code analysis confirms no major issues in the modified files.
+- **Dependencies**: Added `intl: ^0.19.0` to `pubspec.yaml`.
+- **Model Layer**: Verified `Record` model constructor ensures `createdAt` is populated. Added unit tests for `Record` model.
+- **Persistence Layer**: Verified `RecordRepository` schema uses `INTEGER NOT NULL` for `created_at` and handles migrations for legacy records.
+- **Tests**: Created `test/models/record_test.dart` and confirmed all 3 tests pass.
 
-## Admin
-- All tasks in `.claude/epics/update-message-body/` are closed.
-- Epic status updated to `closed` in `epic.md`.
-- Integration verification and cleanup completed.
+## Verification
+- `fvm flutter pub get` successful.
+- `fvm flutter test test/models/record_test.dart` passed (3 tests).
+- Audit of `lib/models/record.dart` and `lib/repositories/record_repository.dart` completed.
 
-## Next Steps
-- Ensure server-side prompts in Dify are updated to match the new `category_list` and `money_source_list` inputs and return the expected JSON structure with IDs.
+## Note on Project Tests
+Running all tests (`fvm flutter test`) showed some pre-existing failures in `record_provider_test.dart` and `widget_test.dart` related to `WidgetsBinding` and `RecordRepository` initialization. These are unrelated to the current task's changes in the `Record` model.

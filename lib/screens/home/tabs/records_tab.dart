@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/models/models.dart';
 
 class RecordsTab extends StatelessWidget {
   const RecordsTab({super.key});
@@ -28,6 +29,7 @@ class RecordsTab extends StatelessWidget {
               totalIncome: totalIncome,
               totalExpense: totalExpense,
               sources: provider.moneySources,
+              onSourceTap: (source) => _showEditSourceDialog(context, source),
             ),
             const SizedBox(height: 24),
             if (records.isEmpty)
@@ -67,6 +69,42 @@ class RecordsTab extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  void _showEditSourceDialog(BuildContext context, MoneySource source) {
+    final controller = TextEditingController(text: source.amount.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit ${source.sourceName}'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'New Amount',
+            hintText: 'Enter total amount',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newAmount = double.tryParse(controller.text);
+              if (newAmount != null) {
+                context.read<RecordProvider>().updateMoneySource(
+                      source.copyWith(amount: newAmount),
+                    );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
   }
 }
