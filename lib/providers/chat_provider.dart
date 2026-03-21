@@ -8,7 +8,14 @@ import '../configs/configs.dart';
 import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final List<ChatMessage> _messages = [ChatMessage(id: 'welcome', role: ChatRole.assistant, content: 'Hello! How can I help you today?', timestamp: DateTime.now())];
+  final List<ChatMessage> _messages = [
+    ChatMessage(
+      id: 'welcome',
+      role: ChatRole.assistant,
+      content: 'Hello! I am ${AppConfig().appName}, your personal AI financial assistant. How can I help you today?',
+      timestamp: DateTime.now(),
+    ),
+  ];
   bool _isStreaming = false;
   String? _error;
   String? _conversationId;

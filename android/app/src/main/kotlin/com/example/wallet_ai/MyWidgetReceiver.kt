@@ -1,4 +1,4 @@
-package com.example.wallet_ai
+package com.leslie.wallyai
 
 import es.antonborri.home_widget.HomeWidgetGlanceWidgetReceiver
 
