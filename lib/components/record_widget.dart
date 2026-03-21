@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
 
@@ -19,6 +20,7 @@ class RecordWidget extends StatelessWidget {
     // Use established colors for income/expense
     final recordColor = isExpense ? Colors.red : Colors.green;
     final backgroundColor = recordColor.withValues(alpha: 0.1);
+    final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(record.createdAt));
 
     return InkWell(
       onTap: onTap,
@@ -55,6 +57,8 @@ class RecordWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(_buildSubtitle(), style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
+                  const SizedBox(height: 2),
+                  Text(formattedDate, style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF64748B))),
                 ],
               ),
             ),
