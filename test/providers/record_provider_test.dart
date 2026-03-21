@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:wallet_ai/models/models.dart';
@@ -10,7 +11,15 @@ class RecordFake extends Fake implements Record {}
 class MoneySourceFake extends Fake implements MoneySource {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const MethodChannel channel = MethodChannel('home_widget');
+
   setUpAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      return null;
+    });
     registerFallbackValue(RecordFake());
     registerFallbackValue(MoneySourceFake());
   });
