@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/models/models.dart';
@@ -55,21 +56,44 @@ class RecordsTab extends StatelessWidget {
               )
             else ...[
               Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 12),
+                padding: const EdgeInsets.only(left: 4, bottom: 4),
                 child: Text(
                   'Recent Records',
                   style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                 ),
               ),
-              ...records.map((record) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: RecordWidget(record: record),
-                  )),
+              ..._buildGroupedRecords(records),
             ],
           ],
         );
       },
     );
+  }
+
+  List<Widget> _buildGroupedRecords(List<Record> records) {
+    if (records.isEmpty) return [];
+
+    final List<Widget> groupedWidgets = [];
+    String? currentMonth;
+
+    for (final record in records) {
+      final date = DateTime.fromMillisecondsSinceEpoch(record.createdAt);
+      final monthYear = DateFormat('MMMM yyyy').format(date);
+
+      if (currentMonth != monthYear) {
+        currentMonth = monthYear;
+        groupedWidgets.add(MonthDivider(label: monthYear));
+      }
+
+      groupedWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: RecordWidget(record: record),
+        ),
+      );
+    }
+
+    return groupedWidgets;
   }
 
   void _showEditSourceDialog(BuildContext context, MoneySource source) {
