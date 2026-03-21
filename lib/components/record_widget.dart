@@ -57,17 +57,22 @@ class RecordWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(_buildSubtitle(), style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
-                  const SizedBox(height: 2),
-                  Text(formattedDate, style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF64748B))),
                 ],
               ),
             ),
 
-            // Amount
+            // Amount and Date
             const SizedBox(width: 8),
-            Text(
-              '${isExpense ? '-' : '+'}${CurrencyHelper.format(record.amount)} ${record.currency}',
-              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isExpense ? '-' : '+'}${CurrencyHelper.format(record.amount)} ${record.currency}',
+                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
+                ),
+                const SizedBox(height: 2),
+                Text(formattedDate, style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF64748B))),
+              ],
             ),
           ],
         ),

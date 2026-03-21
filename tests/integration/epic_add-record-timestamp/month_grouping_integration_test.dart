@@ -15,6 +15,10 @@ void main() {
 
   setUp(() {
     mockRepository = MockRecordRepository();
+    // Provide default mock behaviors to prevent TypeErrors during loadAll
+    when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+    when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+    when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
   });
 
   testWidgets('Integration Test: RecordsTab displays month headers for records from multiple months', (WidgetTester tester) async {
