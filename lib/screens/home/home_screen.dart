@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:home_widget/home_widget.dart';
 import '../../configs/app_config.dart';
 import 'tabs/chat_tab.dart';
@@ -82,10 +81,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       onTap: _handleTitleTap,
       child: Column(
         children: [
-          Text(AppConfig().appName, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+          Text(AppConfig().appName, style: const TextStyle(fontWeight: FontWeight.w700)),
           Text(
-            'Expense Tracker ${AppConfig().devMode ? '(dev)' : ''}',
-            style: GoogleFonts.poppins(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
+            'Expense Tracker ${AppConfig().devMode ? "(dev)" : ""}',
+            style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -101,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
         bottom: TabBar(
           controller: _tabController,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
             const Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
             const Tab(icon: Icon(Icons.receipt_long), text: 'Records'),
@@ -144,16 +143,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 12),
                   Text(
                     AppConfig().appName,
-                    style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
                   ),
-                  Text('Personal finance copilot', style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
+                  Text('Personal finance copilot', style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
                 ],
               ),
             ),
           ),
           ListTile(
             leading: const Icon(Icons.chat_bubble_outline),
-            title: Text('Chat', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            title: const Text('Chat', style: TextStyle(fontWeight: FontWeight.w500)),
             onTap: () {
               _tabController.animateTo(0);
               Navigator.of(context).pop();
@@ -161,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           ListTile(
             leading: const Icon(Icons.receipt_long),
-            title: Text('Records', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            title: const Text('Records', style: TextStyle(fontWeight: FontWeight.w500)),
             onTap: () {
               _tabController.animateTo(1);
               Navigator.of(context).pop();
@@ -169,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           ListTile(
             leading: const Icon(Icons.science_outlined),
-            title: Text('Test', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            title: const Text('Test', style: TextStyle(fontWeight: FontWeight.w500)),
             onTap: () {
               _tabController.animateTo(2);
               Navigator.of(context).pop();

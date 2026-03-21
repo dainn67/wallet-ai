@@ -1,11 +1,11 @@
 ---
 name: setup-font
 description: Completely replace google_fonts with local Poppins font assets for offline support and faster loading.
-status: backlog
+status: done
 priority: P1
 scale: small
 created: 2026-03-21T09:55:00Z
-updated: null
+updated: 2026-03-21T11:45:00Z
 ---
 
 # PRD: setup-font
@@ -59,9 +59,9 @@ None.
 Fonts must be available immediately on app launch, eliminating any "flash of default font" (FOUT) caused by network fetching.
 
 ## Success Criteria
-- [ ] No `google_fonts` import remains in any Dart file.
-- [ ] All UI elements render with the Poppins font, even in airplane mode.
-- [ ] Font weights (Bold, Medium, Light, etc.) are correctly reflected in the UI as per the original design.
+- [x] No `google_fonts` import remains in any Dart file.
+- [x] All UI elements render with the Poppins font, even in airplane mode.
+- [x] Font weights (Bold, Medium, Light, etc.) are correctly reflected in the UI as per the original design.
 
 ## Risks & Mitigations
 

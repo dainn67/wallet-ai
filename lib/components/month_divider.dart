@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// A component that displays a month/year label to divide records in a list.
 class MonthDivider extends StatelessWidget {
@@ -16,10 +15,10 @@ class MonthDivider extends StatelessWidget {
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF64748B),
+              color: Color(0xFF64748B),
             ),
           ),
           const SizedBox(width: 12),

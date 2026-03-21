@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
 
@@ -65,7 +64,7 @@ class RecordsOverview extends StatelessWidget {
             ),
             Text(
               'Sources',
-              style: GoogleFonts.poppins(
+              style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -98,7 +97,7 @@ class RecordsOverview extends StatelessWidget {
           children: [
             Text(
               'Total Balance',
-              style: GoogleFonts.poppins(
+              style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -107,7 +106,7 @@ class RecordsOverview extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               CurrencyHelper.format(totalBalance),
-              style: GoogleFonts.poppins(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -145,7 +144,7 @@ class RecordsOverview extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               label,
-              style: GoogleFonts.poppins(
+              style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 11,
               ),
@@ -155,7 +154,7 @@ class RecordsOverview extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           CurrencyHelper.format(amount),
-          style: GoogleFonts.poppins(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -187,14 +186,14 @@ class RecordsOverview extends StatelessWidget {
                 children: [
                   Text(
                     source.sourceName,
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.5),
                       fontSize: 10,
                     ),
                   ),
                   Text(
                     CurrencyHelper.format(source.amount),
-                    style: GoogleFonts.poppins(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

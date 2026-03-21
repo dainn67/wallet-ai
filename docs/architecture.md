@@ -24,3 +24,4 @@ This document defines the core technologies and patterns used in the wallet_ai p
 Detailed technical documentation for specific features is maintained separately:
 - [AI Chat](features/ai-chat.md): Streaming AI assistant and parsing logic.
 - [Expense Records](features/expense-records.md): SQLite persistence, repository transactions, and state management.
+- [Typography](features/typography.md): Local Poppins font configuration and global application.

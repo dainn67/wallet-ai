@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:wallet_ai/components/record_widget.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:intl/intl.dart';
 
 void main() {
-  // Mock GoogleFonts to avoid issues in tests
-  GoogleFonts.config.allowRuntimeFetching = false;
-
   group('RecordWidget Tests', () {
     final testDate = DateTime(2026, 3, 21);
     final testRecord = Record(
@@ -51,7 +47,7 @@ void main() {
       final textWidget = tester.widget<Text>(dateText);
       expect(textWidget.style?.fontSize, 10);
       expect(textWidget.style?.color, const Color(0xFF64748B));
-      expect(textWidget.style?.fontFamily, contains('Poppins'));
+      expect(textWidget.style?.fontFamily, isNull);
     });
 
     testWidgets('renders description and subtitle correctly', (WidgetTester tester) async {

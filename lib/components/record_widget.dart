@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
@@ -53,10 +52,10 @@ class RecordWidget extends StatelessWidget {
                     record.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                   ),
                   const SizedBox(height: 2),
-                  Text(_buildSubtitle(), style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B))),
+                  Text(_buildSubtitle(), style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                 ],
               ),
             ),
@@ -68,10 +67,10 @@ class RecordWidget extends StatelessWidget {
               children: [
                 Text(
                   '${isExpense ? '-' : '+'}${CurrencyHelper.format(record.amount)} ${record.currency}',
-                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
                 ),
                 const SizedBox(height: 2),
-                Text(formattedDate, style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF64748B))),
+                Text(formattedDate, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
               ],
             ),
           ],

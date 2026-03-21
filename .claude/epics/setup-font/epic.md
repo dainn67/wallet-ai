@@ -1,8 +1,8 @@
 ---
 name: setup-font
-status: backlog
+status: done
 created: 2026-03-21T10:05:00Z
-progress: 0%
+progress: 100%
 priority: P1
 prd: .claude/prds/setup-font.md
 task_count: 2
@@ -66,10 +66,10 @@ Update the global theme and refactor all UI components to use standard `TextStyl
 | Path Errors | Low | Low | Fonts not found | Use exact paths in `pubspec.yaml` and check logs for "Font asset not found" warnings. |
 
 ## Tasks Created
-| #   | Task                     | Phase | Parallel | Est. | Depends On | Status | Issue |
-| --- | ------------------------ | ----- | -------- | ---- | ---------- | ------ | ----- |
-| 001 | Register Poppins Fonts   | 1     | no       | 0.5d | —          | open   | #82   |
-| 002 | Global Theme & UI Refact | 2     | no       | 1d   | 001        | open   | #83   |
+| #   | Task                           | Phase | Parallel | Est. | Depends On | Status | Issue |
+| --- | ------------------------------ | ----- | -------- | ---- | ---------- | ------ | ----- |
+| 001 | Register Poppins Fonts         | 1     | no       | 0.5d | —          | closed | #82   |
+| 002 | Global Theme & UI Refactoring  | 2     | no       | 1.0d | 001        | closed | #83   |
 
 ### Summary
 - **Total tasks:** 2

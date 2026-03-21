@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
@@ -49,13 +48,14 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFF10B981), // Emerald
             surface: const Color(0xFFF8FAFC),
           ),
-          textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
-          appBarTheme: AppBarTheme(
+          fontFamily: 'Poppins',
+          textTheme: const TextTheme().apply(fontFamily: 'Poppins'),
+          appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
             elevation: 0,
             centerTitle: true,
-            titleTextStyle: GoogleFonts.poppins(color: const Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600),
-            iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+            titleTextStyle: TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+            iconTheme: IconThemeData(color: Color(0xFF1E293B)),
           ),
         ),
         home: const HomeScreen(),

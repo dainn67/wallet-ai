@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:wallet_ai/components/components.dart';
@@ -43,23 +42,23 @@ class RecordsTab extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       'No records yet',
-                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    const Text(
                       'Your income and expense records will appear here.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                     ),
                   ],
                 ),
               )
             else ...[
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 4),
+              const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 4),
                 child: Text(
                   'Recent Records',
-                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                 ),
               ),
               ..._buildGroupedRecords(records),

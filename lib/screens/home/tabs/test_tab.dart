@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
@@ -44,12 +43,12 @@ class TestTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Text(
+        const Text(
           'Demo data',
-          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
         const SizedBox(height: 8),
-        Text('Add sample records and money sources for testing.', style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF64748B))),
+        const Text('Add sample records and money sources for testing.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 24),
         FilledButton.icon(
           onPressed: () => _addDemoRecords(context),
@@ -57,7 +56,7 @@ class TestTab extends StatelessWidget {
           label: const Text('Add demo records'),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
         const SizedBox(height: 12),
@@ -67,7 +66,7 @@ class TestTab extends StatelessWidget {
           label: const Text('Add demo money sources'),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
         FilledButton.icon(
@@ -76,7 +75,7 @@ class TestTab extends StatelessWidget {
           label: const Text('Add demo money sources'),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ],

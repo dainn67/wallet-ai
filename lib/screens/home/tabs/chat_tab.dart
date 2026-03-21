@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/models/models.dart';
@@ -117,10 +116,10 @@ class _ChatTabState extends State<ChatTab> {
               child: TextField(
                 controller: _controller,
                 focusNode: widget.focusNode,
-                style: GoogleFonts.poppins(fontSize: 14),
-                decoration: InputDecoration(
+                style: const TextStyle(fontSize: 14),
+                decoration: const InputDecoration(
                   hintText: 'Ask me anything...',
-                  hintStyle: GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
+                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => isStreaming ? null : _handleSend(),
@@ -185,7 +184,7 @@ class ChatBubble extends StatelessWidget {
                     ),
                     boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))],
                   ),
-                  child: Text(message.content.trim(), style: GoogleFonts.poppins(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
+                  child: Text(message.content.trim(), style: TextStyle(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
                 ),
                 if (message.records != null && message.records!.isNotEmpty) ...[const SizedBox(height: 8), ...message.records!.map((record) => RecordWidget(record: record))],
               ],
@@ -208,7 +207,7 @@ class _StreamingIndicator extends StatelessWidget {
         children: [
           Text(
             'AI is typing',
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 8),
           const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.grey))),
