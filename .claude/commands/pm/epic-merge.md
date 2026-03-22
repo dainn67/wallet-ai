@@ -75,16 +75,24 @@ elif [ -f Makefile ]; then
 fi
 ```
 
-### 3. Update Epic Documentation
+### 3. Verify All Tasks Complete
+
+Check all task files in `.claude/epics/$ARGUMENTS/` (files matching `[0-9]*.md`):
+- Read frontmatter of each task file
+- Verify all have `status: closed`
+- If any task is NOT closed: "❌ Cannot merge epic. Open tasks remain: {list of task names + statuses}" and stop
+
+### 4. Update Epic Documentation
 
 Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
-Update `.claude/epics/$ARGUMENTS/epic.md`:
-- Set status to "completed"
-- Update completion date
-- Add final summary
+Update `.claude/epics/$ARGUMENTS/epic.md` frontmatter:
+- Set `status: completed`
+- Set `progress: 100%`
+- Set `completed: {current_datetime}`
+- Update `updated: {current_datetime}`
 
-### 4. Attempt Merge
+### 5. Attempt Merge
 
 ```bash
 # Return to main repository
@@ -123,7 +131,7 @@ if [ -n "$epic_github_line" ]; then
 fi"
 ```
 
-### 5. Handle Merge Conflicts
+### 6. Handle Merge Conflicts
 
 If merge fails with conflicts:
 ```bash
@@ -153,7 +161,7 @@ Worktree preserved at: ../epic-$ARGUMENTS
 exit 1
 ```
 
-### 6. Post-Merge Cleanup
+### 7. Post-Merge Cleanup
 
 If merge succeeds:
 ```bash
@@ -174,7 +182,7 @@ mv .claude/epics/$ARGUMENTS .claude/epics/.archived/
 echo "✅ Epic archived: .claude/epics/.archived/$ARGUMENTS"
 ```
 
-### 6.5. Memory Agent Consolidation Trigger (if enabled)
+### 7.5. Memory Agent Consolidation Trigger (if enabled)
 
 After successful merge and cleanup:
 
@@ -190,12 +198,14 @@ After successful merge and cleanup:
    PORT=$(_json_get .claude/config/lifecycle.json '.memory_agent.port' 2>/dev/null || echo "8888")
    [ "$HOST" = "null" ] || [ -z "$HOST" ] && HOST="localhost"
    [ "$PORT" = "null" ] || [ -z "$PORT" ] && PORT="8888"
+   PROJECT_ROOT=$(pwd)
    curl -s --max-time 2 -X POST "http://${HOST}:${PORT}/consolidate" \
+     -H "X-Project-Root: $PROJECT_ROOT" \
      >/dev/null 2>&1 || true
    ```
 3. If fails: continue silently — merge is already complete.
 
-### 7. Update GitHub Issues
+### 8. Update GitHub Issues
 
 Close related issues:
 ```bash
@@ -237,7 +247,12 @@ for task_file in .claude/epics/.archived/$ARGUMENTS/[0-9]*.md; do
 done
 ```
 
-### 8. Final Output
+### 9. Update PRD Status
+
+If the epic references a PRD (check `prd:` field in epic frontmatter or find matching PRD in `.claude/prds/`):
+- Update PRD frontmatter: set `status: complete` and `updated: {current_datetime}`
+
+### 10. Final Output
 
 ```
 ✅ Epic Merged Successfully: $ARGUMENTS
@@ -247,15 +262,17 @@ Summary:
   Commits merged: {count}
   Files changed: {count}
   Issues closed: {count}
-  
+
 Cleanup completed:
+  ✓ All tasks verified closed
+  ✓ Epic status updated (completed, 100%)
   ✓ Worktree removed
   ✓ Branch deleted
   ✓ Epic archived
   ✓ GitHub issues closed
-  
+  ✓ PRD status updated (if applicable)
+
 Next steps:
-  - Close epic: /pm:epic-close $ARGUMENTS
   - Start new epic: /pm:prd-new {feature}
   - View completed work: git log --oneline -20
 ```

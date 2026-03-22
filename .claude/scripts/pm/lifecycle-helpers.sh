@@ -718,13 +718,20 @@ memory_query() {
   [ "$host" = "null" ] || [ -z "$host" ] && host="localhost"
   [ "$port" = "null" ] || [ -z "$port" ] && port="8888"
 
+  # Project root for tenant isolation header
+  local project_root
+  project_root=$(cd "$_CCPM_ROOT/.." 2>/dev/null && pwd || pwd)
+
   # URL-encode query using jq
   local encoded_query
   encoded_query=$(printf "%s" "$query" | jq -sRr @uri 2>/dev/null || printf "%s" "$query")
 
   # Execute query
   local response
-  response=$(curl -s --max-time 2     "http://${host}:${port}/query?q=${encoded_query}&format=${format}&limit=${limit}"     2>/dev/null || true)
+  response=$(curl -s --max-time 2 \
+    -H "X-Project-Root: $project_root" \
+    "http://${host}:${port}/query?q=${encoded_query}&format=${format}&limit=${limit}" \
+    2>/dev/null || true)
 
   if [ -n "$response" ]; then
     echo "$response"

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Broken Test Page</title>
+</head>
+<body>
+  <h1>Broken Page</h1>
+
+  <!-- Broken links -->
+  <nav>
+    <a href="http://localhost:99999/404-page">Broken Link</a>
+    <a href="javascript:void(0)">JS Void Link</a>
+    <a href="#valid">Valid Anchor</a>
+  </nav>
+
+  <!-- Missing alt text -->
+  <img src="nonexistent.png">
+  <img src="also-missing.jpg" alt="">
+
+  <!-- Invalid form -->
+  <form action="/broken-endpoint" method="post">
+    <input type="text" name="field1" required>
+    <input type="email" name="bad-email" value="not-an-email">
+    <button type="submit">Submit Broken Form</button>
+  </form>
+
+  <!-- Console errors via inline script -->
+  <script>
+    console.error("Test error: something went wrong");
+    console.warn("Test warning: deprecated feature");
+    // Intentional reference error
+    try { undefinedFunction(); } catch(e) { console.error("ReferenceError: " + e.message); }
+  </script>
+</body>
+</html>

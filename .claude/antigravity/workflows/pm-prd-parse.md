@@ -62,6 +62,7 @@ Read these files if they exist (skip silently if missing):
 - `.claude/context/system-patterns.md` — Existing architecture patterns
 - `.claude/context/project-structure.md` — Directory and module organization
 - `.claude/context/product-context.md` — User personas and use cases
+- `.claude/rules-reference/prd-quality.md` — Quality standards (scale tables, section requirements)
 
 Additionally, scan the codebase structure to understand:
 - Existing modules and their responsibilities
@@ -142,7 +143,7 @@ Before writing the epic, structure your thinking:
 
 ### 4. Epic Content Guidelines
 
-**Scale adaptation:** Reference `rules/prd-quality.md` for which sections to include per scale.
+**Scale adaptation:** Reference `.claude/rules-reference/prd-quality.md` for which sections to include per scale.
 - **SMALL:** Skip Architecture Decisions (note approach inline in Overview). Single-phase Implementation Strategy. 1-3 tasks in Task Breakdown.
 - **MEDIUM:** Full template as defined below.
 - **LARGE:** Full template + add Migration Strategy and Rollback Plan sections.
@@ -396,6 +397,7 @@ Before saving, self-audit against every item. If any fails → fix before saving
 4. **Next steps:**
    ```
    📋 Next actions:
+   → Review epic plan:  /pm:plan-review $FEATURE_NAME
    → Decompose into tasks:  /pm:epic-decompose $FEATURE_NAME
    → One-shot (tasks + sync): /pm:epic-oneshot $FEATURE_NAME
    → View epic details:      /pm:epic-show $FEATURE_NAME

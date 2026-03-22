@@ -17,6 +17,7 @@ echo "📁 Directory Structure:"
 [ -d ".claude/prds" ] && echo "  ✅ PRDs directory exists" || echo "  ⚠️ PRDs directory missing"
 [ -d ".claude/epics" ] && echo "  ✅ Epics directory exists" || echo "  ⚠️ Epics directory missing"
 [ -d ".claude/rules" ] && echo "  ✅ Rules directory exists" || echo "  ⚠️ Rules directory missing"
+[ -d ".claude/rules-reference" ] && echo "  ✅ Rules-reference directory exists" || echo "  ⚠️ Rules-reference directory missing"
 echo ""
 
 # Check for orphaned files

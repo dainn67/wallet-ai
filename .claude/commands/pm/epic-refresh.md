@@ -108,7 +108,7 @@ Progress: {old_progress}% → {new_progress}%
 Status: {old_status} → {new_status}
 GitHub: Task list updated ✓
 
-{If complete}: Run /pm:epic-verify $ARGUMENTS then /pm:epic-merge and /pm:epic-close
+{If complete}: Run /pm:epic-verify $ARGUMENTS then /pm:epic-merge $ARGUMENTS
 {If in progress}: Run /pm:next to see priority tasks
 ```
 

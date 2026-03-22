@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "default_timeout": 300,
+  "health_score_threshold": 70,
+  "category_weights": {
+    "ui_layout": 25,
+    "navigation_flow": 25,
+    "data_display": 25,
+    "accessibility": 25
+  },
+  "evidence_retention_runs": 10,
+  "model": "claude-sonnet-4-6"
+}

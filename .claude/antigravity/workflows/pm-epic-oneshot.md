@@ -109,7 +109,7 @@ Step 2: GitHub Sync ✅
 ## Important Notes
 
 - This is a convenience wrapper that runs `/pm:epic-decompose` then `/pm:epic-sync` in sequence.
-- Both sub-commands handle their own validation, parallel execution, and quality checks. Tasks follow `rules/task-template.md`.
+- Both sub-commands handle their own validation, parallel execution, and quality checks. Tasks follow `.claude/rules-reference/task-template.md`.
 - If decompose includes a user confirmation step (task plan review), that interaction still happens — oneshot does NOT skip confirmations.
 - Use this when you're confident the epic is ready and want to go from epic → GitHub Issues in one step.
 - If you only need one half: use `/pm:epic-decompose` or `/pm:epic-sync` individually.

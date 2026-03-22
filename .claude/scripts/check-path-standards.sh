@@ -122,7 +122,7 @@ check_standards_file() {
     echo -e "\n📋 Check 5: Verifying standards file exists..."
     total_checks=$((total_checks + 1))
     
-    if [ -f ".claude/rules/path-standards.md" ]; then
+    if [ -f ".claude/rules-reference/path-standards.md" ]; then
         print_success "Path standards documentation exists"
         passed_checks=$((passed_checks + 1))
     else
@@ -153,6 +153,6 @@ else
     echo -e "\n💡 Remediation suggestions:"
     echo "1. Run path cleanup script to fix absolute paths"
     echo "2. Review and update relevant documentation formats"  
-    echo "3. Follow guidelines in .claude/rules/path-standards.md"
+    echo "3. Follow guidelines in .claude/rules-reference/path-standards.md"
     exit 1
 fi

@@ -25,17 +25,13 @@ CCPM_ROOT="${PROJECT_ROOT}/.claude"
 GH_HELPERS="$CCPM_ROOT/scripts/pm/github-helpers.sh"
 REPO=""
 if [ -f "$GH_HELPERS" ]; then
-  # Source helpers to use get_repo directly
-  source "$GH_HELPERS"
-  REPO=$(get_repo 2>/dev/null || echo "")
+  REPO=$(bash "$GH_HELPERS" get-repo-for-issue 2>/dev/null || echo "")
 fi
 if [ -z "$REPO" ]; then
   REPO=$(git remote get-url origin 2>/dev/null | sed 's|.*github.com[:/]||;s|\.git$||' || echo "")
 fi
 REPO_FLAG=""
-if [ -n "$REPO" ]; then
-  REPO_FLAG="--repo $REPO"
-fi
+[ -n "$REPO" ] && REPO_FLAG="--repo $REPO"
 
 COLLECTED=0
 WARNED=0

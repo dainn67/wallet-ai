@@ -1,0 +1,12 @@
+{
+  "name": "ccpm-browse",
+  "version": "1.0.0",
+  "description": "Playwright browser automation for CCPM QA agents",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}

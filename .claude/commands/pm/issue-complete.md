@@ -146,6 +146,7 @@ After learning extraction, before context clear:
    read_config_bool "memory_agent" "enabled" && read_config_bool "memory_agent" "auto_ingest"
    ```
 2. If both enabled, check health: `bash .claude/scripts/pm/memory-health.sh >/dev/null 2>&1`
+   - If health check fails: set `MEMORY_STATUS="⚠️ Offline (ingest skipped). Run: ccpm-memory start"` and skip to step 6.
 3. If healthy, generate a structured task summary by analyzing:
    - The task file at `.claude/epics/*/$(printf '%03d' $ARGUMENTS).md` or similar (if available)
    - The handoff note at `.claude/context/handoffs/latest.md`
@@ -161,7 +162,7 @@ After learning extraction, before context clear:
    Lessons: [lessons learned for future tasks]
    ```
 
-4. Ingest (fire-and-forget):
+4. Ingest:
    ```bash
    source .claude/scripts/pm/lifecycle-helpers.sh 2>/dev/null
    HOST=$(_json_get .claude/config/lifecycle.json '.memory_agent.host' 2>/dev/null || echo "localhost")
@@ -169,12 +170,14 @@ After learning extraction, before context clear:
    [ "$HOST" = "null" ] || [ -z "$HOST" ] && HOST="localhost"
    [ "$PORT" = "null" ] || [ -z "$PORT" ] && PORT="8888"
    SUMMARY_JSON=$(echo "$SUMMARY" | jq -Rs .)
-   curl -s --max-time 2 -X POST "http://${HOST}:${PORT}/ingest" \
+   PROJECT_ROOT=$(pwd)
+   INGEST_RESULT=$(curl -s --max-time 2 -X POST "http://${HOST}:${PORT}/ingest" \
      -H "Content-Type: application/json" \
+     -H "X-Project-Root: $PROJECT_ROOT" \
      -d "{\"text\": ${SUMMARY_JSON}, \"source\": \"issue-complete-#${ARGUMENTS}\"}" \
-     >/dev/null 2>&1 || true
+     2>&1) && MEMORY_STATUS="✅ Ingested" || MEMORY_STATUS="⚠️ Offline (ingest skipped). Run: ccpm-memory start"
    ```
-5. If any step fails: continue silently — do NOT block issue completion.
+5. If any step fails: set `MEMORY_STATUS="⚠️ Offline (ingest skipped). Run: ccpm-memory start"` — do NOT block issue completion.
 
 ### 6. Prepare Context Clear
 
@@ -191,6 +194,7 @@ echo '{"active_task": null}' > .claude/context/verify/state.json
   Verification: ✅ Passed (or Skipped)
   Knowledge:    ✅ Extracted (or ⏭️ Skipped with --no-learn)
   Journal:      ✅ Archived (or ⏭️ No journal)
+  Memory:       $MEMORY_STATUS (or ⏭️ Disabled)
   GitHub:       ✅ Issue closed
   Context:      ✅ Ready to clear
 

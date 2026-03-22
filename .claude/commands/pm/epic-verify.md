@@ -349,6 +349,6 @@ Recommended:
 
 ## Next Steps (by decision)
 
-- **EPIC_COMPLETE** → `/pm:epic-merge $ARGUMENTS` then `/pm:epic-close $ARGUMENTS`
+- **EPIC_COMPLETE** → `/pm:epic-merge $ARGUMENTS`
 - **EPIC_PARTIAL** → Developer decides: ship, continue fixing, or create follow-up epic
 - **EPIC_BLOCKED** → Fix issues, then `/pm:epic-verify $ARGUMENTS` again

@@ -53,6 +53,7 @@ Read these files if they exist (skip silently if missing):
 - `.claude/context/tech-context.md` — Technical stack and constraints
 - `.claude/context/system-patterns.md` — Existing architecture patterns
 - `.claude/context/project-structure.md` — Directory and module organization
+- `.claude/rules-reference/task-template.md` — Task file template (frontmatter, required sections)
 
 Use this context to write tasks that reference real file paths, existing patterns, and correct conventions.
 
@@ -174,7 +175,7 @@ Rules:
 
 ### 5. Task File Format
 
-For each task, create `.claude/epics/$ARGUMENTS/{number}.md` following the template in `rules/task-template.md`.
+For each task, create `.claude/epics/$ARGUMENTS/{number}.md` following the template in `.claude/rules-reference/task-template.md`.
 
 Key points:
 - All sections marked "Required" in the template MUST be present

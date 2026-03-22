@@ -121,7 +121,8 @@ After reading the assembled data, check if Memory Agent can provide original int
      - Are implementation decisions consistent with original design intent?
      - Did any task deviate from requirements without documented rationale?
      - Are there consolidation warnings (decision_regression, architecture_drift)?
-3. If not enabled or empty response: proceed with standard input (no section added)
+3. If command fails (non-empty MEMORY_ENABLED but query errors): show `⚠️ Memory Agent offline — original intent check skipped.` and proceed with standard input
+4. If not enabled or empty response: proceed with standard input (no section added)
 
 ### 2. Apply Phase A Prompt
 

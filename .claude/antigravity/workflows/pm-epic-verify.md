@@ -350,6 +350,6 @@ Recommended:
 
 ## Next Steps (by decision)
 
-- **EPIC_COMPLETE** → `/pm:epic-merge $EPIC_NAME` then `/pm:epic-close $EPIC_NAME`
+- **EPIC_COMPLETE** → `/pm:epic-merge $EPIC_NAME`
 - **EPIC_PARTIAL** → Developer decides: ship, continue fixing, or create follow-up epic
 - **EPIC_BLOCKED** → Fix issues, then `/pm:epic-verify $EPIC_NAME` again

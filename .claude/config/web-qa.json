@@ -1,0 +1,36 @@
+{
+  "health_weights": {
+    "console": 15,
+    "links": 10,
+    "visual": 10,
+    "functional": 20,
+    "ux": 15,
+    "performance": 10,
+    "content": 5,
+    "accessibility": 15
+  },
+  "health_score_weights": {
+    "ui_layout": 15,
+    "navigation_flow": 15,
+    "data_display": 15,
+    "accessibility": 15,
+    "performance": 10,
+    "error_handling": 10,
+    "responsive_design": 10,
+    "api_integration": 10
+  },
+  "auto_fix": {
+    "enabled": true,
+    "max_attempts": 3,
+    "max_fixes": 5,
+    "wtf_threshold": 20,
+    "categories": ["accessibility", "error_handling"]
+  },
+  "test_generation": {
+    "enabled": true,
+    "output_dir": ".claude/qa/scenarios/auto/web",
+    "max_scenarios_per_run": 10,
+    "include_edge_cases": true
+  },
+  "port_scan": [3000, 3001, 4000, 4200, 5000, 5173, 8000, 8080, 8443, 9000]
+}
