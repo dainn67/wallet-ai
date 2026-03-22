@@ -1,9 +1,10 @@
 ---
 name: add-source
-status: backlog
+status: completed
 created: 2026-03-22T00:00:00Z
-updated: 2026-03-22T00:00:00Z
-progress: 0%
+updated: 2026-03-22T12:15:00Z
+completed: 2026-03-22T12:15:00Z
+progress: 100%
 priority: P1
 prd: .claude/prds/add-source.md
 task_count: 6
@@ -64,12 +65,12 @@ Add input validation and error handling (e.g., empty names, non-numeric amounts)
 ## Tasks Created
 | #   | Task | Phase | Parallel | Est. | Depends On | Status |
 | --- | ---- | ----- | -------- | ---- | ---------- | ------ |
-| 85 | Add Source Button | 1 | no | 0.5d | — | open |
-| 86 | Create AddSourcePopup UI | 1 | no | 1d | — | open |
-| 87 | Implement Popup Validation | 2 | yes | 0.5d | 86 | open |
-| 88 | Database Integration | 2 | yes | 1d | 85, 86 | open |
-| 89 | Refresh UI | 2 | yes | 0.5d | 88 | open |
-| 90 | Integration Verification | 3 | no | 0.5d | all | open |
+| 85 | Add Source Button | 1 | no | 0.5d | — | closed |
+| 86 | Create AddSourcePopup UI | 1 | no | 1d | — | closed |
+| 87 | Implement Popup Validation | 2 | yes | 0.5d | 86 | closed |
+| 88 | Database Integration | 2 | yes | 1d | 85, 86 | closed |
+| 89 | Refresh UI | 2 | yes | 0.5d | 88 | closed |
+| 90 | Integration Verification | 3 | no | 0.5d | all | closed |
 
 ### Summary
 - **Total tasks:** 6

@@ -1,11 +1,11 @@
 ---
 name: add-source
 description: Add a button to the RecordsOverview component to create new Money Sources via a popup dialog.
-status: backlog
+status: complete
 priority: P1
 scale: small
 created: 2026-03-22T00:00:00Z
-updated: null
+updated: 2026-03-22T12:15:00Z
 ---
 
 # PRD: add-source
