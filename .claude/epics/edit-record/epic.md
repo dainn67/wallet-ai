@@ -1,9 +1,10 @@
 ---
 name: edit-record
-status: backlog
+status: completed
 created: 2026-03-22T00:00:00Z
-updated: 2026-03-22T00:00:00Z
-progress: 0%
+updated: 2026-03-22T12:20:00Z
+completed: 2026-03-22T12:20:00Z
+progress: 100%
 priority: P1
 prd: .claude/prds/edit-record.md
 task_count: 6
@@ -79,12 +80,12 @@ Connect the `RecordWidget` to the popup and the repository update flow.
 ## Tasks Created
 | #   | Task | Phase | Parallel | Est. | Depends On | Status |
 | --- | ---- | ----- | -------- | ---- | ---------- | ------ |
-| 92 | Update Record Model | 1 | no | 0.5d | — | open |
-| 93 | Create EditRecordPopup UI | 2 | no | 1d | — | open |
-| 94 | Implement Popup Validation | 2 | yes | 0.5d | 93 | open |
-| 95 | Database Refactor | 1 | no | 1.5d | — | open |
-| 96 | Update RecordWidget | 3 | no | 0.5d | 92, 93, 95 | open |
-| 97 | Verification and Cleanup | 3 | no | 0.5d | all | open |
+| 92 | Update Record Model | 1 | no | 0.5d | — | closed |
+| 93 | Create EditRecordPopup UI | 2 | no | 1d | — | closed |
+| 94 | Implement Popup Validation | 2 | yes | 0.5d | 93 | closed |
+| 95 | Database Refactor | 1 | no | 1.5d | — | closed |
+| 96 | Update RecordWidget | 3 | no | 0.5d | 92, 93, 95 | closed |
+| 97 | Verification and Cleanup | 3 | no | 0.5d | all | closed |
 
 ### Summary
 - **Total tasks:** 6

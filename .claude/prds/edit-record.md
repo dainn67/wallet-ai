@@ -1,11 +1,11 @@
 ---
 name: edit-record
 description: Add functionality to edit existing financial records, including UI updates and database refactoring.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-03-22T00:00:00Z
-updated: null
+updated: 2026-03-22T12:20:00Z
 ---
 
 # PRD: edit-record
