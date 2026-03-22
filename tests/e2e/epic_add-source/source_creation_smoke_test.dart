@@ -8,7 +8,13 @@ import 'package:wallet_ai/providers/record_provider.dart';
 
 class MockRecordProvider extends Mock implements RecordProvider {}
 
+class MoneySourceFake extends Fake implements MoneySource {}
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(MoneySourceFake());
+  });
+
   late MockRecordProvider mockProvider;
 
   setUp(() {
