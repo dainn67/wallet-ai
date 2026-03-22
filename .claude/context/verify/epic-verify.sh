@@ -72,7 +72,9 @@ detect_test_command() {
   fi
 
   # Fallback auto-detect
-  if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -d "tests" ]; then
+  if [ -f "pubspec.yaml" ]; then
+    echo "fvm flutter test"
+  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
     echo "python3 -m pytest tests/ -v --tb=short"
   elif [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
     echo "npm test"
@@ -107,7 +109,9 @@ run_tier() {
 
   # Detect runner for this directory
   local cmd
-  if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "conftest.py" ]; then
+  if [ -f "pubspec.yaml" ]; then
+    cmd="fvm flutter test $test_dir"
+  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "conftest.py" ]; then
     cmd="python3 -m pytest $test_dir -v --tb=short"
   elif [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
     cmd="npx jest $test_dir --verbose"
