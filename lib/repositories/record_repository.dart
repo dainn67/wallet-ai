@@ -64,7 +64,7 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 5;
+  static const int _dbVersion = 6;
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
@@ -84,7 +84,7 @@ class RecordRepository {
     ''');
 
     await db.execute('''
-      CREATE TABLE record (
+      CREATE TABLE Record (
         record_id INTEGER PRIMARY KEY AUTOINCREMENT,
         money_source_id INTEGER NOT NULL,
         category_id INTEGER NOT NULL DEFAULT 1,
@@ -92,16 +92,16 @@ class RecordRepository {
         currency TEXT NOT NULL,
         description TEXT,
         type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
-        created_at INTEGER NOT NULL,
+        last_updated INTEGER NOT NULL,
         FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
         FOREIGN KEY (category_id) REFERENCES Category (category_id)
       )
     ''');
 
-    await db.execute('CREATE INDEX idx_record_money_source_id ON record(money_source_id)');
-    await db.execute('CREATE INDEX idx_record_category_id ON record(category_id)');
-    await db.execute('CREATE INDEX idx_record_type ON record(type)');
-    await db.execute('CREATE INDEX idx_record_created_at ON record(created_at)');
+    await db.execute('CREATE INDEX idx_record_money_source_id ON Record(money_source_id)');
+    await db.execute('CREATE INDEX idx_record_category_id ON Record(category_id)');
+    await db.execute('CREATE INDEX idx_record_type ON Record(type)');
+    await db.execute('CREATE INDEX idx_record_last_updated ON Record(last_updated)');
 
     // Initial Data
     await _seedDatabase(db);
@@ -143,9 +143,10 @@ class RecordRepository {
       await db.execute('ALTER TABLE MoneySource ADD COLUMN amount REAL NOT NULL DEFAULT 0');
       await db.execute('UPDATE MoneySource SET amount = COALESCE(amount, 0)');
     }
-    if (oldVersion < 5) {
+    if (oldVersion < 6) {
       // User requested fresh start for this version
-      await db.execute('DROP TABLE IF EXISTS record');
+      await db.execute('DROP TABLE IF EXISTS record'); // Old table name
+      await db.execute('DROP TABLE IF EXISTS Record'); // New table name
       await db.execute('DROP TABLE IF EXISTS MoneySource');
       await db.execute('DROP TABLE IF EXISTS Category');
       await _onCreate(db, newVersion);
@@ -163,7 +164,7 @@ class RecordRepository {
   Future<int> createRecord(Record record) async {
     try {
       await database.transaction((txn) async {
-        await txn.insert('record', record.toMap());
+        await txn.insert('Record', record.toMap());
         final delta = record.type == 'income' ? record.amount : -record.amount;
         await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: delta);
       });
@@ -179,10 +180,10 @@ class RecordRepository {
     try {
       final List<Map<String, dynamic>> maps = await database.rawQuery('''
         SELECT r.*, c.name as category_name, ms.source_name
-        FROM record r
+        FROM Record r
         LEFT JOIN Category c ON r.category_id = c.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
-        ORDER BY r.created_at DESC
+        ORDER BY r.last_updated DESC
       ''');
       return List.generate(maps.length, (i) => Record.fromMap(maps[i]));
     } catch (e) {
@@ -195,7 +196,7 @@ class RecordRepository {
     try {
       final maps = await database.rawQuery('''
         SELECT r.*, c.name as category_name, ms.source_name
-        FROM record r
+        FROM Record r
         LEFT JOIN Category c ON r.category_id = c.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
         WHERE r.record_id = ?
@@ -211,15 +212,30 @@ class RecordRepository {
 
   Future<int> updateRecord(Record record) async {
     try {
-      final existing = await getRecordById(record.recordId);
-      if (existing == null) throw Exception("Record not found for update: ${record.recordId}");
-
       await database.transaction((txn) async {
-        final oldSigned = existing.type == 'income' ? existing.amount : -existing.amount;
-        final newSigned = record.type == 'income' ? record.amount : -record.amount;
-        final delta = newSigned - oldSigned;
-        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: delta);
-        await txn.update('record', record.toMap(), where: 'record_id = ?', whereArgs: [record.recordId]);
+        // Fetch existing record within the same transaction to ensure consistency
+        final maps = await txn.rawQuery('''
+          SELECT r.*, c.name as category_name, ms.source_name
+          FROM Record r
+          LEFT JOIN Category c ON r.category_id = c.category_id
+          LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
+          WHERE r.record_id = ?
+          LIMIT 1
+        ''', [record.recordId]);
+
+        if (maps.isEmpty) throw Exception("Record not found for update: ${record.recordId}");
+        final existing = Record.fromMap(maps.first);
+
+        // 1. Reverse the old record's impact on its source
+        final oldRevertDelta = existing.type == 'income' ? -existing.amount : existing.amount;
+        await _adjustMoneySourceAmount(txn, sourceId: existing.moneySourceId, delta: oldRevertDelta);
+
+        // 2. Apply the new record's impact on its source
+        final newApplyDelta = record.type == 'income' ? record.amount : -record.amount;
+        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: newApplyDelta);
+
+        // 3. Update the record data
+        await txn.update('Record', record.toMap(), where: 'record_id = ?', whereArgs: [record.recordId]);
       });
 
       return 1;
@@ -231,13 +247,23 @@ class RecordRepository {
 
   Future<int> deleteRecord(int id) async {
     try {
-      final existing = await getRecordById(id);
-      if (existing == null) return 0;
-
       await database.transaction((txn) async {
+        // Fetch existing record within the transaction
+        final maps = await txn.rawQuery('''
+          SELECT r.*, c.name as category_name, ms.source_name
+          FROM Record r
+          LEFT JOIN Category c ON r.category_id = c.category_id
+          LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
+          WHERE r.record_id = ?
+          LIMIT 1
+        ''', [id]);
+
+        if (maps.isEmpty) return;
+
+        final existing = Record.fromMap(maps.first);
         final delta = existing.type == 'income' ? -existing.amount : existing.amount;
         await _adjustMoneySourceAmount(txn, sourceId: existing.moneySourceId, delta: delta);
-        await txn.delete('record', where: 'record_id = ?', whereArgs: [id]);
+        await txn.delete('Record', where: 'record_id = ?', whereArgs: [id]);
       });
 
       return 1;
@@ -262,7 +288,7 @@ class RecordRepository {
             description: 'Initial Balance',
             type: 'income',
           );
-          await txn.insert('record', record.toMap());
+          await txn.insert('Record', record.toMap());
         }
       });
       return sourceId;
