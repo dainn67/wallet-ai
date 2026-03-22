@@ -12,7 +12,7 @@ class RecordProvider extends ChangeNotifier {
   List<Category> _categories = [];
   Map<int, String> _categoryCache = {};
   bool _isLoading = false;
-  int _lastDbUpdateVersion = 0;
+  int lastDbUpdateVersion = 0;
 
   // Filter state
   int? _selectedSourceId;
@@ -25,14 +25,9 @@ class RecordProvider extends ChangeNotifier {
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
   List<Category> get categories => List.unmodifiable(_categories);
   bool get isLoading => _isLoading;
-  int get lastDbUpdateVersion => _lastDbUpdateVersion;
 
   String getCategoryName(int id) {
     return _categoryCache[id] ?? 'Unknown';
-  }
-
-  set lastDbUpdateVersion(int value) {
-    _lastDbUpdateVersion = value;
   }
 
   // Filter getters
@@ -104,6 +99,11 @@ class RecordProvider extends ChangeNotifier {
       _moneySources = results[1] as List<MoneySource>;
       _categories = results[2] as List<Category>;
 
+      print("Log: RecordProvider loaded ${_records.length} records and ${_moneySources.length} sources");
+      for (var s in _moneySources) {
+        print("Log: Source ${s.sourceId} (${s.sourceName}): ${s.amount}");
+      }
+
       // Update cache
       _categoryCache = {
         for (var c in _categories)
@@ -165,11 +165,9 @@ class RecordProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      await _repository.updateRecord(record);
-      final index = _records.indexWhere((r) => r.recordId == record.recordId);
-      if (index != -1) {
-        _records[index] = record;
-      }
+      final updatedRecord = record.copyWith(lastUpdated: DateTime.now().millisecondsSinceEpoch);
+      await _repository.updateRecord(updatedRecord);
+      await loadAll();
     } catch (e) {
       debugPrint('Error updating record in RecordProvider: $e');
       await loadAll();

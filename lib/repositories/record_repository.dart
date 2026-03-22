@@ -160,16 +160,18 @@ class RecordRepository {
     );
   }
 
-  // Record Management
   Future<int> createRecord(Record record) async {
     try {
+      int insertedId = 0;
       await database.transaction((txn) async {
-        await txn.insert('Record', record.toMap());
+        insertedId = await txn.insert('Record', record.toMap());
+        print("Log: Created record $insertedId");
         final delta = record.type == 'income' ? record.amount : -record.amount;
+        print("Log: Adjusting source ${record.moneySourceId} by delta $delta");
         await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: delta);
       });
 
-      return record.recordId;
+      return insertedId;
     } catch (e) {
       print("Error creating record: $e");
       rethrow;
@@ -212,6 +214,7 @@ class RecordRepository {
 
   Future<int> updateRecord(Record record) async {
     try {
+      print("Log: Updating record ${record.recordId}");
       await database.transaction((txn) async {
         // Fetch existing record within the same transaction to ensure consistency
         final maps = await txn.rawQuery('''
@@ -223,15 +226,21 @@ class RecordRepository {
           LIMIT 1
         ''', [record.recordId]);
 
-        if (maps.isEmpty) throw Exception("Record not found for update: ${record.recordId}");
+        if (maps.isEmpty) {
+           print("Log: Record not found for update: ${record.recordId}");
+           throw Exception("Record not found for update: ${record.recordId}");
+        }
         final existing = Record.fromMap(maps.first);
+        print("Log: Existing record found: ${existing.amount} from source ${existing.moneySourceId}");
 
         // 1. Reverse the old record's impact on its source
         final oldRevertDelta = existing.type == 'income' ? -existing.amount : existing.amount;
+        print("Log: Reverting old impact: delta $oldRevertDelta on source ${existing.moneySourceId}");
         await _adjustMoneySourceAmount(txn, sourceId: existing.moneySourceId, delta: oldRevertDelta);
 
         // 2. Apply the new record's impact on its source
         final newApplyDelta = record.type == 'income' ? record.amount : -record.amount;
+        print("Log: Applying new impact: delta $newApplyDelta on source ${record.moneySourceId}");
         await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: newApplyDelta);
 
         // 3. Update the record data

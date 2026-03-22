@@ -11,7 +11,7 @@ class Record {
   final String type; // 'income' or 'expense'
 
   Record({
-    int? recordId,
+    this.recordId = 0,
     int? lastUpdated,
     required this.moneySourceId,
     this.categoryId = 1, // Default to Uncategorized
@@ -22,12 +22,10 @@ class Record {
     required this.description,
     required this.type,
   })  : assert(type == 'income' || type == 'expense', 'Type must be income or expense'),
-        recordId = recordId ?? DateTime.now().millisecondsSinceEpoch,
-        lastUpdated = lastUpdated ?? recordId ?? DateTime.now().millisecondsSinceEpoch;
+        lastUpdated = lastUpdated ?? DateTime.now().millisecondsSinceEpoch;
 
   Map<String, dynamic> toMap() {
-    return {
-      'record_id': recordId,
+    final map = {
       'last_updated': lastUpdated,
       'money_source_id': moneySourceId,
       'category_id': categoryId,
@@ -36,6 +34,10 @@ class Record {
       'description': description,
       'type': type,
     };
+    if (recordId != 0) {
+      map['record_id'] = recordId;
+    }
+    return map;
   }
 
   factory Record.fromMap(Map<String, dynamic> map) {
