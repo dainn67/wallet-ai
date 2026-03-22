@@ -52,15 +52,13 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
         final categories = provider.categories;
 
         // Ensure selected values are still valid in the lists
-        if (!moneySources.any((s) => s.sourceId == _selectedSourceId)) {
-          if (moneySources.isNotEmpty) {
-            _selectedSourceId = moneySources.first.sourceId!;
-          }
+        if (moneySources.isNotEmpty && !moneySources.any((s) => s.sourceId == _selectedSourceId)) {
+          _selectedSourceId = moneySources.first.sourceId!;
         }
-        if (!categories.any((c) => c.categoryId == _selectedCategoryId)) {
-          if (categories.isNotEmpty) {
-            _selectedCategoryId = categories.first.categoryId!;
-          }
+
+        final validCategories = categories.where((c) => c.type == _type).toList();
+        if (validCategories.isNotEmpty && !validCategories.any((c) => c.categoryId == _selectedCategoryId)) {
+          _selectedCategoryId = validCategories.first.categoryId!;
         }
 
         return Dialog(
