@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/providers/providers.dart';
+import 'popups/add_source_popup.dart';
 
 /// A component that displays a financial overview including total balance,
 /// income, expenses, and a horizontal list of money sources.
@@ -76,8 +79,14 @@ class RecordsOverview extends StatelessWidget {
               ),
               IconButton(
                 onPressed: onAddSource ??
-                    () {
-                      debugPrint('Add source pressed');
+                    () async {
+                      final result = await showDialog<MoneySource>(
+                        context: context,
+                        builder: (context) => const AddSourcePopup(),
+                      );
+                      if (result != null && context.mounted) {
+                        await context.read<RecordProvider>().addMoneySource(result);
+                      }
                     },
                 icon: const Icon(Icons.add_rounded),
                 padding: EdgeInsets.zero,

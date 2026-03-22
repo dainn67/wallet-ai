@@ -118,6 +118,9 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
+  /// Alias for loadAll() to support different naming conventions.
+  Future<void> fetchData() => loadAll();
+
   void _updateWidget() {
     double totalBalance = 0;
     for (var source in _moneySources) {
