@@ -108,4 +108,108 @@ void main() {
     expect(resultCalled, isTrue);
     expect(result, isNull);
   });
+
+  testWidgets('AddSourcePopup shows error for empty name', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AddSourcePopup(),
+        ),
+      ),
+    );
+
+    // Leave name empty, fill amount
+    await tester.enterText(find.byType(TextField).at(1), '100');
+
+    // Tap Save
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    // Verify error message
+    expect(find.text('Name is required'), findsOneWidget);
+  });
+
+  testWidgets('AddSourcePopup shows error for empty amount', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AddSourcePopup(),
+        ),
+      ),
+    );
+
+    // Fill name, leave amount empty
+    await tester.enterText(find.byType(TextField).at(0), 'Cash');
+
+    // Tap Save
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    // Verify error message
+    expect(find.text('Amount is required'), findsOneWidget);
+  });
+
+  testWidgets('AddSourcePopup shows error for invalid amount', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AddSourcePopup(),
+        ),
+      ),
+    );
+
+    // Fill name, fill invalid amount
+    await tester.enterText(find.byType(TextField).at(0), 'Cash');
+    await tester.enterText(find.byType(TextField).at(1), 'abc');
+
+    // Tap Save
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    // Verify error message
+    expect(find.text('Invalid amount'), findsOneWidget);
+  });
+
+  testWidgets('AddSourcePopup shows error for negative amount', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AddSourcePopup(),
+        ),
+      ),
+    );
+
+    // Fill name, fill negative amount
+    await tester.enterText(find.byType(TextField).at(0), 'Cash');
+    await tester.enterText(find.byType(TextField).at(1), '-50');
+
+    // Tap Save
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    // Verify error message
+    expect(find.text('Amount must be positive'), findsOneWidget);
+  });
+
+  testWidgets('AddSourcePopup clears error when text changes', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AddSourcePopup(),
+        ),
+      ),
+    );
+
+    // Trigger name error
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(find.text('Name is required'), findsOneWidget);
+
+    // Change name
+    await tester.enterText(find.byType(TextField).at(0), 'A');
+    await tester.pump();
+
+    // Error should be gone
+    expect(find.text('Name is required'), findsNothing);
+  });
 }

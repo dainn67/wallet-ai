@@ -15,6 +15,8 @@ class AddSourcePopup extends StatefulWidget {
 class _AddSourcePopupState extends State<AddSourcePopup> {
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
+  String? _nameError;
+  String? _amountError;
 
   @override
   void dispose() {
@@ -61,6 +63,11 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
             const SizedBox(height: 8),
             TextField(
               controller: _nameController,
+              onChanged: (_) {
+                if (_nameError != null) {
+                  setState(() => _nameError = null);
+                }
+              },
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
@@ -71,6 +78,10 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                 hintStyle: const TextStyle(
                   color: Color(0xFF64748B),
                   fontSize: 15,
+                  fontFamily: 'Poppins',
+                ),
+                errorText: _nameError,
+                errorStyle: const TextStyle(
                   fontFamily: 'Poppins',
                 ),
                 filled: true,
@@ -96,6 +107,11 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
             const SizedBox(height: 8),
             TextField(
               controller: _amountController,
+              onChanged: (_) {
+                if (_amountError != null) {
+                  setState(() => _amountError = null);
+                }
+              },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: const TextStyle(
                 color: Colors.white,
@@ -107,6 +123,10 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                 hintStyle: const TextStyle(
                   color: Color(0xFF64748B),
                   fontSize: 15,
+                  fontFamily: 'Poppins',
+                ),
+                errorText: _amountError,
+                errorStyle: const TextStyle(
                   fontFamily: 'Poppins',
                 ),
                 filled: true,
@@ -147,9 +167,33 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                     onPressed: () {
                       final name = _nameController.text.trim();
                       final amountStr = _amountController.text.trim();
-                      final amount = double.tryParse(amountStr) ?? 0.0;
-                      if (name.isNotEmpty) {
-                        Navigator.of(context).pop(MoneySource(sourceName: name, amount: amount));
+
+                      setState(() {
+                        if (name.isEmpty) {
+                          _nameError = 'Name is required';
+                        } else {
+                          _nameError = null;
+                        }
+
+                        if (amountStr.isEmpty) {
+                          _amountError = 'Amount is required';
+                        } else {
+                          final amount = double.tryParse(amountStr);
+                          if (amount == null) {
+                            _amountError = 'Invalid amount';
+                          } else if (amount < 0) {
+                            _amountError = 'Amount must be positive';
+                          } else {
+                            _amountError = null;
+                          }
+                        }
+                      });
+
+                      if (_nameError == null && _amountError == null) {
+                        final amount = double.parse(amountStr);
+                        Navigator.of(context).pop(
+                          MoneySource(sourceName: name, amount: amount),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
