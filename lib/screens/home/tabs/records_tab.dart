@@ -76,7 +76,7 @@ class RecordsTab extends StatelessWidget {
     String? currentMonth;
 
     for (final record in records) {
-      final date = DateTime.fromMillisecondsSinceEpoch(record.createdAt);
+      final date = DateTime.fromMillisecondsSinceEpoch(record.lastUpdated);
       final monthYear = DateFormat('MMMM yyyy').format(date);
 
       if (currentMonth != monthYear) {

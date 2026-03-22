@@ -1,6 +1,6 @@
 class Record {
   final int recordId;
-  final int createdAt; // millisecondsSinceEpoch
+  final int lastUpdated; // millisecondsSinceEpoch
   final int moneySourceId;
   final int categoryId;
   final String? categoryName;
@@ -12,7 +12,7 @@ class Record {
 
   Record({
     int? recordId,
-    int? createdAt,
+    int? lastUpdated,
     required this.moneySourceId,
     this.categoryId = 1, // Default to Uncategorized
     this.categoryName,
@@ -23,12 +23,12 @@ class Record {
     required this.type,
   })  : assert(type == 'income' || type == 'expense', 'Type must be income or expense'),
         recordId = recordId ?? DateTime.now().millisecondsSinceEpoch,
-        createdAt = createdAt ?? recordId ?? DateTime.now().millisecondsSinceEpoch;
+        lastUpdated = lastUpdated ?? recordId ?? DateTime.now().millisecondsSinceEpoch;
 
   Map<String, dynamic> toMap() {
     return {
       'record_id': recordId,
-      'created_at': createdAt,
+      'last_updated': lastUpdated,
       'money_source_id': moneySourceId,
       'category_id': categoryId,
       'amount': amount,
@@ -41,7 +41,7 @@ class Record {
   factory Record.fromMap(Map<String, dynamic> map) {
     return Record(
       recordId: map['record_id'] as int,
-      createdAt: map['created_at'] as int,
+      lastUpdated: map['last_updated'] as int,
       moneySourceId: map['money_source_id'] as int,
       categoryId: map['category_id'] as int? ?? 1,
       categoryName: map['category_name'] as String?,
@@ -55,7 +55,7 @@ class Record {
 
   Record copyWith({
     int? recordId,
-    int? createdAt,
+    int? lastUpdated,
     int? moneySourceId,
     int? categoryId,
     String? categoryName,
@@ -67,7 +67,7 @@ class Record {
   }) {
     return Record(
       recordId: recordId ?? this.recordId,
-      createdAt: createdAt ?? this.createdAt,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
       moneySourceId: moneySourceId ?? this.moneySourceId,
       categoryId: categoryId ?? this.categoryId,
       categoryName: categoryName ?? this.categoryName,
@@ -81,6 +81,6 @@ class Record {
 
   @override
   String toString() {
-    return 'Record(recordId: $recordId, createdAt: $createdAt, moneySourceId: $moneySourceId, categoryId: $categoryId, categoryName: $categoryName, sourceName: $sourceName, amount: $amount, currency: $currency, description: $description, type: $type)';
+    return 'Record(recordId: $recordId, lastUpdated: $lastUpdated, moneySourceId: $moneySourceId, categoryId: $categoryId, categoryName: $categoryName, sourceName: $sourceName, amount: $amount, currency: $currency, description: $description, type: $type)';
   }
 }

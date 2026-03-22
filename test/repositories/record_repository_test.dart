@@ -39,7 +39,7 @@ void main() {
           currency TEXT NOT NULL,
           description TEXT,
           type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
-          created_at INTEGER NOT NULL,
+          last_updated INTEGER NOT NULL,
           FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
           FOREIGN KEY (category_id) REFERENCES Category (category_id)
         )
@@ -70,7 +70,7 @@ void main() {
         currency: 'VND',
         description: 'Lunch',
         type: 'expense',
-        createdAt: 1000,
+        lastUpdated: 1000,
       );
       await repository.createRecord(record);
 
@@ -93,7 +93,7 @@ void main() {
         currency: 'VND',
         description: 'Snack',
         type: 'expense',
-        createdAt: 2000,
+        lastUpdated: 2000,
       );
       await repository.createRecord(record);
 
@@ -115,7 +115,7 @@ void main() {
         currency: 'VND',
         description: 'Something',
         type: 'expense',
-        createdAt: 3000,
+        lastUpdated: 3000,
       );
       await repository.createRecord(record);
 

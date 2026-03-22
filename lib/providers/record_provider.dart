@@ -76,7 +76,7 @@ class RecordProvider extends ChangeNotifier {
 
     if (_selectedDateRange != null) {
       filtered = filtered.where((r) {
-        final created = DateTime.fromMillisecondsSinceEpoch(r.createdAt);
+        final created = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
         return !created.isBefore(_selectedDateRange!.start) && !created.isAfter(_selectedDateRange!.end);
       }).toList();
     }

@@ -30,7 +30,7 @@ void main() {
     final records = [
       Record(
         recordId: 1,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',
@@ -39,7 +39,7 @@ void main() {
       ),
       Record(
         recordId: 2,
-        createdAt: febDate,
+        lastUpdated: febDate,
         moneySourceId: 1,
         amount: 300,
         currency: 'USD',

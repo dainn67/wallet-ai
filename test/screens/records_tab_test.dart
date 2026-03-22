@@ -41,7 +41,7 @@ void main() {
     final records = [
       Record(
         recordId: 1,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',
@@ -50,7 +50,7 @@ void main() {
       ),
       Record(
         recordId: 2,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 200,
         currency: 'USD',
@@ -59,7 +59,7 @@ void main() {
       ),
       Record(
         recordId: 3,
-        createdAt: febDate,
+        lastUpdated: febDate,
         moneySourceId: 1,
         amount: 300,
         currency: 'USD',
@@ -87,7 +87,7 @@ void main() {
     final records = [
       Record(
         recordId: 1,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',
@@ -111,7 +111,7 @@ void main() {
     final records = [
       Record(
         recordId: 2,
-        createdAt: march15,
+        lastUpdated: march15,
         moneySourceId: 1,
         amount: 200,
         currency: 'USD',
@@ -120,7 +120,7 @@ void main() {
       ),
       Record(
         recordId: 1,
-        createdAt: march10,
+        lastUpdated: march10,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',
