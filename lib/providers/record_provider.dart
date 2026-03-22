@@ -200,6 +200,9 @@ class RecordProvider extends ChangeNotifier {
     try {
       final id = await _repository.createMoneySource(source);
       _moneySources.add(source.copyWith(sourceId: id));
+      if (source.amount > 0) {
+        await loadAll();
+      }
     } catch (e) {
       debugPrint('Error adding money source in RecordProvider: $e');
       await loadAll();

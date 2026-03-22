@@ -250,7 +250,22 @@ class RecordRepository {
   // MoneySource Management
   Future<int> createMoneySource(MoneySource source) async {
     try {
-      return await database.insert('MoneySource', source.toMap());
+      int sourceId = 0;
+      await database.transaction((txn) async {
+        sourceId = await txn.insert('MoneySource', source.toMap());
+        if (source.amount > 0) {
+          final record = Record(
+            moneySourceId: sourceId,
+            categoryId: 1, // Uncategorized
+            amount: source.amount,
+            currency: 'VND',
+            description: 'Initial Balance',
+            type: 'income',
+          );
+          await txn.insert('record', record.toMap());
+        }
+      });
+      return sourceId;
     } catch (e) {
       print("Error creating money source: $e");
       rethrow;
