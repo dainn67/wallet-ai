@@ -10,6 +10,7 @@ class RecordsOverview extends StatelessWidget {
   final double totalExpense;
   final List<MoneySource> sources;
   final Function(MoneySource)? onSourceTap;
+  final VoidCallback? onAddSource;
 
   const RecordsOverview({
     super.key,
@@ -18,6 +19,7 @@ class RecordsOverview extends StatelessWidget {
     required this.totalExpense,
     required this.sources,
     this.onSourceTap,
+    this.onAddSource,
   });
 
   @override
@@ -57,19 +59,35 @@ class RecordsOverview extends StatelessWidget {
           ),
 
           // Sources Section (Horizontal List)
-          if (sources.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Divider(color: Colors.white10, height: 1),
-            ),
-            Text(
-              'Sources',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(color: Colors.white10, height: 1),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Sources',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
+              IconButton(
+                onPressed: onAddSource ??
+                    () {
+                      debugPrint('Add source pressed');
+                    },
+                icon: const Icon(Icons.add_rounded),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                iconSize: 18,
+                color: Colors.white.withValues(alpha: 0.6),
+              ),
+            ],
+          ),
+          if (sources.isNotEmpty) ...[
             const SizedBox(height: 12),
             SizedBox(
               height: 54,
