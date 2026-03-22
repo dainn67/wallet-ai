@@ -9,7 +9,7 @@ void main() {
     final testDate = DateTime(2026, 3, 21);
     final testRecord = Record(
       recordId: 1,
-      createdAt: testDate.millisecondsSinceEpoch,
+      lastUpdated: testDate.millisecondsSinceEpoch,
       moneySourceId: 1,
       categoryName: 'Food',
       sourceName: 'Cash',

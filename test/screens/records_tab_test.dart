@@ -41,7 +41,7 @@ void main() {
     final records = [
       Record(
         recordId: 1,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',
@@ -50,7 +50,7 @@ void main() {
       ),
       Record(
         recordId: 2,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 200,
         currency: 'USD',
@@ -59,7 +59,7 @@ void main() {
       ),
       Record(
         recordId: 3,
-        createdAt: febDate,
+        lastUpdated: febDate,
         moneySourceId: 1,
         amount: 300,
         currency: 'USD',
@@ -78,6 +78,8 @@ void main() {
     expect(find.text('February 2026'), findsOneWidget);
 
     // Should find three RecordWidgets
+    print("Found widgets: \${find.byType(RecordWidget).evaluate().length}");
+    for (final widget in find.byType(RecordWidget).evaluate()) { print("Widget: \$widget"); }
     expect(find.byType(RecordWidget), findsNWidgets(3));
   });
 
@@ -87,7 +89,7 @@ void main() {
     final records = [
       Record(
         recordId: 1,
-        createdAt: marchDate,
+        lastUpdated: marchDate,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',
@@ -111,7 +113,7 @@ void main() {
     final records = [
       Record(
         recordId: 2,
-        createdAt: march15,
+        lastUpdated: march15,
         moneySourceId: 1,
         amount: 200,
         currency: 'USD',
@@ -120,7 +122,7 @@ void main() {
       ),
       Record(
         recordId: 1,
-        createdAt: march10,
+        lastUpdated: march10,
         moneySourceId: 1,
         amount: 100,
         currency: 'USD',

@@ -15,7 +15,7 @@ void main() {
     final records = [
       Record(
         recordId: 1,
-        createdAt: now.millisecondsSinceEpoch,
+        lastUpdated: now.millisecondsSinceEpoch,
         moneySourceId: 1,
         amount: 50.0,
         currency: 'USD',
