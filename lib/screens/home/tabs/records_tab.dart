@@ -61,7 +61,7 @@ class RecordsTab extends StatelessWidget {
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                 ),
               ),
-              ..._buildGroupedRecords(records),
+              ..._buildGroupedRecords(context, records),
             ],
           ],
         );
@@ -69,7 +69,7 @@ class RecordsTab extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildGroupedRecords(List<Record> records) {
+  List<Widget> _buildGroupedRecords(BuildContext context, List<Record> records) {
     if (records.isEmpty) return [];
 
     final List<Widget> groupedWidgets = [];
@@ -87,12 +87,27 @@ class RecordsTab extends StatelessWidget {
       groupedWidgets.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: RecordWidget(record: record),
+          child: RecordWidget(
+            record: record,
+            isEditable: true,
+            onEdit: () => _showEditRecordPopup(context, record),
+          ),
         ),
       );
     }
 
     return groupedWidgets;
+  }
+
+  void _showEditRecordPopup(BuildContext context, Record record) async {
+    final updatedRecord = await showDialog<Record>(
+      context: context,
+      builder: (context) => EditRecordPopup(record: record),
+    );
+
+    if (updatedRecord != null && context.mounted) {
+      await context.read<RecordProvider>().updateRecord(updatedRecord);
+    }
   }
 
   void _showEditSourceDialog(BuildContext context, MoneySource source) {

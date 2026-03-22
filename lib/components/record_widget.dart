@@ -9,8 +9,16 @@ import 'package:wallet_ai/helpers/currency_helper.dart';
 class RecordWidget extends StatelessWidget {
   final Record record;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final bool isEditable;
 
-  const RecordWidget({super.key, required this.record, this.onTap});
+  const RecordWidget({
+    super.key,
+    required this.record,
+    this.onTap,
+    this.onEdit,
+    this.isEditable = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +81,17 @@ class RecordWidget extends StatelessWidget {
                 Text(formattedDate, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
               ],
             ),
+
+            // Edit Button
+            if (isEditable) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.edit_rounded, size: 18, color: Color(0xFF64748B)),
+                onPressed: onEdit,
+              ),
+            ],
           ],
         ),
       ),

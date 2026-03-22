@@ -78,6 +78,8 @@ void main() {
     expect(find.text('February 2026'), findsOneWidget);
 
     // Should find three RecordWidgets
+    print("Found widgets: \${find.byType(RecordWidget).evaluate().length}");
+    for (final widget in find.byType(RecordWidget).evaluate()) { print("Widget: \$widget"); }
     expect(find.byType(RecordWidget), findsNWidgets(3));
   });
 
