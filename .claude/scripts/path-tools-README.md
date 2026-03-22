@@ -40,4 +40,4 @@ find .claude/ -name '*.backup' -delete
 ```
 
 ## Standards Reference
-For detailed path usage guidelines, see: `.claude/rules/path-standards.md`
+For detailed path usage guidelines, see: `.claude/rules-reference/path-standards.md`

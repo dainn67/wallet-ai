@@ -10,7 +10,7 @@ import SwiftUI
 import WidgetKit
 
 struct Quick_Chat_WidgetControl: ControlWidget {
-    static let kind: String = "com.example.walletAi.Quick Chat Widget"
+    static let kind: String = "com.leslie.wallyai.Quick Chat Widget"
 
     var body: some ControlWidgetConfiguration {
         AppIntentControlConfiguration(

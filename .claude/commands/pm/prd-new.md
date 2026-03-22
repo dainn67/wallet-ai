@@ -50,6 +50,7 @@ Read these files if they exist (skip silently if missing):
 - `.claude/context/tech-context.md` — Technical constraints and stack
 - `.claude/context/project-brief.md` — Project goals and success criteria
 - `.claude/prds/` — Scan existing PRD filenames to avoid overlap and understand feature landscape
+- `.claude/rules-reference/prd-quality.md` — Quality standards (scale tables, requirement ID format, scenario format)
 
 **Codebase scan (lightweight):**
 - Read `package.json` / `Cargo.toml` / equivalent if exists — note language, framework, test setup
@@ -64,8 +65,17 @@ Read these files if they exist (skip silently if missing):
     - Present to yourself as context: `## Project History (from Memory)\n{response}`
     - Use this history to: ask more informed Wave 1 questions, pre-identify constraints, detect overlap with past features
     - Note which Wave 1 questions the memory already answers (skip or pre-fill in synthesis)
-  - If empty response or command fails: continue without memory context (silent skip)
+  - If empty response or command fails: show `⚠️ Memory Agent offline — project history unavailable. Run: ccpm-memory start` and continue without memory context
 - If not enabled: skip entirely (no output, no delay)
+
+**Product Brief (from prd-rethink, if available):**
+- If `.claude/prds/.rethink-$ARGUMENTS.md` exists:
+  - Read the brief fully
+  - Show: `📝 Loading Product Brief from rethink session...`
+  - Pre-fill Discovery with: problem framing, target user, scope decision, key decisions
+  - During Wave 1-3: skip questions already answered in brief, focus on gaps listed in "Open Questions"
+  - During Synthesis: inherit scale recommendation, scope boundary, key bet from brief
+  - If brief `status: ready-for-prd` → can use Express Path even without 150+ words from user
 
 Use this context to: ask more informed questions, avoid re-inventing existing features, detect overlap, pre-fill constraints, write a PRD that fits the project's architecture and user base.
 
@@ -146,7 +156,7 @@ Present structured summary before writing:
 - **Problem (1 sentence):** [...]
 - **Primary users:** [persona 1], [persona 2]
 - **Solution approach:** [1-2 sentences]
-- **Scale:** Small / Medium / Large (see rules/prd-quality.md)
+- **Scale:** Small / Medium / Large (see .claude/rules-reference/prd-quality.md)
 - **Key risk:** [...]
 - **Out of scope:** [...]
 - **Requirement estimate:** ~X FR, ~Y NFR
@@ -162,7 +172,7 @@ Only begin writing after user confirms.
 
 ### 2. PRD Content Guidelines
 
-**Scale adaptation:** Use the scale from Synthesis to adjust depth per `rules/prd-quality.md` Section Requirements table:
+**Scale adaptation:** Use the scale from Synthesis to adjust depth per `.claude/rules-reference/prd-quality.md` Section Requirements table:
 - **SMALL:** Skip Target Users (inline note), skip User Stories (AC in Requirements), 1-2 sentence Executive Summary, 1 risk entry. Target ~1 page.
 - **MEDIUM:** Full template as below. Target 2-4 pages.
 - **LARGE:** Full template + add Migration Strategy + Rollback Plan sections. Target 4-8 pages.
@@ -207,7 +217,7 @@ Quality bar:
 
 #### Requirements
 
-Use requirement IDs and scenarios per `rules/prd-quality.md`.
+Use requirement IDs and scenarios per `.claude/rules-reference/prd-quality.md`.
 
 **Functional Requirements (MUST):**
 Ordered by priority. Each requirement has an ID, description, and >=1 scenario.
@@ -341,7 +351,7 @@ last_validated: null
 
 Before saving, self-audit against every item. If any fails → fix before saving:
 
-- [ ] All required sections present and non-empty per scale (see `rules/prd-quality.md`)
+- [ ] All required sections present and non-empty per scale (see `.claude/rules-reference/prd-quality.md`)
 - [ ] Executive Summary answers: what, who, why, why now
 - [ ] Target Users has 2+ distinct personas with pain levels (MEDIUM/LARGE only)
 - [ ] Every User Story maps to a persona and has testable acceptance criteria (MEDIUM/LARGE only)

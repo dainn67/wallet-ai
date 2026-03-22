@@ -35,15 +35,15 @@ Read these if they exist (skip silently if missing):
 - `.claude/prds/$FEATURE_NAME.md` — the PRD to validate
 - `.claude/context/tech-context.md` — for constraint validation
 - `.claude/context/product-context.md` — for persona validation
-- `rules/prd-quality.md` — quality standards reference
+- `.claude/rules-reference/prd-quality.md` — quality standards reference
 
 ### 2. Determine Scale
 
-Read `scale` from PRD frontmatter or `_Metadata`. If missing, infer from requirement count and content depth. Use scale to select correct section requirements from `rules/prd-quality.md`.
+Read `scale` from PRD frontmatter or `_Metadata`. If missing, infer from requirement count and content depth. Use scale to select correct section requirements from `.claude/rules-reference/prd-quality.md`.
 
 ### 3. Validate — Three Dimensions
 
-Reference thresholds and section requirements from `rules/prd-quality.md`.
+Reference thresholds and section requirements from `.claude/rules-reference/prd-quality.md`.
 
 **Dimension 1: Completeness** — Are all required parts present?
 - All required sections present and non-empty (per scale)

@@ -1,0 +1,21 @@
+{
+  "agents": [
+    {
+      "name": "ios-qa-agent",
+      "detect_pattern": "*.xcodeproj",
+      "command": "agent:prompts/qa-agent-prompt.md",
+      "blocking": false,
+      "timeout": 300,
+      "execution": "agent"
+    },
+    {
+      "name": "web-qa-agent",
+      "detect_pattern": "package.json",
+      "detect_command": "scripts/qa/detect-web.sh",
+      "command": "agent:prompts/web-qa-agent-prompt.md",
+      "blocking": false,
+      "timeout": 300,
+      "execution": "agent"
+    }
+  ]
+}

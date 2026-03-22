@@ -126,4 +126,37 @@ void main() {
       expect(fetchedRecord.categoryName, 'Uncategorized');
     });
   });
+
+  group('MoneySource Management', () {
+    test('createMoneySource creates source and initial balance record when amount > 0', () async {
+      final source = MoneySource(sourceName: 'Savings', amount: 500.0);
+      final sourceId = await repository.createMoneySource(source);
+
+      // Verify source was created
+      final fetchedSource = (await repository.getAllMoneySources()).firstWhere((s) => s.sourceId == sourceId);
+      expect(fetchedSource.sourceName, 'Savings');
+      expect(fetchedSource.amount, 500.0);
+
+      // Verify record was created
+      final records = await repository.getAllRecords();
+      final initialRecord = records.firstWhere((r) => r.moneySourceId == sourceId);
+      expect(initialRecord.amount, 500.0);
+      expect(initialRecord.type, 'income');
+      expect(initialRecord.description, 'Initial Balance');
+    });
+
+    test('createMoneySource only creates source when amount is 0', () async {
+      final source = MoneySource(sourceName: 'Empty', amount: 0);
+      final sourceId = await repository.createMoneySource(source);
+
+      // Verify source was created
+      final fetchedSource = (await repository.getAllMoneySources()).firstWhere((s) => s.sourceId == sourceId);
+      expect(fetchedSource.amount, 0);
+
+      // Verify no record was created for this source
+      final records = await repository.getAllRecords();
+      final sourceRecords = records.where((r) => r.moneySourceId == sourceId);
+      expect(sourceRecords, isEmpty);
+    });
+  });
 }

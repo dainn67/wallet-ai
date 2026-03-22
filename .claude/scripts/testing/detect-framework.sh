@@ -8,21 +8,17 @@ test_dir=""
 config_file=""
 test_count=0
 
-# Flutter/Dart (High Priority)
-if [ -f "pubspec.yaml" ]; then
+# Flutter/Dart
+if [ -z "$detected" ] && [ -f "pubspec.yaml" ]; then
   detected="flutter"
-  flutter_cmd="flutter"
-  if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
-    flutter_cmd="fvm flutter"
-  fi
-  test_cmd="$flutter_cmd test"
+  test_cmd="fvm flutter test"
   test_dir="test"
   config_file="pubspec.yaml"
   test_count=$(find . -name "*_test.dart" 2>/dev/null | wc -l | tr -d ' ')
 fi
 
 # JavaScript/Node.js
-if [ -z "$detected" ] && [ -f "package.json" ]; then
+if [ -f "package.json" ]; then
   if grep -qE '"jest"' package.json 2>/dev/null || [ -f "jest.config.js" ] || [ -f "jest.config.ts" ]; then
     detected="jest"
     test_cmd="npx jest --verbose"

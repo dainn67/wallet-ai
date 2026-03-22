@@ -118,6 +118,9 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
+  /// Alias for loadAll() to support different naming conventions.
+  Future<void> fetchData() => loadAll();
+
   void _updateWidget() {
     double totalBalance = 0;
     for (var source in _moneySources) {
@@ -200,6 +203,9 @@ class RecordProvider extends ChangeNotifier {
     try {
       final id = await _repository.createMoneySource(source);
       _moneySources.add(source.copyWith(sourceId: id));
+      if (source.amount > 0) {
+        await loadAll();
+      }
     } catch (e) {
       debugPrint('Error adding money source in RecordProvider: $e');
       await loadAll();

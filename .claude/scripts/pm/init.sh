@@ -69,6 +69,7 @@ echo "📁 Creating directory structure..."
 mkdir -p .claude/prds
 mkdir -p .claude/epics
 mkdir -p .claude/rules
+mkdir -p .claude/rules-reference
 mkdir -p .claude/agents
 mkdir -p .claude/scripts/pm
 echo "  ✅ Directories created"

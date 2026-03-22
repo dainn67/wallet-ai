@@ -31,6 +31,7 @@ Read (skip silently if missing):
 - `.claude/prds/.validation-$FEATURE_NAME.md` — validation report (if exists)
 - `.claude/context/tech-context.md` — technical constraints
 - `.claude/epics/$FEATURE_NAME/epic.md` — associated epic (if exists)
+- `.claude/rules-reference/prd-quality.md` — quality standards reference
 
 **Snapshot before edit:** Record current requirement IDs (FR-1, NTH-1, NFR-1...) for impact analysis.
 
@@ -69,7 +70,7 @@ Read (skip silently if missing):
 
 For each edited section:
 - Apply user's changes
-- Validate edited section against `rules/prd-quality.md` quality standards
+- Validate edited section against `.claude/rules-reference/prd-quality.md` quality standards
 - If new requirements added → assign next sequential ID (FR-N+1)
 - If requirements removed → do NOT reuse IDs
 

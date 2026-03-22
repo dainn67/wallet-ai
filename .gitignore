@@ -51,3 +51,5 @@ GEMINI.md
 # FVM Version Cache
 .fvm/
 .fvmtask-*
+.claude/designs/
+.claude/qa/evidence/

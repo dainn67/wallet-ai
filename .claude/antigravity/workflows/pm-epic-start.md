@@ -24,8 +24,13 @@ test -f .claude/epics/$EPIC_NAME/epic.md || { echo "❌ Epic not found. Run: /pm
 # 2. Must be synced to GitHub
 grep -q '^github:' .claude/epics/$EPIC_NAME/epic.md || { echo "❌ Epic not synced. Run: /pm:epic-sync $EPIC_NAME"; exit 1; }
 
-# 3. No uncommitted changes
-[ -z "$(git status --porcelain)" ] || { echo "❌ Uncommitted changes. Commit or stash first."; exit 1; }
+# 3. Auto-commit uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+  echo "📦 Uncommitted changes detected. Auto-committing..."
+  git add -A
+  git commit -m "WIP: auto-commit before epic-start $EPIC_NAME"
+  echo "✅ Changes committed"
+fi
 ```
 
 ## Instructions

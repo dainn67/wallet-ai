@@ -1,7 +1,7 @@
 # PRD: iOS Quick Chat Widget Implementation
-**App ID:** `com.example.walletAi`
-**Widget ID:** `com.example.walletAi.Quick-Chat-Widget`
-**App Group:** `group.com.example.walletAi`
+**App ID:** `com.leslie.wallyai`
+**Widget ID:** `com.leslie.wallyai.Quick-Chat-Widget`
+**App Group:** `group.com.leslie.wallyai`
 
 ---
 
@@ -19,7 +19,7 @@ Enable users to view their last AI chat snippet and launch directly into the AI 
 ## 3. Requirements & Architecture
 
 ### 3.1 Data Flow
-1. **Flutter Side:** When a new chat message is received/sent, the app saves the string to `group.com.example.walletAi`.
+1. **Flutter Side:** When a new chat message is received/sent, the app saves the string to `group.com.leslie.wallyai`.
 2. **Native Side:** The SwiftUI Widget reads from the same App Group container.
 3. **Trigger:** Flutter calls `HomeWidget.updateWidget` to notify iOS to redraw the widget.
 
@@ -48,14 +48,14 @@ Enable users to view their last AI chat snippet and launch directly into the AI 
 Phase 2: Native iOS Setup (Xcode)
 [ ] Create a new Widget Extension target named QuickChatWidget.
 
-[ ] Set the "Product Bundle Identifier" to com.example.walletAi.Quick-Chat-Widget.
+[ ] Set the "Product Bundle Identifier" to com.leslie.wallyai.Quick-Chat-Widget.
 
-[ ] App Groups: Add the App Groups capability to both Runner and QuickChatWidget targets using ID: group.com.example.walletAi.
+[ ] App Groups: Add the App Groups capability to both Runner and QuickChatWidget targets using ID: group.com.leslie.wallyai.
 
 Phase 3: SwiftUI Implementation (QuickChatWidget.swift)
 [ ] Define WidgetData struct to decode JSON/UserDefaults.
 
-[ ] Implement Provider (TimelineProvider) to read from UserDefaults(suiteName: "group.com.example.walletAi").
+[ ] Implement Provider (TimelineProvider) to read from UserDefaults(suiteName: "group.com.leslie.wallyai").
 
 [ ] Create the View:
 
@@ -72,7 +72,7 @@ Dart
 import 'package:home_widget/home_widget.dart';
 
 class WidgetService {
-  static const String groupID = 'group.com.example.walletAi';
+  static const String groupID = 'group.com.leslie.wallyai';
   static const String iOSWidgetName = 'Quick-Chat-Widget';
 
   static Future<void> updateChatSnippet(String message) async {

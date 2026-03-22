@@ -1,7 +1,6 @@
 ---
 name: pm-epic-close
 description: Epic Close
-# tier: medium
 ---
 
 # Epic Close

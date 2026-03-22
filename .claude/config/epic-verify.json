@@ -20,7 +20,14 @@
       "smoke": { "required": true, "blocking": true },
       "integration": { "required": true, "blocking": true },
       "regression": { "required": true, "blocking": false },
-      "performance": { "required": false, "blocking": false }
+      "performance": { "required": false, "blocking": false },
+      "qa": {
+        "required": false,
+        "blocking": false,
+        "description": "Semantic QA testing via iOS simulator (detect-based)",
+        "execution": "agent",
+        "execution_note": "QA runs via Claude Code subagent in epic-verify-b.md, not via shell command"
+      }
     },
     "auto_write_tests_if_missing": true
   },

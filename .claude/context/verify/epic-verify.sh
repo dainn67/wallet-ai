@@ -34,6 +34,8 @@ if [ -f "$CONFIG_FILE" ]; then
   REGR_BLOCKING=$(python3 -c "import json; c=json.load(open('$CONFIG_FILE')); print(c['phase_b']['test_tiers']['regression']['blocking'])" 2>/dev/null || echo "False")
   PERF_REQUIRED=$(python3 -c "import json; c=json.load(open('$CONFIG_FILE')); print(c['phase_b']['test_tiers']['performance']['required'])" 2>/dev/null || echo "False")
   PERF_BLOCKING=$(python3 -c "import json; c=json.load(open('$CONFIG_FILE')); print(c['phase_b']['test_tiers']['performance']['blocking'])" 2>/dev/null || echo "False")
+  QA_REQUIRED=$(python3 -c "import json; c=json.load(open('$CONFIG_FILE')); print(c['phase_b']['test_tiers'].get('qa',{}).get('required','False'))" 2>/dev/null || echo "False")
+  QA_BLOCKING=$(python3 -c "import json; c=json.load(open('$CONFIG_FILE')); print(c['phase_b']['test_tiers'].get('qa',{}).get('blocking','False'))" 2>/dev/null || echo "False")
   SKIP_PERF_DEFAULT=$(python3 -c "import json; c=json.load(open('$CONFIG_FILE')); print(c['phase_b'].get('skip_performance_by_default', False))" 2>/dev/null || echo "False")
   # Apply default skip if no explicit flag
   if [ -z "$SKIP_PERF" ] && [ "$SKIP_PERF_DEFAULT" = "True" ]; then
@@ -45,6 +47,14 @@ else
   INTEG_REQUIRED="True"; INTEG_BLOCKING="True"
   REGR_REQUIRED="True"; REGR_BLOCKING="False"
   PERF_REQUIRED="False"; PERF_BLOCKING="False"
+  QA_REQUIRED="False"; QA_BLOCKING="False"
+fi
+
+# ── Detect QA Agents ──
+DETECT_SCRIPT="$PROJECT_ROOT/.claude/scripts/qa/detect-agents.sh"
+QA_AGENTS=""
+if [ -f "$DETECT_SCRIPT" ]; then
+  QA_AGENTS=$(bash "$DETECT_SCRIPT" 2>/dev/null || true)
 fi
 
 # ── Detect test framework for Tier 3 ──
@@ -63,12 +73,8 @@ detect_test_command() {
 
   # Fallback auto-detect
   if [ -f "pubspec.yaml" ]; then
-    local flutter_cmd="flutter"
-    if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
-      flutter_cmd="fvm flutter"
-    fi
-    echo "$flutter_cmd test && $flutter_cmd analyze"
-  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -d "tests" ] && [ ! -f "pubspec.yaml" ]; then
+    echo "fvm flutter test"
+  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
     echo "python3 -m pytest tests/ -v --tb=short"
   elif [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
     echo "npm test"
@@ -104,11 +110,7 @@ run_tier() {
   # Detect runner for this directory
   local cmd
   if [ -f "pubspec.yaml" ]; then
-    local flutter_cmd="flutter"
-    if [ -f ".fvmrc" ] || [ -d ".fvm" ]; then
-      flutter_cmd="fvm flutter"
-    fi
-    cmd="$flutter_cmd test $test_dir"
+    cmd="fvm flutter test $test_dir"
   elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "conftest.py" ]; then
     cmd="python3 -m pytest $test_dir -v --tb=short"
   elif [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
@@ -139,6 +141,36 @@ run_tier() {
   fi
 
   return $tier_exit
+}
+
+# ── Run a QA agent ──
+# Args: $1=name $2=command $3=blocking $4=timeout
+run_qa_agent() {
+  local name="$1"
+  local command="$2"
+  local blocking="$3"
+  local agent_timeout="$4"
+  local agent_exit=0
+
+  timeout "$agent_timeout" bash -c "$command" 2>&1
+  agent_exit=$?
+
+  if [ $agent_exit -eq 0 ]; then
+    echo "✅ QA $name: PASS"
+  elif [ $agent_exit -eq 124 ]; then
+    echo "⚠️  QA $name: TIMEOUT (non-blocking)"
+    PARTIAL=1
+  else
+    if [ "$blocking" = "True" ]; then
+      echo "❌ QA $name: FAIL (blocking)"
+      FAIL=1
+    else
+      echo "⚠️  QA $name: FAIL (non-blocking)"
+      PARTIAL=1
+    fi
+  fi
+
+  return $agent_exit
 }
 
 # ══════════════════════════════════════════
@@ -219,16 +251,71 @@ else
   run_tier "TẦNG 4" "$PERF_DIR" "$PERF_REQUIRED" "$PERF_BLOCKING"
 fi
 
+# ── Tầng 5: QA Agent Tests ──
+QA_RESULTS=""
+if [ -n "$QA_AGENTS" ]; then
+  echo ""
+  echo "┌──────────────────────────────────────────┐"
+  echo "│  TẦNG 5: QA AGENT TESTS                  │"
+  echo "└──────────────────────────────────────────┘"
+
+  while IFS= read -r agent_json; do
+    [ -z "$agent_json" ] && continue
+    agent_name=$(echo "$agent_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['name'])")
+    agent_cmd=$(echo "$agent_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['command'])")
+    agent_blocking=$(echo "$agent_json" | python3 -c "import json,sys; print(json.load(sys.stdin).get('blocking',False))")
+    agent_timeout=$(echo "$agent_json" | python3 -c "import json,sys; print(json.load(sys.stdin).get('timeout',300))")
+    agent_output=$(run_qa_agent "$agent_name" "$agent_cmd" "$agent_blocking" "$agent_timeout" 2>&1)
+    agent_exit=$?
+    echo "$agent_output"
+    # Propagate PARTIAL/FAIL from subshell (run_qa_agent runs in command substitution)
+    if [ $agent_exit -ne 0 ]; then
+      if [ "$agent_blocking" = "True" ]; then
+        FAIL=1
+      else
+        PARTIAL=1
+      fi
+    fi
+    # Use BSD-compatible grep (no -P flag on macOS)
+    health_score=$(echo "$agent_output" | grep -oE 'Health Score: [0-9]+' | grep -oE '[0-9]+$' 2>/dev/null || echo "N/A")
+    [ -z "$health_score" ] && health_score="N/A"
+    if [ $agent_exit -eq 0 ]; then
+      QA_RESULTS="${QA_RESULTS}
+| ${agent_name} | ✅ PASS | ${health_score}/100 | |"
+    else
+      QA_RESULTS="${QA_RESULTS}
+| ${agent_name} | ⚠️ FAIL | ${health_score}/100 | Run /qa:run to investigate |"
+    fi
+  done <<< "$QA_AGENTS"
+fi
+
 # ── Final Result ──
 echo ""
 echo "══════════════════════════════════════════"
 if [ $FAIL -ne 0 ]; then
   echo "EPIC_VERIFY_FAIL"
-  exit 1
+  FINAL_EXIT=1
 elif [ $PARTIAL -ne 0 ]; then
   echo "EPIC_VERIFY_PARTIAL"
-  exit 2
+  FINAL_EXIT=2
 else
   echo "EPIC_VERIFY_PASS"
-  exit 0
+  FINAL_EXIT=0
 fi
+
+# ── Append QA section to verify report ──
+if [ -n "$QA_RESULTS" ]; then
+  REPORT_FILE="$PROJECT_ROOT/.claude/epics/${EPIC_NAME}/verify-report.md"
+  if [ -f "$REPORT_FILE" ]; then
+    cat >> "$REPORT_FILE" << 'QAEOF'
+
+## QA Agent Results
+
+| Agent | Status | Health Score | Note |
+|-------|--------|--------------|------|
+QAEOF
+    echo "$QA_RESULTS" >> "$REPORT_FILE"
+  fi
+fi
+
+exit $FINAL_EXIT

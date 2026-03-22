@@ -1,0 +1,23 @@
+{
+  "workflow": {
+    "steps": [
+      {"name": "prd-new", "tier": "heavy", "gate": true},
+      {"name": "prd-qualify", "tier": "heavy", "gate": false, "loop": true, "max_loop": 5},
+      {"name": "prd-parse", "tier": "heavy", "gate": false},
+      {"name": "plan-review", "tier": "heavy", "gate": true},
+      {"name": "epic-decompose", "tier": "heavy", "gate": false},
+      {"name": "epic-sync", "tier": "medium", "gate": false},
+      {"name": "epic-start", "tier": "medium", "gate": false},
+      {"name": "epic-run", "tier": "heavy", "gate": true},
+      {"name": "epic-verify", "tier": "heavy", "gate": false},
+      {"name": "epic-merge", "tier": "medium", "gate": true}
+    ],
+    "gates": ["prd-new", "plan-review", "epic-run", "epic-merge"]
+  },
+  "tokens_per_tier": {
+    "light": 500,
+    "medium": 5000,
+    "heavy": 20000
+  },
+  "max_loop": 5
+}

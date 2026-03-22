@@ -1,13 +1,1 @@
-{
-  "active_epic": {
-    "epic_name": "setup-font",
-    "phase": "B",
-    "verify_mode": "STRICT",
-    "max_iterations": 30,
-    "current_iteration": 0,
-    "mid_clear_at": 10,
-    "phase_a_report": ".claude/context/verify/epic-reports/setup-font-20260321-104500.md",
-    "started_at": "2026-03-21T10:43:24Z",
-    "iterations": []
-  }
-}
+{"active_epic": null}
