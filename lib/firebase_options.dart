@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '461686398579',
     projectId: 'leslie-project-ed8f6',
     storageBucket: 'leslie-project-ed8f6.firebasestorage.app',
-    iosBundleId: 'com.leslie.wallyai.QuickChatWidget',
+    iosBundleId: 'com.leslie.wallyai',
   );
 }

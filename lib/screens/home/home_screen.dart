@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import '../../configs/app_config.dart';
+import '../../services/storage_service.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
 import 'tabs/test_tab.dart';
@@ -169,6 +170,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.currency_exchange, size: 20),
+              title: const Text('Currency'),
+              trailing: Text(
+                StorageService().getString(StorageService.keyCurrency) ?? 'VND',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue,
+                ),
+              ),
+              onTap: () {
+                final current = StorageService().getString(StorageService.keyCurrency) ?? 'VND';
+                final next = current == 'VND' ? 'USD' : 'VND';
+                StorageService().setString(StorageService.keyCurrency, next);
+                setState(() {});
+              },
+            ),
+            const Divider(),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.all(16.0),
