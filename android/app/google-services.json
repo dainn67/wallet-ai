@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "461686398579",
+    "project_id": "leslie-project-ed8f6",
+    "storage_bucket": "leslie-project-ed8f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461686398579:android:129bcdc78ebc01b3bb5406",
+        "android_client_info": {
+          "package_name": "com.leslie.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVhsCEEQbtepxO6CITtOYX1X9SCNe90lY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461686398579:android:2f9e334f9cfaf59cbb5406",
+        "android_client_info": {
+          "package_name": "com.leslie.linguaai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVhsCEEQbtepxO6CITtOYX1X9SCNe90lY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461686398579:android:1ede7b51d9577e71bb5406",
+        "android_client_info": {
+          "package_name": "com.leslie.wallyai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVhsCEEQbtepxO6CITtOYX1X9SCNe90lY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
