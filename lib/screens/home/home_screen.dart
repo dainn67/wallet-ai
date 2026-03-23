@@ -124,57 +124,62 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildAppDrawer(BuildContext context) {
     return Drawer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary])),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.white.withValues(alpha: 0.15),
-                    child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    AppConfig().appName,
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
-                  Text('Personal finance copilot', style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
-                ],
+      child: SafeArea(
+        top: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
+                  ],
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.white.withValues(alpha: 0.15),
+                      child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      AppConfig().appName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      'Personal finance copilot',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.chat_bubble_outline),
-            title: const Text('Chat', style: TextStyle(fontWeight: FontWeight.w500)),
-            onTap: () {
-              _tabController.animateTo(0);
-              Navigator.of(context).pop();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long),
-            title: const Text('Records', style: TextStyle(fontWeight: FontWeight.w500)),
-            onTap: () {
-              _tabController.animateTo(1);
-              Navigator.of(context).pop();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.science_outlined),
-            title: const Text('Test', style: TextStyle(fontWeight: FontWeight.w500)),
-            onTap: () {
-              _tabController.animateTo(2);
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                AppConfig().fullVersion,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
