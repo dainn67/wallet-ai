@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/services/services.dart';
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,8 +17,9 @@ void main() {
   late MockChatProvider mockChatProvider;
   late MockRecordProvider mockRecordProvider;
 
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    await StorageService.init();
     mockChatProvider = MockChatProvider();
     mockRecordProvider = MockRecordProvider();
 
@@ -66,5 +69,36 @@ void main() {
 
     expect(find.byType(Drawer), findsOneWidget);
     expect(find.text('Wallet AI'), findsWidgets);
+  });
+
+  testWidgets('Drawer shows correct version and toggles currency', (WidgetTester tester) async {
+    await tester.pumpWidget(createWidgetUnderTest());
+
+    // Open drawer
+    final ScaffoldState state = tester.firstState(find.byType(Scaffold));
+    state.openDrawer();
+    await tester.pumpAndSettle();
+
+    // Verify version
+    expect(find.text(AppConfig().fullVersion), findsOneWidget);
+
+    // Verify initial currency
+    expect(find.text('VND'), findsOneWidget);
+
+    // Toggle currency
+    await tester.tap(find.text('Currency'));
+    await tester.pump();
+
+    // Verify currency toggled to USD
+    expect(find.text('USD'), findsOneWidget);
+    expect(StorageService().getString(StorageService.keyCurrency), 'USD');
+
+    // Toggle back
+    await tester.tap(find.text('Currency'));
+    await tester.pump();
+
+    // Verify currency toggled back to VND
+    expect(find.text('VND'), findsOneWidget);
+    expect(StorageService().getString(StorageService.keyCurrency), 'VND');
   });
 }

@@ -14,8 +14,8 @@ class AppConfig {
   AppConfig._internal();
 
   final String appName = 'Wallet AI';
-  final String version = '1.0.0';
-  final String buildNumber = '2';
+  final String version = '1.2.3';
+  final String buildNumber = '4';
 
   String get fullVersion => 'v$version($buildNumber)';
 
