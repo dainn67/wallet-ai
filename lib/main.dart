@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
@@ -16,6 +17,9 @@ void main() async {
 
   // Initialize AppConfig (loads devMode etc.)
   await AppConfig().init();
+
+  // Initialize HomeWidget
+  await HomeWidget.setAppGroupId('com.leslie.wallyai');
 
   runApp(const MyApp());
 }
