@@ -5,6 +5,7 @@ import '../../services/storage_service.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
 import 'tabs/test_tab.dart';
+import '../../components/components.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -192,11 +193,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   color: Colors.blue,
                 ),
               ),
-              onTap: () {
+              onTap: () async {
                 final current = StorageService().getString(StorageService.keyCurrency) ?? 'VND';
-                final next = current == 'VND' ? 'USD' : 'VND';
-                StorageService().setString(StorageService.keyCurrency, next);
-                setState(() {});
+                final selected = await showCurrencySelectionPopup(
+                  context: context,
+                  currentCurrency: current,
+                );
+                if (selected != null && mounted) {
+                  StorageService().setString(StorageService.keyCurrency, selected);
+                  setState(() {});
+                }
               },
             ),
             const Divider(),

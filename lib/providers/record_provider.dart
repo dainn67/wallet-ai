@@ -3,6 +3,7 @@ import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
 class RecordProvider extends ChangeNotifier {
   final RecordRepository _repository;
@@ -140,7 +141,7 @@ class RecordProvider extends ChangeNotifier {
     HomeWidget.saveWidgetData<String>('total_balance', CurrencyHelper.format(totalBalance));
     HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(totalIncome));
     HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(totalSpend));
-    HomeWidget.saveWidgetData<String>('currency', 'VND');
+    HomeWidget.saveWidgetData<String>('currency', StorageService().getString(StorageService.keyCurrency) ?? 'VND');
     HomeWidget.updateWidget(androidName: 'MyWidgetReceiver');
   }
 

@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
 class RecordRepository {
   static final RecordRepository _instance = RecordRepository._internal();
@@ -293,7 +294,7 @@ class RecordRepository {
             moneySourceId: sourceId,
             categoryId: 1, // Uncategorized
             amount: source.amount,
-            currency: 'VND',
+            currency: StorageService().getString(StorageService.keyCurrency) ?? 'VND',
             description: 'Initial Balance',
             type: 'income',
           );

@@ -9,6 +9,7 @@ user opens chat screen, sends messages. chat goes to backend via ChatApiService 
 where to find things
 lib/main.dart: app entry, provider setup, init of StorageService, RecordRepository, dotenv.
 lib/screens/: chat_screen.dart (main ui). screens.dart barrel.
+lib/components/: reusable widgets, dialogs (in popups folder). components.dart barrel.
 lib/providers/: chat_provider.dart (chat state, send message, stream handling, record parsing and save). providers.dart barrel.
 lib/services/: api_service.dart (http singleton), chat_api_service.dart (stream chat), storage_service.dart (shared_preferences singleton), api_exception.dart. services.dart barrel.
 lib/repositories/: record_repository.dart (sqlite, records and money sources). repositories.dart barrel.
