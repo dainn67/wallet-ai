@@ -14,6 +14,10 @@ class AppConfig {
   AppConfig._internal();
 
   final String appName = 'Wallet AI';
+  final String version = '1.0.0';
+  final String buildNumber = '2';
+
+  String get fullVersion => 'v$version($buildNumber)';
 
   bool _devMode = kDebugMode;
   bool get devMode => _devMode;
