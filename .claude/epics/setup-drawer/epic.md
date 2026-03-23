@@ -1,9 +1,10 @@
 ---
 name: setup-drawer
-status: backlog
+status: completed
 created: 2026-03-22T00:00:00Z
-updated: 2026-03-22T00:00:00Z
-progress: 0%
+updated: 2026-03-22T12:25:00Z
+completed: 2026-03-22T12:25:00Z
+progress: 100%
 priority: P1
 prd: .claude/prds/setup-drawer.md
 task_count: 5
@@ -69,11 +70,11 @@ Implement the currency toggle and persistence.
 ## Tasks Created
 | #   | Task | Phase | Parallel | Est. | Depends On | Status |
 | --- | ---- | ----- | -------- | ---- | ---------- | ------ |
-| 99 | Drawer UI Cleanup | 1 | no | 0.5d | — | open |
-| 100 | AppConfig Version Support | 1 | no | 0.2d | — | open |
-| 101 | Python Sync Script | 2 | yes | 0.5d | 100 | open |
-| 102 | Currency Toggle | 3 | no | 0.5d | — | open |
-| 103 | Verification & Polish | 3 | no | 0.3d | all | open |
+| 99 | Drawer UI Cleanup | 1 | no | 0.5d | — | closed |
+| 100 | AppConfig Version Support | 1 | no | 0.2d | — | closed |
+| 101 | Python Sync Script | 2 | yes | 0.5d | 100 | closed |
+| 102 | Currency Toggle | 3 | no | 0.5d | — | closed |
+| 103 | Verification & Polish | 3 | no | 0.3d | all | closed |
 
 ### Summary
 - **Total tasks:** 5
