@@ -1,31 +1,41 @@
 # Context
 
-This document provides a map of the codebase and service responsibilities.
+## What the App Is
+Wally AI is a mobile financial assistant that helps users track income and expenses through natural language. Users chat with an AI assistant that parses messages into structured records. The app persists financial data (Records, MoneySources, Categories) locally in SQLite and provides a modern UI with real-time updates.
 
-File Structure:
-- .env: Local secrets (ignored by git).
-- .env.example: Template for environment variables.
-- lib/config/app_config.dart: Environment settings and secrets access via flutter_dotenv.
-- lib/helpers/api_helper.dart: Core utility for making HTTP requests (GET, POST, Stream).
-- lib/services/api_service.dart: Singleton for general REST requests (wraps APIHelper).
-- lib/services/chat_api_service.dart: Singleton for specialized chat streaming logic (wraps `ApiService`).
-- lib/services/storage_service.dart: Singleton for synchronous persistent storage.
-- lib/services/database_service.dart: Singleton for SQLite-based transactional storage.
-- lib/models/chat_stream_response.dart: Structured response model for chat API chunks.
-- lib/models/chat_message.dart: Represents conversation turns, now includes optional `List<Record>` for transaction data.
-- lib/providers/chat_provider.dart: Manages chat UI state, message history, server session continuity (conversationId), and relational data extraction.
-- lib/main.dart: App entry, style configuration, and startup initialization.
-- docs/: AI context and project documentation.
+## Core Mandates
+- **Living Docs**: Documentation in `docs/features/` must be updated whenever a feature's technical logic changes.
+- **Simplicity**: Favor concise, idiomatic code and avoid over-engineering.
+- **Offline Support**: All fonts and critical data must be available locally.
 
-Key Components:
-- ApiService: Standardized GET/POST/Stream requests using APIHelper.
-- ChatApiService: SSE (Server-Sent Events) streaming for LLM interactions.
-- StorageService: Sync access to SharedPreferences for simple flags and settings.
-- DatabaseService: Relational storage for transactions and wallet data. Supports name-to-ID lookup for AI-driven record creation.
-- AppConfig: Centralized source of truth for URLs and API keys.
-- ChatProvider: Hybrid state manager for UI, server-side session persistence, and intelligent data parsing from stream.
+## Main Flows
 
-Commands:
-- Install: fvm flutter pub get
-- Run: fvm flutter run
-- Test: fvm flutter test
+### Navigation
+The app uses a single-screen architecture (`HomeScreen`) with a `PageView` and `BottomNavigationBar` to switch between:
+1. **Chat**: The AI assistant tab for conversational record entry.
+2. **Records**: The financial dashboard for list views and stats.
+A navigation drawer provides secondary access to these tabs and global settings.
+
+### AI Record Creation
+1. User sends a message in the **ChatTab**.
+2. **ChatProvider** fetches the list of available categories and sources from **RecordProvider**.
+3. **ChatApiService** sends the request to the backend with the user message and local context.
+4. Assistant replies with a text response followed by a JSON array containing `category_id`, `source_id`, `amount`, `type`, and `description`.
+5. **ChatProvider** parses the JSON on completion and saves the records via **RecordRepository** using atomic transactions.
+6. **RecordProvider** is notified to reload and update the **RecordsTab**.
+
+## Directory Structure
+- `lib/main.dart`: App initialization, global provider setup, and theme configuration.
+- `lib/screens/home/`: `home_screen.dart` (Main container), `tabs/` (`chat_tab.dart`, `records_tab.dart`).
+- `lib/providers/`: `record_provider.dart` (Records, sources, categories), `chat_provider.dart` (Streaming chat flow).
+- `lib/repositories/`: `record_repository.dart` (SQLite storage and transactions).
+- `lib/models/`: Entity definitions (`record.dart`, `money_source.dart`, `category.dart`).
+- `lib/services/`: Singletons like `ApiService`, `ChatApiService`, `StorageService`.
+- `docs/features/`: Granular technical documentation and Mermaid diagrams for specific features.
+
+## Logic Locations
+- **Navigation State**: `HomeScreen` managed by `PageController`.
+- **Chat Streaming**: `ChatProvider.sendMessage` and `ChatApiService.streamChat`.
+- **Parsing**: `ChatProvider.onDone` handler.
+- **DB Transactions**: `RecordRepository.createRecord`.
+- **State Synchronization**: `ChangeNotifierProxyProvider` links `RecordProvider` to `ChatProvider`.

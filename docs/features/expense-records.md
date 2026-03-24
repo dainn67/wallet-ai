@@ -1,31 +1,33 @@
-# Expense Records Feature Documentation
+# Financial Tracking Feature Documentation
 
 ## Technical Overview
-The Expense Records feature handles the persistence and management of financial transactions, including income and expenses. It is backed by a local SQLite database and synchronized through a reactive provider layer to update the UI in real-time.
+The Financial Tracking system handles the persistence and management of transactions (Records), Categories, and Money Sources. It is backed by a local SQLite database and synchronized through a reactive provider layer to update the UI in real-time.
 
 ## Technical Mapping
 
 ### UI Layer
-- **RecordsTab**: Displays a high-level overview box (Total Balance, Income, Spent, and Source Balances) and a detailed list of recent financial transactions. Uses `Consumer<RecordProvider>` to listen for changes to both records and money sources.
+- **RecordsTab**: Displays a high-level overview (Total Balance, Income, Spent) and a list of recent transactions.
+- **AddRecordPopup / EditRecordPopup**: Modal interfaces for creating and modifying transactions, including category selection and source selection.
+- **AddSourcePopup**: Interface for creating new money sources (e.g., Bank, Cash).
 
 ### Provider Layer
-- **RecordProvider**: Acts as the central state manager for the records and money sources.
-  - `loadAll()`: Fetches all data from the repository on initialization.
-  - `addRecord(record)`: Orchestrates the creation of a new record through the repository.
-  - `updateRecord(record)`, `deleteRecord(id)`: Handle standard CRUD logic with state synchronization.
-  - `updateMoneySource(source)`: Updates the balance of a money source through the repository.
-  - `filteredRecords`: Reactive getter providing filtered and sorted records to the UI.
+- **RecordProvider**: The central state manager for all financial data.
+  - `loadAll()`: Concurrent fetch of records, money sources, and categories from the repository.
+  - `addRecord(record)`: Orchestrates record creation and balance updates.
+  - `addMoneySource(source)`: Persists new sources.
+  - `categories`: Read-only list of available categories (Food, Salary, etc.).
 
 ### Repository Layer
-- **RecordRepository**: Direct interface with the local SQLite database.
-  - `init()`: Handles the initialization, asset-to-document migration, and schema management.
-  - `createRecord(record)`: Executes a database transaction that both inserts the new record and adjusts the associated `MoneySource` balance.
-  - `getAllRecords()`, `getAllMoneySources()`: Query methods for retrieving bulk data.
+- **RecordRepository**: Direct interface with SQLite (`data.db`).
+  - `createRecord(record)`: Executes a **database transaction** that inserts the record and adjusts the `MoneySource` balance based on the transaction type (income/expense).
+  - `updateRecord(record)`: Re-calculates source balances if the amount or source of an existing record changes.
+  - `getAllCategories()`: Retrieves categorized groupings.
 
 ### Database Layer
-- **SQLite Database**: The underlying persistent store (`data.db`).
-  - Tables: `record`, `MoneySource`.
-  - Trigger logic (simulated in repository via transactions) ensures that every transaction is correctly reflected in source balances.
+- **Tables**:
+  - `Record`: Stores transaction details (amount, category_id, source_id, type).
+  - `Category`: Stores available categories (name, type).
+  - `MoneySource`: Stores source names and current balances.
 
 ## Flow Diagram
 
@@ -34,27 +36,32 @@ sequenceDiagram
     participant UI as RecordsTab
     participant RP as RecordProvider
     participant RR as RecordRepository
-    participant DB as SQLite (sqflite)
+    participant DB as SQLite
 
-    UI->>RP: Consumer (Accesses state)
-    RP->>RR: loadAll() (Init)
-    RR->>DB: query('record'), query('MoneySource')
+    UI->>RP: Consumer (Init)
+    RP->>RR: getAllRecords(), getAllSources(), getAllCategories()
+    RR->>DB: query tables
     DB-->>RR: Raw Data
-    RR-->>RP: List<Record>, List<MoneySource>
-    RP-->>UI: notifyListeners() (Render data)
+    RR-->>RP: List<Model>
+    RP-->>UI: notifyListeners()
 
-    Note over UI: User creates new record
+    Note over UI: User adds an expense
     UI->>RP: addRecord(record)
     RP->>RR: createRecord(record)
     
     activate RR
-    RR->>DB: transaction (Start)
-    RR->>DB: insert('record')
-    RR->>DB: update('MoneySource') (Adjust balance)
-    RR->>DB: commit (End)
+    RR->>DB: transaction {
+    RR->>DB: insert('Record')
+    RR->>DB: update('MoneySource') (Balance - amount)
+    RR->>DB: }
     deactivate RR
     
     RR-->>RP: record_id
-    RP->>RP: update _records list
-    RP-->>UI: notifyListeners() (Refresh View)
+    RP->>RP: update internal lists
+    RP-->>UI: notifyListeners() (UI Refresh)
 ```
+
+## Data Relationships
+- **Record -> Category**: Every record is linked to a `category_id`. If deleted, records are usually moved to "Uncategorized" (ID: 1).
+- **Record -> MoneySource**: Every record must belong to a money source. Transactions directly affect the `balance` field of the linked source.
+- **Transactions**: All balance-affecting operations are wrapped in SQLite transactions to ensure data integrity (no orphaned records or incorrect balances).

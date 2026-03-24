@@ -1,31 +1,47 @@
-architecture
+# Architecture
 
-tooling
-use fvm for all flutter and dart commands. flutter version is managed via .fvm/fvm_config.json (e.g. 3.35.7). run fvm flutter and fvm dart, not bare flutter/dart.
+## Tooling
+- **FVM**: Use `fvm` for all Flutter and Dart commands (e.g., `fvm flutter run`). Flutter version is pinned via `.fvmrc`.
+- **Environment**: SDK `^3.9.2`. Material 3 enabled.
 
-framework
-flutter app with dart sdk ^3.9.2. material 3, google_fonts (poppins), flutter_dotenv for env. assets include .env.
+## Typography
+- **Poppins**: The ONLY font family used. Served via **LOCAL ASSETS** to ensure full offline support.
+- **Prohibited**: The `google_fonts` package is forbidden to prevent network-related rendering delays (FOUT).
+- **Configuration**: Managed in `pubspec.yaml` (18 weights/styles) and applied via `ThemeData` in `main.dart`.
 
-state and di
-provider package for ui state. multi provider in main.dart: AppConfig, StorageService, ChangeNotifierProvider for ChatProvider. use context.read<SomeProvider>() or context.watch where needed. providers hold ui reactive state only.
+## State Management (Provider)
+- **MultiProvider**: Set up in `main.dart`.
+- **RecordProvider**: Central state for Records, MoneySources, and Categories. Reactive and synchronized with the repository.
+- **ChatProvider**: Manages streaming chat state, conversation history, and AI response parsing. Refers to `RecordProvider` for contextual data.
+- **Consumption**: Use `context.read<T>()` for actions and `Consumer<T>` or `context.watch<T>()` for reactive UI updates.
 
-services
-services are singletons. call them directly e.g. ApiService(), ChatApiService(), StorageService(), RecordRepository(). they do not hold conversational state. factory with optional config/client for tests. examples: ApiService, ChatApiService, StorageService.
+## Services & Singletons
+- **Pattern**: Static `_instance` with a private constructor and a factory.
+- **Initialization**: Async init methods (e.g., `StorageService.init()`) called in `main()` before `runApp`.
+- **Services**: `ApiService` (HTTP), `ChatApiService` (Chat payload), `StorageService` (SharedPreferences), `HomeWidget` (Widget integration).
 
-singleton pattern
-static final _instance and factory Name() => _instance. private constructor _internal(). init when needed via static Future init() and call from main before runApp.
+## Data Layer (Repositories)
+- **RecordRepository**: Singleton managing the SQLite `data.db`.
+- **Transactions**: All balance-affecting operations (creating/updating/deleting records) are executed as atomic database transactions.
+- **Schema**:
+  - `Record`: Transaction data with foreign keys to `Category` and `MoneySource`.
+  - `Category`: User-defined or default classification.
+  - `MoneySource`: Named sources with tracked balances.
 
-repositories
-data access layer. RecordRepository is a singleton, holds sqflite Database. init via RecordRepository.init() in main. uses path_provider for db path, optional asset copy for initial data.db. exposes create/get/update/delete for records and money sources. used by providers and screens.
+## Initialization Flow
+1. **main()**:
+   - `WidgetsFlutterBinding.ensureInitialized()`.
+   - Parallel init: `StorageService.init()`, `RecordRepository.init()`, `dotenv.load()`.
+   - `AppConfig().init()`.
+   - `HomeWidget.setAppGroupId()`.
+2. **runApp(MyApp)**: Providers initialized and data loaded (e.g., `RecordProvider()..loadAll()`).
 
-config
-AppConfig singleton. baseUrl, timeouts, api keys from dotenv (mainChatApiKey, etc). env from .env file loaded in main. never hardcode secrets.
+## Networking
+- **APIHelper**: Low-level HTTP requests (GET, POST, POST_STREAM).
+- **ApiService**: High-level wrapper for `APIHelper`.
+- **ChatApiService**: Specific logic for the Dify-based streaming chat API.
 
-initialization
-main() must call async init before runApp: StorageService.init(), RecordRepository.init(), dotenv.load(fileName: ".env"). use Future.wait for parallel init.
-
-networking
-all http goes through ApiService. ApiService builds full url from AppConfig.baseUrl, delegates to APIHelper for get/post/postStream. specialized services like ChatApiService use ApiService (postStream), not APIHelper directly. ApiException for api errors.
-
-testing
-services allow injecting mocks via factory (e.g. ApiService with client and config). RecordRepository has setMockDatabase for tests. every service and provider should have a corresponding test. use mocktail. run fvm flutter test.
+## Testing
+- **Unit/Widget Tests**: Mirror the `lib/` directory in `test/`. Use `mocktail` for dependencies.
+- **Mocking**: Services should support dependency injection or mock setters (e.g., `RecordRepository.setMockDatabase`).
+- **Commands**: Run `fvm flutter test`.
