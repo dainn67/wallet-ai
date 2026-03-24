@@ -21,48 +21,56 @@ class RecordsTab extends StatelessWidget {
         final totalExpense = records.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
         final totalBalance = provider.moneySources.fold<double>(0, (sum, s) => sum + s.amount);
 
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+        return Column(
           children: [
-            RecordsOverview(
-              totalBalance: totalBalance,
-              totalIncome: totalIncome,
-              totalExpense: totalExpense,
-              sources: provider.moneySources,
-              onSourceTap: (source) => _showEditSourceDialog(context, source),
-            ),
-            const SizedBox(height: 24),
-            if (records.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 60),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.receipt_long, size: 40, color: Colors.grey.shade400),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No records yet',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Your income and expense records will appear here.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                    ),
-                  ],
-                ),
-              )
-            else ...[
-              const Padding(
-                padding: EdgeInsets.only(left: 4, bottom: 4),
-                child: Text(
-                  'Recent Records',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-                ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: RecordsOverview(
+                totalBalance: totalBalance,
+                totalIncome: totalIncome,
+                totalExpense: totalExpense,
+                sources: provider.moneySources,
+                onSourceTap: (source) => _showEditSourceDialog(context, source),
               ),
-              ..._buildGroupedRecords(context, records),
-            ],
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
+                children: [
+                  if (records.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 60),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt_long, size: 40, color: Colors.grey.shade400),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'No records yet',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Your income and expense records will appear here.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          ),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4, bottom: 4),
+                      child: Text(
+                        'Recent Records',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                      ),
+                    ),
+                    ..._buildGroupedRecords(context, records),
+                  ],
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -86,12 +94,8 @@ class RecordsTab extends StatelessWidget {
 
       groupedWidgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: RecordWidget(
-            record: record,
-            isEditable: true,
-            onEdit: () => _showEditRecordPopup(context, record),
-          ),
+          padding: const EdgeInsets.only(bottom: 10),
+          child: RecordWidget(record: record, isEditable: true, onEdit: () => _showEditRecordPopup(context, record)),
         ),
       );
     }
@@ -110,39 +114,14 @@ class RecordsTab extends StatelessWidget {
     }
   }
 
-  void _showEditSourceDialog(BuildContext context, MoneySource source) {
-    final controller = TextEditingController(text: source.amount.toStringAsFixed(0));
-    showDialog(
+  void _showEditSourceDialog(BuildContext context, MoneySource source) async {
+    final newAmount = await showDialog<double>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit ${source.sourceName}'),
-        content: TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'New Amount',
-            hintText: 'Enter total amount',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final newAmount = double.tryParse(controller.text);
-              if (newAmount != null) {
-                context.read<RecordProvider>().updateMoneySource(
-                      source.copyWith(amount: newAmount),
-                    );
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+      builder: (context) => EditSourcePopup(source: source),
     );
+
+    if (newAmount != null && context.mounted) {
+      await context.read<RecordProvider>().updateMoneySource(source.copyWith(amount: newAmount));
+    }
   }
 }

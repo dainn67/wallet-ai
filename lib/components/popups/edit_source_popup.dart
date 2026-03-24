@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 
-/// A popup dialog for adding a new [MoneySource].
-///
-/// This dialog captures the source name and an initial balance.
-/// It uses a dark theme style with specific border radiuses.
-class AddSourcePopup extends StatefulWidget {
-  const AddSourcePopup({super.key});
+class EditSourcePopup extends StatefulWidget {
+  final MoneySource source;
+
+  const EditSourcePopup({super.key, required this.source});
 
   @override
-  State<AddSourcePopup> createState() => _AddSourcePopupState();
+  State<EditSourcePopup> createState() => _EditSourcePopupState();
 }
 
-class _AddSourcePopupState extends State<AddSourcePopup> {
-  final _nameController = TextEditingController();
-  final _amountController = TextEditingController();
-  String? _nameError;
+class _EditSourcePopupState extends State<EditSourcePopup> {
+  late TextEditingController _amountController;
   String? _amountError;
 
   @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(text: widget.source.amount.toStringAsFixed(0));
+  }
+
+  @override
   void dispose() {
-    _nameController.dispose();
     _amountController.dispose();
     super.dispose();
   }
@@ -38,9 +39,9 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Add New Source',
-              style: TextStyle(
+            Text(
+              'Edit ${widget.source.sourceName}',
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1E293B),
@@ -49,19 +50,10 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            _buildLabel('Source Name'),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              onChanged: (_) {
-                if (_nameError != null) setState(() => _nameError = null);
-              },
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
-              decoration: _buildInputDecoration(hint: 'e.g. Cash, Bank Account', error: _nameError),
-              textCapitalization: TextCapitalization.sentences,
+            const Text(
+              'Update Amount',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
             ),
-            const SizedBox(height: 20),
-            _buildLabel('Initial Amount'),
             const SizedBox(height: 8),
             TextField(
               controller: _amountController,
@@ -70,7 +62,16 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
-              decoration: _buildInputDecoration(hint: '0.00', error: _amountError),
+              decoration: InputDecoration(
+                hintText: '0.00',
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+                errorText: _amountError,
+                errorStyle: const TextStyle(fontFamily: 'Poppins'),
+                filled: true,
+                fillColor: const Color(0xFFF1F5F9),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
             ),
             const SizedBox(height: 32),
             Row(
@@ -113,54 +114,19 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
     );
   }
 
-  Widget _buildLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
-    );
-  }
-
-  InputDecoration _buildInputDecoration({required String hint, String? error}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
-      errorText: error,
-      errorStyle: const TextStyle(fontFamily: 'Poppins'),
-      filled: true,
-      fillColor: const Color(0xFFF1F5F9),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
-
   void _handleSave() {
-    final name = _nameController.text.trim();
     final amountStr = _amountController.text.trim();
-
-    setState(() {
-      if (name.isEmpty) {
-        _nameError = 'Name is required';
-      } else {
-        _nameError = null;
-      }
-
-      if (amountStr.isEmpty) {
-        _amountError = 'Amount is required';
-      } else {
-        final amount = double.tryParse(amountStr);
-        if (amount == null) {
-          _amountError = 'Invalid amount';
-        } else if (amount < 0) {
-          _amountError = 'Amount must be positive';
-        } else {
-          _amountError = null;
-        }
-      }
-    });
-
-    if (_nameError == null && _amountError == null) {
-      final amount = double.parse(amountStr);
-      Navigator.of(context).pop(MoneySource(sourceName: name, amount: amount));
+    if (amountStr.isEmpty) {
+      setState(() => _amountError = 'Amount is required');
+      return;
     }
+
+    final amount = double.tryParse(amountStr);
+    if (amount == null) {
+      setState(() => _amountError = 'Invalid amount');
+      return;
+    }
+
+    Navigator.of(context).pop(amount);
   }
 }

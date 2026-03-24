@@ -62,14 +62,12 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
         }
 
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.white,
+          shadowColor: Colors.black12,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
-              borderRadius: BorderRadius.circular(28),
-            ),
             padding: const EdgeInsets.all(24),
             child: SingleChildScrollView(
               child: Column(
@@ -81,7 +79,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Color(0xFF1E293B),
                       fontFamily: 'Poppins',
                     ),
                     textAlign: TextAlign.center,
@@ -89,19 +87,12 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                   const SizedBox(height: 24),
 
                   // Type Toggle
-                  const Text(
-                    'Type',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF94A3B8),
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
+                  _buildLabel('Type'),
                   const SizedBox(height: 8),
                   Container(
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -120,7 +111,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1E293B),
                       fontSize: 15,
                       fontFamily: 'Poppins',
                     ),
@@ -146,7 +137,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                       child: Text(
                         s.sourceName,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF1E293B),
                           fontFamily: 'Poppins',
                           fontSize: 15,
                         ),
@@ -172,7 +163,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                       child: Text(
                         c.name,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF1E293B),
                           fontFamily: 'Poppins',
                           fontSize: 15,
                         ),
@@ -223,8 +214,8 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                           ),
                           child: const Text(
                             'Cancel',
-                            style: TextStyle(
-                              color: Color(0xFF94A3B8),
+                            style: const TextStyle(
+                              color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                               fontFamily: 'Poppins',
@@ -286,7 +277,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+              color: isSelected ? Colors.white : const Color(0xFF64748B),
               fontWeight: FontWeight.w600,
               fontFamily: 'Poppins',
             ),
@@ -299,33 +290,19 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
   Widget _buildLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Color(0xFF94A3B8),
-        fontFamily: 'Poppins',
-      ),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
     );
   }
 
   InputDecoration _buildInputDecoration({required String hint, String? error}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-        color: Color(0xFF64748B),
-        fontSize: 15,
-        fontFamily: 'Poppins',
-      ),
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
       errorText: error,
-      errorStyle: const TextStyle(
-        fontFamily: 'Poppins',
-      ),
+      errorStyle: const TextStyle(fontFamily: 'Poppins'),
       filled: true,
-      fillColor: const Color(0xFF0F172A),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
+      fillColor: const Color(0xFFF1F5F9),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
@@ -338,7 +315,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
@@ -346,9 +323,9 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
           value: value,
           items: items,
           onChanged: onChanged,
-          dropdownColor: const Color(0xFF0F172A),
+          dropdownColor: Colors.white,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF94A3B8)),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
         ),
       ),
     );
