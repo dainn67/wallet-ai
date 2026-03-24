@@ -13,7 +13,7 @@ class AppConfig {
 
   AppConfig._internal();
 
-  final String appName = 'Wallet AI';
+  final String appName = 'Wally AI';
   final String version = '1.2.3';
   final String buildNumber = '4';
 

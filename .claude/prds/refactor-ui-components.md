@@ -11,7 +11,7 @@ updated: 2026-03-20T04:26:00Z
 # PRD: refactor-ui-components
 
 ## Executive Summary
-This PRD focuses on improving the code maintainability and visual polish of the Wallet AI app. We will extract the duplicated record display logic into a reusable `RecordWidget` and redesign the `RecordsTab` overview box. The goal is to provide a cleaner, more consistent Material 3 experience across the chat and records tab while simplifying future UI development.
+This PRD focuses on improving the code maintainability and visual polish of the Wally AI app. We will extract the duplicated record display logic into a reusable `RecordWidget` and redesign the `RecordsTab` overview box. The goal is to provide a cleaner, more consistent Material 3 experience across the chat and records tab while simplifying future UI development.
 
 ## Problem Statement
 Currently, the UI for displaying individual records (income/expense) is duplicated in `lib/screens/home/tabs/chat_tab.dart` and `lib/screens/home/tabs/records_tab.dart`. This duplication leads to inconsistent styling and increased maintenance effort. Furthermore, the existing records overview box lacks a modern look and doesn't clearly highlight the relationship between money sources and their totals.

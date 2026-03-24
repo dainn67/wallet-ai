@@ -1,6 +1,6 @@
 # Typography
 
-This document outlines the font configuration and usage for the Wallet AI application.
+This document outlines the font configuration and usage for the Wally AI application.
 
 ## Overview
 The application uses the **Poppins** font family as its primary and only typeface. To ensure offline support, fast rendering, and consistent design across all platforms, the font is served via local assets rather than network fetching.

@@ -1,7 +1,7 @@
 context
 
 what the app is
-wallet ai is a mobile app to store and track expense and income. it is ai powered for convenience: users chat with an ai assistant that can parse natural language and create records (income/expense) from the conversation. the app persists records and money sources locally in sqlite and uses a remote chat api for the ai.
+wally ai is a mobile app to store and track expense and income. it is ai powered for convenience: users chat with an ai assistant that can parse natural language and create records (income/expense) from the conversation. the app persists records and money sources locally in sqlite and uses a remote chat api for the ai.
 
 main flows
 user opens chat screen, sends messages. chat goes to backend via ChatApiService stream. assistant replies stream back. when the ai returns structured data after a delimiter (--//--), the app parses json into Record objects and saves them via RecordRepository (creating money sources if needed). ui shows messages and can show saved records on the assistant message.

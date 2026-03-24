@@ -68,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Drawer), findsOneWidget);
-    expect(find.text('Wallet AI'), findsWidgets);
+    expect(find.text('Wally AI'), findsWidgets);
   });
 
   testWidgets('Drawer shows correct version and toggles currency', (WidgetTester tester) async {

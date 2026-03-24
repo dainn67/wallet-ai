@@ -18,8 +18,8 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     // Verify that standard Text widgets use inherited fontFamily (null in TextStyle)
-    // We search for the app title "Wallet AI"
-    final titleFinder = find.text('Wallet AI');
+    // We search for the app title "Wally AI"
+    final titleFinder = find.text('Wally AI');
     expect(titleFinder, findsOneWidget);
     
     final Text titleText = tester.widget(titleFinder);

@@ -43,7 +43,7 @@ void main() {
     expect(find.byType(ChatTab), findsOneWidget);
     
     // Verify app title.
-    expect(find.text('Wallet AI'), findsOneWidget);
+    expect(find.text('Wally AI'), findsOneWidget);
     // In tests, kDebugMode is true, so it should show '(dev)' by default
     expect(find.textContaining('(dev)'), findsOneWidget);
   });

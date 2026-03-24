@@ -99,7 +99,7 @@ class AppWidget : GlanceAppWidget() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(GlanceModifier.size(10.dp, 4.dp).background(accentColor).cornerRadius(2.dp)) {}
                 Spacer(GlanceModifier.width(6.dp))
-                Text("WALLET AI", style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Gray)))
+                Text("WALLY AI", style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Gray)))
             }
 
             Spacer(GlanceModifier.defaultWeight())
