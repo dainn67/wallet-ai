@@ -4,8 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
-enum AppEnvironment { dev, prod }
-
 class AppConfig {
   static final AppConfig _instance = AppConfig._internal();
 
@@ -22,8 +20,6 @@ class AppConfig {
   bool _devMode = kDebugMode;
   bool get devMode => _devMode;
 
-  final AppEnvironment environment = _getEnvironment();
-
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _devMode = prefs.getBool('dev_mode') ?? kDebugMode;
@@ -33,17 +29,6 @@ class AppConfig {
     _devMode = !_devMode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('dev_mode', _devMode);
-  }
-
-  static AppEnvironment _getEnvironment() {
-    const env = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
-    switch (env) {
-      case 'prod':
-        return AppEnvironment.prod;
-      case 'dev':
-      default:
-        return AppEnvironment.dev;
-    }
   }
 
   String get baseUrl {
