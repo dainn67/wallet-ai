@@ -32,13 +32,13 @@ class ChatApiService {
     return categories.map((c) => '${c.categoryId}-${c.name}').join(', ');
   }
 
-  Stream<ChatStreamResponse> streamChat(String message, {String? conversationId, String? categoryList, String? moneySourceList}) async* {
+  Stream<ChatStreamResponse> streamChat(String message, {String? conversationId, String? categoryList, String? moneySourceList, String language = 'English'}) async* {
     try {
       final inputs = {
         'user': '123',
         'query': message,
         'inputs': {
-          'language': 'English',
+          'language': language,
           if (conversationId != null) 'conversation_id': conversationId,
           if (categoryList != null && categoryList.isNotEmpty) 'category_list': categoryList,
           if (moneySourceList != null && moneySourceList.isNotEmpty) 'money_source_list': moneySourceList,

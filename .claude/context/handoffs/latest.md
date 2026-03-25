@@ -1,22 +1,30 @@
-# Handoff Notes: reset-all Epic Complete
+# Handoff Notes: Task #114 - Implement LocaleProvider and Persistence
 
 ## Overview
-The `reset-all` epic has been successfully implemented and verified. This feature provides users with a safe way to reset their entire financial history or delete individual money sources with cascading record removal.
+As part of the `update-language-and-currency` epic, Task #114 has been completed. This task implemented the reactive state management for the app's language and currency settings, ensuring they persist across application restarts.
 
 ## Key Changes
-- **Reusable UI**: Created `ConfirmationDialog` in `lib/components/popups/confirmation_dialog.dart` for all destructive actions.
-- **Backend Logic**: Implemented `resetAllData` and updated `deleteMoneySource` in `RecordRepository` using atomic transactions.
-- **State Management**: Updated `RecordProvider` to handle global resets and cascading deletions, ensuring the UI stays in sync.
-- **User Interface**: 
-    - Added "Reset All Data" to the navigation drawer under a new "Data Management" section.
-    - Added a "Delete" icon button to the `EditSourcePopup`.
-- **Quality Assurance**: Added comprehensive unit and widget tests for all new components and logic. Resolved multiple regressions in existing tests to ensure overall system stability.
+- **Reactive State Management**: Created `lib/providers/locale_provider.dart`:
+    - Implemented `LocaleProvider` as a `ChangeNotifier`.
+    - Manages `AppLanguage` and `AppCurrency` state.
+    - Provides a `translate(String key)` helper method that uses `L10nConfig`.
+- **Persistence**: 
+    - Integrated with `StorageService` (SharedPreferences) to load and save settings.
+    - Added `user_language` and `user_currency` keys for storage.
+- **Provider Registration**: 
+    - Registered `LocaleProvider` in `lib/main.dart` using `ChangeNotifierProxyProvider`.
+    - Correctly handles dependency on `StorageService`.
+- **Exports**: Added `locale_provider.dart` to `lib/providers/providers.dart`.
+- **Validation**: 
+    - Created and passed unit tests in `test/providers/locale_provider_test.dart`.
+    - Verified initial state, loading from storage, state updates, notification of listeners, and translation functionality.
 
 ## Verification Results
-- **Unit/Integration Tests**: 94/94 tests passed (`fvm flutter test`).
-- **Build**: Success (`fvm flutter build apk --debug`).
-- **Functionality**: Verified atomic transactions, cascading deletions, and immediate UI updates.
+- **Unit Tests**: `test/providers/locale_provider_test.dart` passed with 6 tests.
+- **Integration**: `LocaleProvider` is successfully registered in the app's `MultiProvider` tree.
+- **Task Status**: GitHub issue #114 has been closed, and the epic task file updated to `closed`.
 
 ## Next Steps
-- Consider merging the `epic/reset-all` branch into `main` after a final peer review.
-- Tag a new version if this completes the planned release cycle.
+- Refactor UI components to consume `LocaleProvider` for translations (e.g., `HomeScreen`, `Drawer`).
+- Implement settings screen to allow users to change language and currency (Task #115).
+- Continue expanding translations in `L10nConfig` as UI refactoring progresses.
