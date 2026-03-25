@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/models.dart';
+import '../../providers/providers.dart';
+import 'confirmation_dialog.dart';
 
 class EditSourcePopup extends StatefulWidget {
   final MoneySource source;
@@ -39,15 +42,27 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Edit ${widget.source.sourceName}',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E293B),
-                fontFamily: 'Poppins',
-              ),
-              textAlign: TextAlign.center,
+            Row(
+              children: [
+                const SizedBox(width: 48), // Spacer to balance the delete icon
+                Expanded(
+                  child: Text(
+                    'Edit ${widget.source.sourceName}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'Poppins',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                IconButton(
+                  onPressed: _handleDelete,
+                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 24),
+                  tooltip: 'Delete Source',
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             const Text(
@@ -128,5 +143,26 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
     }
 
     Navigator.of(context).pop(amount);
+  }
+
+  void _handleDelete() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => ConfirmationDialog(
+        title: 'Delete Source',
+        content: 'Are you sure you want to delete \'${widget.source.sourceName}\'? This will also delete all transaction records associated with this source. This cannot be undone.',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        isDestructive: true,
+        onConfirm: () async {
+          if (widget.source.sourceId != null) {
+            await context.read<RecordProvider>().deleteMoneySource(widget.source.sourceId!);
+          }
+          if (mounted) {
+            Navigator.of(context).pop(); // Close edit popup
+          }
+        },
+      ),
+    );
   }
 }
