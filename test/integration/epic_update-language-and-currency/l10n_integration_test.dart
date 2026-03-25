@@ -131,12 +131,12 @@ void main() {
       
       final localeProvider = tester.element(find.byType(HomeScreen)).read<LocaleProvider>();
       expect(localeProvider.currency, AppCurrency.vnd);
-      expect(storageService.getString('user_currency'), AppCurrency.vnd.toString());
+      expect(storageService.getString('user_currency'), 'VND');
     });
 
     test('Persistence across simulated app restarts', () async {
-      await storageService.setString('user_language', AppLanguage.vietnamese.toString());
-      await storageService.setString('user_currency', AppCurrency.vnd.toString());
+      await storageService.setString('user_language', 'vietnamese');
+      await storageService.setString('user_currency', 'VND');
 
       final newLocaleProvider = LocaleProvider(storageService);
 
