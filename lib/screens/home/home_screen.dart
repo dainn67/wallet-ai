@@ -253,24 +253,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   currentCurrency: currentCode,
                 );
                 
-                if (selected != null && mounted) {
+                if (selected != null) {
                   final newCurrency = AppCurrency.values.firstWhere(
                     (e) => L10nConfig.currencyCodes[e] == selected, 
                     orElse: () => AppCurrency.vnd
                   );
                   
                   if (newCurrency != currentCurrency) {
+                    // ignore: use_build_context_synchronously
                     showDialog(
                       context: context,
-                      builder: (context) => ConfirmationDialog(
+                      builder: (dialogContext) => ConfirmationDialog(
                         title: localeProvider.translate('currency_change_confirm_title'),
                         content: localeProvider.translate('currency_change_confirm_content'),
                         confirmLabel: localeProvider.translate('popup_confirm'),
                         cancelLabel: localeProvider.translate('popup_cancel'),
                         isDestructive: true,
-                        onConfirm: () {
-                          recordProvider.resetAllData();
-                          localeProvider.setCurrency(newCurrency);
+                        onConfirm: () async {
+                          await recordProvider.resetAllData();
+                          await localeProvider.setCurrency(newCurrency);
                           navigator.pop(); // Close drawer
                         },
                       ),
