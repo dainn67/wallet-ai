@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:provider/provider.dart';
 import '../../configs/app_config.dart';
+import '../../providers/providers.dart';
 import '../../services/storage_service.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
@@ -203,6 +205,39 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   StorageService().setString(StorageService.keyCurrency, selected);
                   setState(() {});
                 }
+              },
+            ),
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Data Management',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_forever, size: 20, color: Colors.red),
+              title: const Text('Reset All Data', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmationDialog(
+                    title: 'Reset All Data',
+                    content: 'Are you sure you want to delete all records and reset all balances to zero? This action cannot be undone.',
+                    confirmLabel: 'Reset',
+                    cancelLabel: 'Cancel',
+                    isDestructive: true,
+                    onConfirm: () {
+                      context.read<RecordProvider>().resetAllData();
+                      Navigator.of(context).pop(); // Close drawer
+                    },
+                  ),
+                );
               },
             ),
             const Divider(),

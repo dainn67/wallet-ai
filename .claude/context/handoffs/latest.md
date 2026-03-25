@@ -1,24 +1,26 @@
-# Handoff: Task #010 - Update Record Card UI (add-record-timestamp)
+# Handoff: Task #108 - Add "Reset All Data" to HomeScreen drawer
 
 ## Summary
-Updated the `RecordWidget` UI to include a formatted `dd/mm/yyyy` timestamp using the `intl` package.
+Added a "Data Management" section to the `HomeScreen` drawer with a "Reset All Data" button that triggers a confirmation dialog before resetting all application data.
 
 ## Key Changes
-- **Component Layer**: Modified `lib/components/record_widget.dart` to:
-  - Import `package:intl/intl.dart`.
-  - Format `record.createdAt` using `DateFormat('dd/MM/yyyy')`.
-  - Add a `Text` widget with the formatted date below the subtitle.
-  - Styled the timestamp with `GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF64748B))`.
-- **Testing**: Created `test/components/record_widget_test.dart` to verify:
-  - Date formatting correctness.
-  - Styling (font size, color, font family).
-  - Proper rendering of description and subtitle.
+- **UI Layer**: Modified `lib/screens/home/home_screen.dart` to:
+  - Add a "Data Management" section in the drawer.
+  - Include a "Reset All Data" `ListTile` with destructive styling (red color).
+  - Wired the button to show a `ConfirmationDialog` with a destructive confirmation button.
+  - On confirmation, `RecordProvider.resetAllData()` is called and the drawer is closed.
+- **Testing**: Added `test/screens/home/home_screen_test.dart` to verify:
+  - Drawer presence and content.
+  - Tapping "Reset All Data" opens the confirmation dialog.
+  - Confirming the dialog calls the provider's reset method.
 
 ## Verification
-- `flutter test test/components/record_widget_test.dart` passed (3 tests).
-- `flutter analyze lib/components/record_widget.dart test/components/record_widget_test.dart` passed (No issues).
+- `flutter test test/screens/home/home_screen_test.dart` passed.
+- `flutter analyze` passed.
 
 ## Technical Details
-- Followed the "dumb component" pattern for `RecordWidget`.
-- Used `GoogleFonts` for typography to match the existing design system.
-- Ensured the timestamp is subtle and doesn't interfere with the main layout.
+- Used `ConfirmationDialog` component for consistency and safety.
+- Followed existing drawer styling for section headers and tiles.
+
+## Next Steps
+- Task #109: Add "Delete" button to `EditSourcePopup`.
