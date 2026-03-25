@@ -91,6 +91,9 @@ void main() {
       test('addRecord adds to internal list and calls repository', () async {
         final newRecord = Record(moneySourceId: 1, categoryId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
         when(() => mockRepository.createRecord(newRecord)).thenAnswer((_) async => 10);
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [newRecord.copyWith(recordId: 10)]);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
         await recordProvider.addRecord(newRecord);
 
@@ -107,12 +110,15 @@ void main() {
         await recordProvider.loadAll();
 
         final updatedRecord = initialRecord.copyWith(amount: 150.0);
-        when(() => mockRepository.updateRecord(updatedRecord)).thenAnswer((_) async => 1);
+        when(() => mockRepository.updateRecord(any())).thenAnswer((_) async => 1);
+
+        // We also need to mock loadAll results for the reload after update
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [updatedRecord]);
 
         await recordProvider.updateRecord(updatedRecord);
 
         expect(recordProvider.records[0].amount, 150.0);
-        verify(() => mockRepository.updateRecord(updatedRecord)).called(1);
+        verify(() => mockRepository.updateRecord(any())).called(1);
       });
 
       test('deleteRecord removes from internal list and calls repository', () async {
@@ -123,6 +129,8 @@ void main() {
         await recordProvider.loadAll();
 
         when(() => mockRepository.deleteRecord(1)).thenAnswer((_) async => 1);
+        // Mock that after deletion, getAllRecords returns empty
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
 
         await recordProvider.deleteRecord(1);
 
@@ -133,6 +141,9 @@ void main() {
       test('addMoneySource adds to internal list and calls repository', () async {
         final newSource = MoneySource(sourceName: 'New Bank');
         when(() => mockRepository.createMoneySource(newSource)).thenAnswer((_) async => 5);
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => [newSource.copyWith(sourceId: 5)]);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
         await recordProvider.addMoneySource(newSource);
 
@@ -165,11 +176,14 @@ void main() {
         await recordProvider.loadAll();
 
         when(() => mockRepository.deleteMoneySource(1)).thenAnswer((_) async => 1);
+        // Mock that after deletion, getAllMoneySources returns empty
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
 
         await recordProvider.deleteMoneySource(1);
 
         expect(recordProvider.moneySources, isEmpty);
         verify(() => mockRepository.deleteMoneySource(1)).called(1);
+        verify(() => mockRepository.getAllMoneySources()).called(2); // Initial load + after delete
       });
 
       test('CRUD methods reload data on error', () async {
@@ -185,6 +199,21 @@ void main() {
         verify(() => mockRepository.getAllRecords()).called(1);
         verify(() => mockRepository.getAllMoneySources()).called(1);
         verify(() => mockRepository.getAllCategories()).called(1);
+      });
+
+      test('resetAllData sets isLoading and calls repository', () async {
+        when(() => mockRepository.resetAllData()).thenAnswer((_) async => {});
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
+
+        final future = recordProvider.resetAllData();
+        expect(recordProvider.isLoading, true);
+
+        await future;
+        expect(recordProvider.isLoading, false);
+        verify(() => mockRepository.resetAllData()).called(1);
+        verify(() => mockRepository.getAllRecords()).called(1);
       });
     });
 

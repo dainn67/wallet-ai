@@ -354,9 +354,26 @@ class RecordRepository {
 
   Future<int> deleteMoneySource(int id) async {
     try {
-      return await database.delete('MoneySource', where: 'source_id = ?', whereArgs: [id]);
+      return await database.transaction((txn) async {
+        // 1. Delete associated records
+        await txn.delete('Record', where: 'money_source_id = ?', whereArgs: [id]);
+        // 2. Delete the source
+        return await txn.delete('MoneySource', where: 'source_id = ?', whereArgs: [id]);
+      });
     } catch (e) {
       print("Error deleting money source: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> resetAllData() async {
+    try {
+      await database.transaction((txn) async {
+        await txn.delete('Record');
+        await txn.rawUpdate('UPDATE MoneySource SET amount = 0');
+      });
+    } catch (e) {
+      print("Error resetting all data: $e");
       rethrow;
     }
   }

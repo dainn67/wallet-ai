@@ -150,8 +150,8 @@ class RecordProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final id = await _repository.createRecord(record);
-      _records.add(record.copyWith(recordId: id));
+      await _repository.createRecord(record);
+      await loadAll();
     } catch (e) {
       debugPrint('Error adding record in RecordProvider: $e');
       await loadAll();
@@ -184,7 +184,7 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _repository.deleteRecord(id);
-      _records.removeWhere((r) => r.recordId == id);
+      await loadAll();
     } catch (e) {
       debugPrint('Error deleting record in RecordProvider: $e');
       await loadAll();
@@ -240,6 +240,7 @@ class RecordProvider extends ChangeNotifier {
     try {
       await _repository.deleteMoneySource(id);
       _moneySources.removeWhere((ms) => ms.sourceId == id);
+      await loadAll();
     } catch (e) {
       debugPrint('Error deleting money source in RecordProvider: $e');
       await loadAll();
@@ -247,6 +248,18 @@ class RecordProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       _updateWidget();
+    }
+  }
+
+  Future<void> resetAllData() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.resetAllData();
+    } catch (e) {
+      debugPrint('Error resetting all data in RecordProvider: $e');
+    } finally {
+      await loadAll();
     }
   }
 }
