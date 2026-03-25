@@ -31,7 +31,7 @@ void main() {
       ''');
 
       await db.execute('''
-        CREATE TABLE record (
+        CREATE TABLE Record (
           record_id INTEGER PRIMARY KEY AUTOINCREMENT,
           money_source_id INTEGER NOT NULL,
           category_id INTEGER NOT NULL DEFAULT 1,
@@ -156,6 +156,41 @@ void main() {
       // Verify no record was created for this source
       final records = await repository.getAllRecords();
       final sourceRecords = records.where((r) => r.moneySourceId == sourceId);
+      expect(sourceRecords, isEmpty);
+    });
+
+    test('deleteMoneySource deletes source and all associated records', () async {
+      // 1. Setup: Create a source and some records
+      final source = MoneySource(sourceName: 'Temporary Bank', amount: 1000.0);
+      final sourceId = await repository.createMoneySource(source);
+
+      // Add another record to this source
+      await repository.createRecord(Record(
+        moneySourceId: sourceId,
+        amount: 200.0,
+        currency: 'VND',
+        description: 'Dinner',
+        type: 'expense',
+        lastUpdated: DateTime.now().millisecondsSinceEpoch,
+      ));
+
+      // Verify setup
+      var sources = await repository.getAllMoneySources();
+      expect(sources.any((s) => s.sourceId == sourceId), isTrue);
+      
+      var records = await repository.getAllRecords();
+      var sourceRecords = records.where((r) => r.moneySourceId == sourceId);
+      expect(sourceRecords.length, 2); // Initial balance + Dinner
+
+      // 2. Execute Delete
+      await repository.deleteMoneySource(sourceId);
+
+      // 3. Verify Result
+      sources = await repository.getAllMoneySources();
+      expect(sources.any((s) => s.sourceId == sourceId), isFalse);
+
+      records = await repository.getAllRecords();
+      sourceRecords = records.where((r) => r.moneySourceId == sourceId);
       expect(sourceRecords, isEmpty);
     });
   });

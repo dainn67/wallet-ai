@@ -240,6 +240,7 @@ class RecordProvider extends ChangeNotifier {
     try {
       await _repository.deleteMoneySource(id);
       _moneySources.removeWhere((ms) => ms.sourceId == id);
+      await loadAll();
     } catch (e) {
       debugPrint('Error deleting money source in RecordProvider: $e');
       await loadAll();
