@@ -159,4 +159,42 @@ void main() {
       expect(sourceRecords, isEmpty);
     });
   });
+
+  group('resetAllData', () {
+    test('resetAllData deletes all records and resets source amounts', () async {
+      // 1. Setup: Ensure we have some data
+      // Add a money source (ID: 1 already exists from setUp, but let's add another)
+      final sourceId = await repository.createMoneySource(MoneySource(sourceName: 'Test Bank', amount: 1000.0));
+      
+      // Add a record
+      await repository.createRecord(Record(
+        moneySourceId: sourceId,
+        amount: 200.0,
+        currency: 'VND',
+        description: 'Test Expense',
+        type: 'expense',
+        lastUpdated: DateTime.now().millisecondsSinceEpoch,
+      ));
+
+      // Verify current state
+      var sources = await repository.getAllMoneySources();
+      expect(sources.length, 2); // Wallet (from setUp) and Test Bank
+      
+      var records = await repository.getAllRecords();
+      expect(records.length, greaterThan(0));
+
+      // 2. Execute Reset
+      await repository.resetAllData();
+
+      // 3. Verify Result
+      records = await repository.getAllRecords();
+      expect(records, isEmpty);
+
+      sources = await repository.getAllMoneySources();
+      expect(sources.length, 2);
+      for (var source in sources) {
+        expect(source.amount, 0.0);
+      }
+    });
+  });
 }

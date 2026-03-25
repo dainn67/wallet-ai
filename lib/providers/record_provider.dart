@@ -249,4 +249,16 @@ class RecordProvider extends ChangeNotifier {
       _updateWidget();
     }
   }
+
+  Future<void> resetAllData() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.resetAllData();
+    } catch (e) {
+      debugPrint('Error resetting all data in RecordProvider: $e');
+    } finally {
+      await loadAll();
+    }
+  }
 }

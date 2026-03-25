@@ -361,6 +361,18 @@ class RecordRepository {
     }
   }
 
+  Future<void> resetAllData() async {
+    try {
+      await database.transaction((txn) async {
+        await txn.delete('Record');
+        await txn.rawUpdate('UPDATE MoneySource SET amount = 0');
+      });
+    } catch (e) {
+      print("Error resetting all data: $e");
+      rethrow;
+    }
+  }
+
   // Category Management
   Future<List<Category>> getAllCategories() async {
     try {

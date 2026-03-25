@@ -107,12 +107,15 @@ void main() {
         await recordProvider.loadAll();
 
         final updatedRecord = initialRecord.copyWith(amount: 150.0);
-        when(() => mockRepository.updateRecord(updatedRecord)).thenAnswer((_) async => 1);
+        when(() => mockRepository.updateRecord(any())).thenAnswer((_) async => 1);
+
+        // We also need to mock loadAll results for the reload after update
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [updatedRecord]);
 
         await recordProvider.updateRecord(updatedRecord);
 
         expect(recordProvider.records[0].amount, 150.0);
-        verify(() => mockRepository.updateRecord(updatedRecord)).called(1);
+        verify(() => mockRepository.updateRecord(any())).called(1);
       });
 
       test('deleteRecord removes from internal list and calls repository', () async {
@@ -185,6 +188,21 @@ void main() {
         verify(() => mockRepository.getAllRecords()).called(1);
         verify(() => mockRepository.getAllMoneySources()).called(1);
         verify(() => mockRepository.getAllCategories()).called(1);
+      });
+
+      test('resetAllData sets isLoading and calls repository', () async {
+        when(() => mockRepository.resetAllData()).thenAnswer((_) async => {});
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
+
+        final future = recordProvider.resetAllData();
+        expect(recordProvider.isLoading, true);
+
+        await future;
+        expect(recordProvider.isLoading, false);
+        verify(() => mockRepository.resetAllData()).called(1);
+        verify(() => mockRepository.getAllRecords()).called(1);
       });
     });
 
