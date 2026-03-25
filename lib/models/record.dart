@@ -49,7 +49,7 @@ class Record {
       categoryName: map['category_name'] as String?,
       sourceName: map['source_name'] as String?,
       amount: (map['amount'] as num).toDouble(),
-      currency: map['currency'] as String,
+      currency: (map['currency'] as String).split('.').last.toUpperCase(),
       description: map['description'] as String,
       type: map['type'] as String,
     );

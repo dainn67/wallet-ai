@@ -21,24 +21,18 @@ class LocaleProvider with ChangeNotifier {
   void _loadFromStorage() {
     final langStr = _storageService.getString(_keyLanguage);
     if (langStr != null) {
-      try {
-        _language = AppLanguage.values.firstWhere(
-          (e) => e.toString() == langStr,
-        );
-      } catch (_) {
-        _language = AppLanguage.english;
-      }
+      _language = AppLanguage.values.firstWhere(
+        (e) => e.toString() == langStr || e.name == langStr,
+        orElse: () => AppLanguage.english,
+      );
     }
 
     final currStr = _storageService.getString(_keyCurrency);
     if (currStr != null) {
-      try {
-        _currency = AppCurrency.values.firstWhere(
-          (e) => e.toString() == currStr,
-        );
-      } catch (_) {
-        _currency = AppCurrency.usd;
-      }
+      _currency = AppCurrency.values.firstWhere(
+        (e) => e.toString() == currStr || e.name == currStr || L10nConfig.currencyCodes[e] == currStr,
+        orElse: () => AppCurrency.vnd,
+      );
     }
     notifyListeners();
   }
@@ -46,14 +40,15 @@ class LocaleProvider with ChangeNotifier {
   Future<void> setLanguage(AppLanguage lang) async {
     if (_language == lang) return;
     _language = lang;
-    await _storageService.setString(_keyLanguage, lang.toString());
+    await _storageService.setString(_keyLanguage, lang.name);
     notifyListeners();
   }
 
   Future<void> setCurrency(AppCurrency curr) async {
     if (_currency == curr) return;
     _currency = curr;
-    await _storageService.setString(_keyCurrency, curr.toString());
+    final code = L10nConfig.currencyCodes[curr] ?? 'VND';
+    await _storageService.setString(_keyCurrency, code);
     notifyListeners();
   }
 

@@ -7,8 +7,9 @@ class CurrencyHelper {
   /// USD: 1,234,567.89 (comma for thousands, dot for decimals)
   static String format(double amount, {String? currency}) {
     try {
-      final effectiveCurrency = currency ?? StorageService().getString(StorageService.keyCurrency) ?? 'VND';
-      final isUSD = effectiveCurrency.toUpperCase() == 'USD';
+      final rawCurrency = currency ?? StorageService().getString(StorageService.keyCurrency) ?? 'VND';
+      final effectiveCurrency = rawCurrency.toUpperCase();
+      final isUSD = effectiveCurrency.contains('USD');
 
       // 1. Convert to string with max 2 decimals, removing trailing .00 if whole number
       String s = amount.toStringAsFixed(amount.truncateToDouble() == amount ? 0 : 2);
