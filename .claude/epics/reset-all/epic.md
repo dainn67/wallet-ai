@@ -1,13 +1,14 @@
 ---
 name: reset-all
-status: done
+status: completed
 created: 2026-03-25T10:15:00Z
 progress: 100%
 priority: P1
 prd: .claude/prds/reset-all.md
 task_count: 7
 github: "https://github.com/dainn67/wallet-ai/issues/104"
-updated: 2026-03-25T11:40:00Z
+updated: 2026-03-25T06:45:00Z
+completed: 2026-03-25T06:45:00Z
 ---
 
 # Epic: reset-all
