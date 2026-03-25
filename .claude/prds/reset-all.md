@@ -1,11 +1,11 @@
 ---
 name: reset-all
 description: Implement global data reset and money source deletion with a reusable confirmation dialog.
-status: backlog
+status: completed
 priority: P1
 scale: medium
 created: 2026-03-25T10:00:00Z
-updated: null
+updated: 2026-03-25T06:59:43Z
 ---
 
 # PRD: reset-all
