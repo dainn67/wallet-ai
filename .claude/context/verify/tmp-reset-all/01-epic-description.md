@@ -1,14 +1,7 @@
----
-name: reset-all
-status: done
-created: 2026-03-25T10:15:00Z
-progress: 100%
-priority: P1
-prd: .claude/prds/reset-all.md
-task_count: 7
-github: "https://github.com/dainn67/wallet-ai/issues/104"
-updated: 2026-03-25T11:40:00Z
----
+<!-- Source: GitHub Issue #104 | Collected: 2026-03-25T06:35:15Z | Epic: reset-all -->
+
+# Epic: Epic: reset-all
+
 
 # Epic: reset-all
 
@@ -144,44 +137,15 @@ Finalize state synchronization and add comprehensive tests.
 ## Deferred / Follow-up
 - **NTH-1: Record Count in Warning:** Deferred until `RecordRepository` has an efficient way to count records by source ID without full fetch.
 
-## Tasks Created
-| #   | Task                     | Phase | Parallel | Est. | Depends On | Status |
-| --- | ------------------------ | ----- | -------- | ---- | ---------- | ------ |
-| 105 | Create ConfirmationDialog component | 1     | yes      | 1d   | —          | open   |
-| 106 | Implement resetAllData backend logic | 1     | yes      | 1d   | —          | open   |
-| 107 | Update deleteMoneySource with cascading removal | 1     | yes      | 1d   | —          | open   |
-| 108 | Add "Reset All Data" to HomeScreen drawer | 2     | yes      | 1d   | 105, 106   | open   |
-| 109 | Add "Delete Source" to EditSourcePopup | 2     | yes      | 1d   | 105, 107   | open   |
-| 110 | Write unit and integration tests | 3     | yes      | 1d   | 106, 107   | open   |
-| 111 | Integration verification & cleanup | 3     | no       | 1d   | all        | open   |
 
-### Summary
-- **Total tasks:** 7
-- **Parallel tasks:** 6
-- **Sequential tasks:** 1
-- **Estimated total effort:** 7d
-- **Critical path:** T002 -> T010 -> T090 (~3d)
 
-### Dependency Graph
-```
-Dependency Graph:
-  T105 ──→ T108 ──→ T111
-       ──→ T109 ─↗
-  T106 ──→ T108 ─↗
-       ──→ T110 ─↗
-  T107 ──→ T109 ─↗
-       ──→ T110 ─↗
+## Tasks
 
-Critical path: T106 → T108 → T111 (~3d)
-```
+- [ ] #105 Create ConfirmationDialog component
+- [ ] #106 Implement resetAllData backend logic
+- [ ] #107 Update deleteMoneySource with cascading removal
+- [ ] #108 Add "Reset All Data" to HomeScreen drawer
+- [ ] #109 Add "Delete Source" to EditSourcePopup
+- [ ] #110 Write unit and integration tests
+- [ ] #111 Integration verification & cleanup
 
-### PRD Coverage
-| PRD Requirement | Covered By | Status    |
-| --------------- | ---------- | --------- |
-| FR-1: Dialog    | T001       | ✅ Covered |
-| FR-2: Reset All | T002, T010, T020 | ✅ Covered |
-| FR-3: Delete Source | T003, T011, T020 | ✅ Covered |
-| FR-4: Drawer    | T010       | ✅ Covered |
-| NFR-1: Atomic   | T002, T003, T020 | ✅ Covered |
-| NFR-2: Responsive| T002, T003 | ✅ Covered |
-| NFR-3: Visual   | T001       | ✅ Covered |

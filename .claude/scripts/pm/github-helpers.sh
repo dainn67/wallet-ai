@@ -48,7 +48,7 @@ get_repo() {
 # Usage: _extract_repo_from_url "https://github.com/owner/repo/issues/1"
 # Output: owner/repo
 _extract_repo_from_url() {
-  echo "$1" | sed 's|https://github.com/||' | sed 's|/issues/.*||' | sed 's|/pull/.*||'
+  echo "$1" | tr -d '"'\'' ' | sed 's|https://github.com/||' | sed 's|/issues/.*||' | sed 's|/pull/.*||'
 }
 
 # Smart repo detection: tries epic config, github-mapping, then git remote.
