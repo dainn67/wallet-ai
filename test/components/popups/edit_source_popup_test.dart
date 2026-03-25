@@ -6,24 +6,34 @@ import 'package:wallet_ai/components/popups/confirmation_dialog.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockRecordRepository extends Mock implements RecordRepository {}
+class MockStorageService extends Mock implements StorageService {}
 
 void main() {
   late MockRecordRepository mockRepository;
   late RecordProvider recordProvider;
+  late MockStorageService mockStorageService;
+  late LocaleProvider localeProvider;
 
   setUp(() {
     mockRepository = MockRecordRepository();
     recordProvider = RecordProvider(repository: mockRepository);
+    mockStorageService = MockStorageService();
+    when(() => mockStorageService.getString(any())).thenReturn(null);
+    localeProvider = LocaleProvider(mockStorageService);
   });
 
   Widget createPopupWrapper(MoneySource source) {
     return MaterialApp(
       home: Scaffold(
-        body: ChangeNotifierProvider<RecordProvider>.value(
-          value: recordProvider,
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
+          ],
           child: EditSourcePopup(source: source),
         ),
       ),
@@ -36,6 +46,7 @@ void main() {
     await tester.pumpWidget(createPopupWrapper(source));
     await tester.pump();
 
+    // The title is 'Edit' + sourceName now in the localized version
     expect(find.text('Edit Cash'), findsOneWidget);
     expect(find.text('500'), findsOneWidget);
     expect(find.byIcon(Icons.delete_outline), findsOneWidget);
@@ -52,7 +63,7 @@ void main() {
 
     expect(find.byType(ConfirmationDialog), findsOneWidget);
     expect(find.text('Delete Source'), findsOneWidget);
-    expect(find.textContaining('Are you sure you want to delete \'Cash\'?'), findsOneWidget);
+    expect(find.textContaining('Are you sure you want to delete this source?'), findsOneWidget);
   });
 
   testWidgets('confirming delete calls deleteMoneySource and closes popup', (WidgetTester tester) async {
@@ -82,18 +93,27 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () async {
-              result = await showDialog<double>(
-                context: context,
-                builder: (context) => ChangeNotifierProvider<RecordProvider>.value(
-                  value: recordProvider,
-                  child: EditSourcePopup(source: source),
-                ),
-              );
-            },
-            child: const Text('Open'),
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
+          ],
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                result = await showDialog<double>(
+                  context: context,
+                  builder: (context) => MultiProvider(
+                    providers: [
+                      ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+                      ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
+                    ],
+                    child: EditSourcePopup(source: source),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
           ),
         ),
       ),
@@ -115,18 +135,27 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () async {
-              result = await showDialog<double>(
-                context: context,
-                builder: (context) => ChangeNotifierProvider<RecordProvider>.value(
-                  value: recordProvider,
-                  child: EditSourcePopup(source: source),
-                ),
-              );
-            },
-            child: const Text('Open'),
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
+          ],
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                result = await showDialog<double>(
+                  context: context,
+                  builder: (context) => MultiProvider(
+                    providers: [
+                      ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+                      ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
+                    ],
+                    child: EditSourcePopup(source: source),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
           ),
         ),
       ),

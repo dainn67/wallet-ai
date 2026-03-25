@@ -1,213 +1,215 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/popups/add_source_popup.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/services/storage_service.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockLocaleProvider extends Mock implements LocaleProvider {}
+class MockStorageService extends Mock implements StorageService {}
 
 void main() {
-  testWidgets('AddSourcePopup displays correctly', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AddSourcePopup(),
-        ),
+  late MockLocaleProvider mockLocaleProvider;
+  late MockStorageService mockStorageService;
+
+  setUp(() {
+    mockLocaleProvider = MockLocaleProvider();
+    mockStorageService = MockStorageService();
+    
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
+      final key = invocation.positionalArguments[0] as String;
+      if (key == 'add_source_title') return 'Add New Source';
+      if (key == 'source_name_label') return 'Source Name';
+      if (key == 'initial_amount_label') return 'Initial Amount';
+      if (key == 'popup_cancel') return 'Cancel';
+      if (key == 'save_button') return 'Save';
+      if (key == 'name_required_error') return 'Name is required';
+      if (key == 'amount_required_error') return 'Amount is required';
+      if (key == 'invalid_amount_error') return 'Invalid amount';
+      if (key == 'amount_positive_error') return 'Amount must be positive';
+      if (key == 'source_name_hint') return 'e.g. Cash, Bank Account';
+      return key;
+    });
+  });
+
+  Widget createWidgetUnderTest(Widget child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+      ],
+      child: MaterialApp(
+        home: Scaffold(body: child),
       ),
     );
+  }
 
-    // Check title
+  testWidgets('AddSourcePopup renders correctly', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(createWidgetUnderTest(const AddSourcePopup()));
+
     expect(find.text('Add New Source'), findsOneWidget);
-
-    // Check input field labels (using text widgets for labels)
     expect(find.text('Source Name'), findsOneWidget);
     expect(find.text('Initial Amount'), findsOneWidget);
-    
-    // Check TextFields (should be 2)
-    expect(find.byType(TextField), findsNWidgets(2));
-
-    // Check buttons
     expect(find.text('Cancel'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
   });
 
-  testWidgets('AddSourcePopup returns data when Save is pressed', (WidgetTester tester) async {
-    MoneySource? result;
+  testWidgets('AddSourcePopup returns MoneySource on save', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (context) {
-              return ElevatedButton(
-                onPressed: () async {
-                  result = await showDialog<MoneySource>(
-                    context: context,
-                    builder: (context) => const AddSourcePopup(),
-                  );
-                },
-                child: const Text('Open'),
-              );
-            },
-          ),
+    MoneySource? result;
+    await tester.pumpWidget(createWidgetUnderTest(
+      Builder(
+        builder: (context) => ElevatedButton(
+          onPressed: () async {
+            result = await showDialog<MoneySource>(
+              context: context,
+              builder: (context) => MultiProvider(
+                providers: [
+                  ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+                ],
+                child: const AddSourcePopup(),
+              ),
+            );
+          },
+          child: const Text('Open'),
         ),
       ),
-    );
+    ));
 
-    // Open the popup
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    // Fill the fields
-    // First TextField is Source Name
-    await tester.enterText(find.byType(TextField).at(0), 'Bank Account');
-    // Second TextField is Initial Amount
+    await tester.enterText(find.byType(TextField).at(0), 'Bank');
     await tester.enterText(find.byType(TextField).at(1), '1000');
-
-    // Tap Save
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    // Verify result
     expect(result, isNotNull);
-    expect(result!.sourceName, 'Bank Account');
+    expect(result!.sourceName, 'Bank');
     expect(result!.amount, 1000.0);
   });
 
-  testWidgets('AddSourcePopup returns null when Cancel is pressed', (WidgetTester tester) async {
-    bool resultCalled = false;
-    MoneySource? result;
+  testWidgets('AddSourcePopup returns null on cancel', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (context) {
-              return ElevatedButton(
-                onPressed: () async {
-                  result = await showDialog<MoneySource>(
-                    context: context,
-                    builder: (context) => const AddSourcePopup(),
-                  );
-                  resultCalled = true;
-                },
-                child: const Text('Open'),
-              );
-            },
-          ),
+    MoneySource? result = MoneySource(sourceName: 'dummy', amount: 0);
+    await tester.pumpWidget(createWidgetUnderTest(
+      Builder(
+        builder: (context) => ElevatedButton(
+          onPressed: () async {
+            result = await showDialog<MoneySource>(
+              context: context,
+              builder: (context) => MultiProvider(
+                providers: [
+                  ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+                ],
+                child: const AddSourcePopup(),
+              ),
+            );
+          },
+          child: const Text('Open'),
         ),
       ),
-    );
+    ));
 
-    // Open the popup
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    // Tap Cancel
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    // Verify result
-    expect(resultCalled, isTrue);
     expect(result, isNull);
   });
 
-  testWidgets('AddSourcePopup shows error for empty name', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AddSourcePopup(),
-        ),
-      ),
-    );
+  testWidgets('AddSourcePopup shows error when name is empty', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-    // Leave name empty, fill amount
+    await tester.pumpWidget(createWidgetUnderTest(const AddSourcePopup()));
+
+    // Enter only amount
     await tester.enterText(find.byType(TextField).at(1), '100');
-
-    // Tap Save
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Verify error message
     expect(find.text('Name is required'), findsOneWidget);
   });
 
-  testWidgets('AddSourcePopup shows error for empty amount', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AddSourcePopup(),
-        ),
-      ),
-    );
+  testWidgets('AddSourcePopup shows error when amount is empty', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-    // Fill name, leave amount empty
+    await tester.pumpWidget(createWidgetUnderTest(const AddSourcePopup()));
+
+    // Enter only name
     await tester.enterText(find.byType(TextField).at(0), 'Cash');
-
-    // Tap Save
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Verify error message
     expect(find.text('Amount is required'), findsOneWidget);
   });
 
-  testWidgets('AddSourcePopup shows error for invalid amount', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AddSourcePopup(),
-        ),
-      ),
-    );
+  testWidgets('AddSourcePopup shows error when amount is invalid', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-    // Fill name, fill invalid amount
+    await tester.pumpWidget(createWidgetUnderTest(const AddSourcePopup()));
+
     await tester.enterText(find.byType(TextField).at(0), 'Cash');
     await tester.enterText(find.byType(TextField).at(1), 'abc');
-
-    // Tap Save
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Verify error message
     expect(find.text('Invalid amount'), findsOneWidget);
   });
 
-  testWidgets('AddSourcePopup shows error for negative amount', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AddSourcePopup(),
-        ),
-      ),
-    );
+  testWidgets('AddSourcePopup shows error when amount is negative', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-    // Fill name, fill negative amount
+    await tester.pumpWidget(createWidgetUnderTest(const AddSourcePopup()));
+
     await tester.enterText(find.byType(TextField).at(0), 'Cash');
     await tester.enterText(find.byType(TextField).at(1), '-50');
-
-    // Tap Save
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Verify error message
     expect(find.text('Amount must be positive'), findsOneWidget);
   });
 
   testWidgets('AddSourcePopup clears error when text changes', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AddSourcePopup(),
-        ),
-      ),
-    );
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(createWidgetUnderTest(const AddSourcePopup()));
 
     // Trigger name error
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('Name is required'), findsOneWidget);
 
     // Change name
     await tester.enterText(find.byType(TextField).at(0), 'A');
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Error should be gone
     expect(find.text('Name is required'), findsNothing);

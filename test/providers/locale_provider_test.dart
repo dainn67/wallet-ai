@@ -59,11 +59,11 @@ void main() {
     });
 
     test('translate returns correct values', () async {
-      // Assuming 'tab_home' exists in both English and Vietnamese translations
-      expect(localeProvider.translate('tab_home'), L10nConfig.translations[AppLanguage.english]!['tab_home']);
+      // Assuming 'drawer_chat' exists in both English and Vietnamese translations
+      expect(localeProvider.translate('drawer_chat'), L10nConfig.translations[AppLanguage.english]!['drawer_chat']);
 
       await localeProvider.setLanguage(AppLanguage.vietnamese);
-      expect(localeProvider.translate('tab_home'), L10nConfig.translations[AppLanguage.vietnamese]!['tab_home']);
+      expect(localeProvider.translate('drawer_chat'), L10nConfig.translations[AppLanguage.vietnamese]!['drawer_chat']);
     });
     
     test('translate returns key when translation is missing', () {

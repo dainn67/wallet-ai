@@ -3,26 +3,50 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/popups/edit_record_popup.dart';
 import 'package:wallet_ai/models/models.dart';
-import 'package:wallet_ai/providers/record_provider.dart';
+import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockRecordRepository extends Mock implements RecordRepository {}
+class MockStorageService extends Mock implements StorageService {}
+class MockLocaleProvider extends Mock implements LocaleProvider {}
 
 void main() {
   late MockRecordRepository mockRepository;
   late RecordProvider recordProvider;
+  late MockStorageService mockStorageService;
+  late MockLocaleProvider mockLocaleProvider;
 
   setUp(() {
     mockRepository = MockRecordRepository();
     recordProvider = RecordProvider(repository: mockRepository);
+    mockStorageService = MockStorageService();
+    mockLocaleProvider = MockLocaleProvider();
+    
+    when(() => mockStorageService.getString(any())).thenReturn(null);
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
+      final key = invocation.positionalArguments[0] as String;
+      if (key == 'edit_record_title') return 'Edit Record';
+      if (key == 'spent_label') return 'Spent';
+      if (key == 'save_button') return 'Save';
+      if (key == 'popup_cancel') return 'Cancel';
+      if (key == 'amount_required_error') return 'Amount is required';
+      if (key == 'description_required_error') return 'Description is required';
+      if (key == 'invalid_amount_error') return 'Invalid amount';
+      if (key == 'amount_positive_error') return 'Amount must be positive';
+      return key;
+    });
   });
 
   Widget createPopupWrapper(Record record) {
     return MaterialApp(
       home: Scaffold(
-        body: ChangeNotifierProvider<RecordProvider>.value(
-          value: recordProvider,
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+          ],
           child: EditRecordPopup(record: record),
         ),
       ),
@@ -57,12 +81,12 @@ void main() {
     await recordProvider.loadAll();
 
     await tester.pumpWidget(createPopupWrapper(record));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Edit Record'), findsOneWidget);
     expect(find.text('100.0'), findsOneWidget);
     expect(find.text('Test description'), findsOneWidget);
-    expect(find.text('Expense'), findsOneWidget);
+    expect(find.text('Spent'), findsOneWidget);
   });
 
   testWidgets('shows error messages for invalid inputs', (WidgetTester tester) async {
@@ -90,7 +114,7 @@ void main() {
     await recordProvider.loadAll();
 
     await tester.pumpWidget(createPopupWrapper(record));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Clear amount and description
     await tester.enterText(find.byType(TextField).at(0), ''); // Amount
@@ -98,7 +122,7 @@ void main() {
 
     // Press Save
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Amount is required'), findsOneWidget);
     expect(find.text('Description is required'), findsOneWidget);
@@ -106,13 +130,13 @@ void main() {
     // Invalid amount
     await tester.enterText(find.byType(TextField).at(0), 'abc');
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('Invalid amount'), findsOneWidget);
 
     // Negative amount
     await tester.enterText(find.byType(TextField).at(0), '-10');
     await tester.tap(find.text('Save'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('Amount must be positive'), findsOneWidget);
   });
 
@@ -145,18 +169,27 @@ void main() {
     Record? result;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () async {
-              result = await showDialog<Record>(
-                context: context,
-                builder: (context) => ChangeNotifierProvider<RecordProvider>.value(
-                  value: recordProvider,
-                  child: EditRecordPopup(record: record),
-                ),
-              );
-            },
-            child: const Text('Open'),
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+          ],
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                result = await showDialog<Record>(
+                  context: context,
+                  builder: (context) => MultiProvider(
+                    providers: [
+                      ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+                      ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+                    ],
+                    child: EditRecordPopup(record: record),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
           ),
         ),
       ),
@@ -202,21 +235,30 @@ void main() {
     when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
     await recordProvider.loadAll();
 
-    Record? result = record; // Initialize with something non-null
+    Record? result = record;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () async {
-              result = await showDialog<Record>(
-                context: context,
-                builder: (context) => ChangeNotifierProvider<RecordProvider>.value(
-                  value: recordProvider,
-                  child: EditRecordPopup(record: record),
-                ),
-              );
-            },
-            child: const Text('Open'),
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+          ],
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                result = await showDialog<Record>(
+                  context: context,
+                  builder: (context) => MultiProvider(
+                    providers: [
+                      ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+                      ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+                    ],
+                    child: EditRecordPopup(record: record),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
           ),
         ),
       ),

@@ -30,10 +30,9 @@ void main() {
       }
     });
 
-    test('getTranslation returns the correct string or the key if not found', () {
-      expect(L10nConfig.getTranslation(AppLanguage.english, 'drawer_records'), 'Records');
-      expect(L10nConfig.getTranslation(AppLanguage.vietnamese, 'drawer_records'), 'Ghi chép');
-      expect(L10nConfig.getTranslation(AppLanguage.english, 'non_existent_key'), 'non_existent_key');
+    test('Translations should return the correct string', () {
+      expect(L10nConfig.translations[AppLanguage.english]?['drawer_records'], 'Records');
+      expect(L10nConfig.translations[AppLanguage.vietnamese]?['drawer_records'], 'Ghi chép');
     });
   });
 }

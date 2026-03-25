@@ -1,27 +1,25 @@
-# Handoff: Task #117 → Task #118
+# Handoff: Task #118 → Task #119
 
 ## Completed
-- Implemented the destructive currency change flow in `HomeScreen` drawer.
-- Added localized confirmation strings for currency change in `L10nConfig`.
-- Integrated `RecordProvider.resetAllData()` with the currency update logic.
-- Ensured currency only updates after user confirmation and database wipe.
+- Created `test/integration/epic_update-language-and-currency/l10n_integration_test.dart`.
+- Verified reactive language switching (SC-1) correctly updates UI strings between English and Vietnamese.
+- Verified protected currency switching (SC-3) correctly triggers a confirmation dialog, executes `resetAllData`, and updates stored preferences.
+- Verified state persistence of language and currency across simulated app restarts.
+- Resolved type collisions between `dart:core` and project `Record` models in tests.
+- Improved `HomeScreen` resilience by capturing providers before asynchronous dialog calls and awaiting data reset completion.
 
 ## Decisions Made
-- Used `RecordProvider.resetAllData()` from the previous epic to ensure atomicity.
-- Added specific translation keys (`currency_change_confirm_title/content`) to distinguish from general data reset warnings.
-
-## Interfaces Exposed/Modified
-- `LocaleProvider.setCurrency(AppCurrency curr)`: Persists and notifies.
-- `HomeScreen`: UI logic updated to handle asynchronous currency selection and confirmation.
+- Used `find.byKey(const Key('confirm_elevated_button'))` for reliable button targeting in tests.
+- Refactored `HomeScreen.onTap` for currency to ensure consistent context usage across asynchronous boundaries.
 
 ## State of Tests
-- Manual verification of dialog flow and data wipe.
-- Next task (#118) will add automated integration tests for this flow.
+- `test/integration/epic_update-language-and-currency/l10n_integration_test.dart`: PASS
+- Total integration test suite: PASS
 
 ## Warnings for Next Task
-- Task #118 should verify that `resetAllData` is called **before** `setCurrency` to prevent any data being associated with the new currency by mistake during the transition.
+- Final verification should include a full build and a manual smoke test of the Chat API language metadata to ensure the dynamic payload is correctly received by the backend.
 
 ## Files Changed
-- `lib/configs/l10n_config.dart` (modified)
-- `lib/screens/home/home_screen.dart` (modified)
-- `.claude/epics/update-language-and-currency/117.md` (closed)
+- `lib/screens/home/home_screen.dart` (modified for async safety)
+- `test/integration/epic_update-language-and-currency/l10n_integration_test.dart` (new)
+- `.claude/epics/update-language-and-currency/118.md` (closed)

@@ -3,24 +3,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/chat_message.dart';
-import 'package:wallet_ai/providers/chat_provider.dart';
+import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 
 class MockChatProvider extends Mock implements ChatProvider {}
+class MockLocaleProvider extends Mock implements LocaleProvider {}
 
 void main() {
   late MockChatProvider mockChatProvider;
+  late MockLocaleProvider mockLocaleProvider;
 
   setUp(() {
     mockChatProvider = MockChatProvider();
+    mockLocaleProvider = MockLocaleProvider();
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) => invocation.positionalArguments[0]);
   });
 
   Widget createChatTabWidget() {
-    return MaterialApp(
-      home: Scaffold(
-        body: ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider, child: const ChatTab()),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider),
+        ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+      ],
+      child: const MaterialApp(
+        home: Scaffold(
+          body: ChatTab(),
+        ),
       ),
     );
   }

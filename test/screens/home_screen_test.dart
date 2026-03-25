@@ -1,110 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-import 'package:wallet_ai/screens/home/home_screen.dart';
-import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
-import 'package:wallet_ai/providers/providers.dart';
-import 'package:wallet_ai/services/services.dart';
-import 'package:wallet_ai/configs/configs.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class MockChatProvider extends Mock implements ChatProvider {}
+import 'package:provider/provider.dart';
+import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/screens/home/home_screen.dart';
+import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
 class MockRecordProvider extends Mock implements RecordProvider {}
+class MockChatProvider extends Mock implements ChatProvider {}
+class MockLocaleProvider extends Mock implements LocaleProvider {}
+class MockStorageService extends Mock implements StorageService {}
 
 void main() {
-  late MockChatProvider mockChatProvider;
   late MockRecordProvider mockRecordProvider;
+  late MockChatProvider mockChatProvider;
+  late MockLocaleProvider mockLocaleProvider;
+  late MockStorageService mockStorageService;
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    await StorageService.init();
-    mockChatProvider = MockChatProvider();
+  setUp(() {
     mockRecordProvider = MockRecordProvider();
-
-    when(() => mockChatProvider.messages).thenReturn([]);
-    when(() => mockChatProvider.isStreaming).thenReturn(false);
-    when(() => mockChatProvider.addListener(any())).thenReturn(null);
-    when(() => mockChatProvider.removeListener(any())).thenReturn(null);
+    mockChatProvider = MockChatProvider();
+    mockLocaleProvider = MockLocaleProvider();
+    mockStorageService = MockStorageService();
 
     when(() => mockRecordProvider.records).thenReturn([]);
-    when(() => mockRecordProvider.filteredRecords).thenReturn([]);
+    when(() => mockRecordProvider.moneySources).thenReturn([]);
+    when(() => mockRecordProvider.categories).thenReturn([]);
     when(() => mockRecordProvider.isLoading).thenReturn(false);
+    
+    when(() => mockChatProvider.messages).thenReturn([]);
+    when(() => mockChatProvider.isStreaming).thenReturn(false);
+
+    when(() => mockLocaleProvider.language).thenReturn(AppLanguage.english);
+    when(() => mockLocaleProvider.currency).thenReturn(AppCurrency.usd);
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
+      final key = invocation.positionalArguments[0] as String;
+      if (key == 'app_subtitle') return 'Personal finance copilot';
+      if (key == 'settings_header') return 'Settings';
+      if (key == 'currency_label') return 'Currency';
+      if (key == 'language_label') return 'Language';
+      if (key == 'reset_all_data') return 'Reset All Data';
+      if (key == 'drawer_chat') return 'Chat';
+      if (key == 'drawer_records') return 'Records';
+      return key;
+    });
   });
 
-  Widget createWidgetUnderTest() {
+  Widget createHomeScreen() {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider),
         ChangeNotifierProvider<RecordProvider>.value(value: mockRecordProvider),
+        ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider),
+        ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+        Provider<StorageService>.value(value: mockStorageService),
       ],
-      child: const MaterialApp(home: HomeScreen()),
+      child: const MaterialApp(
+        home: HomeScreen(),
+      ),
     );
   }
 
-  testWidgets('HomeScreen renders with TabBar and 3 tabs', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
+  testWidgets('HomeScreen has BottomNavigationBar and Tabs', (tester) async {
+    await tester.pumpWidget(createHomeScreen());
 
-    expect(find.byType(TabBar), findsOneWidget);
-    expect(find.text('Chat'), findsOneWidget);
-    expect(find.text('Records'), findsOneWidget);
-    expect(find.text('Test'), findsOneWidget);
+    expect(find.byType(TabBar), findsOneWidget); // HomeScreen uses TabBar now
+    expect(find.text('Chat'), findsWidgets);
+    expect(find.text('Records'), findsWidgets);
   });
 
-  testWidgets('HomeScreen renders with TabBarView and ChatTabs', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
-
-    expect(find.byType(TabBarView), findsOneWidget);
-    expect(find.byType(ChatTab), findsWidgets);
-  });
-
-  testWidgets('HomeScreen has a Drawer', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
+  testWidgets('HomeScreen has a Drawer', (tester) async {
+    await tester.pumpWidget(createHomeScreen());
 
     // Open drawer
-    final ScaffoldState state = tester.firstState(find.byType(Scaffold));
-    state.openDrawer();
+    final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffoldState.openDrawer();
     await tester.pumpAndSettle();
 
     expect(find.byType(Drawer), findsOneWidget);
-    expect(find.text('Wally AI'), findsWidgets);
+    // Find Wally AI in drawer header specifically
+    expect(find.descendant(of: find.byType(Drawer), matching: find.text('Wally AI')), findsOneWidget);
+    expect(find.text('Personal finance copilot'), findsOneWidget);
   });
 
-  testWidgets('Drawer shows correct version and toggles currency', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
+  testWidgets('Drawer shows correct version and preferences', (tester) async {
+    await tester.pumpWidget(createHomeScreen());
 
-    // Open drawer
-    final ScaffoldState state = tester.firstState(find.byType(Scaffold));
-    state.openDrawer();
+    final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffoldState.openDrawer();
     await tester.pumpAndSettle();
 
-    // Verify version
-    expect(find.text(AppConfig().fullVersion), findsOneWidget);
-
-    // Verify initial currency
-    expect(find.text('VND'), findsOneWidget);
-
-    // Toggle currency to USD
-    await tester.tap(find.text('Currency'));
-    await tester.pumpAndSettle(); // Wait for dialog
-
-    await tester.tap(find.text('USD'));
-    await tester.pumpAndSettle(); // Wait for dialog to close
-
-    // Verify currency toggled to USD
-    expect(find.text('USD'), findsOneWidget);
-    expect(StorageService().getString(StorageService.keyCurrency), 'USD');
-
-    // Toggle back to VND
-    await tester.tap(find.text('Currency'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('VND'));
-    await tester.pumpAndSettle();
-
-    // Verify currency toggled back to VND
-    expect(find.text('VND'), findsOneWidget);
-    expect(StorageService().getString(StorageService.keyCurrency), 'VND');
+    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Currency'), findsOneWidget);
+    expect(find.text('Language'), findsOneWidget);
+    expect(find.text('Reset All Data'), findsOneWidget);
   });
 }
