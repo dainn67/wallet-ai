@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final FocusNode _recordingFocusNode = FocusNode();
-  late final TabController _tabController;
+  late TabController _tabController;
 
   // Dev mode toggle logic
   int _tapCount = 0;
@@ -26,7 +26,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: AppConfig().devMode ? 3 : 2,
+      vsync: this,
+      initialIndex: 0,
+    );
 
     // Check if the app was opened from a widget
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
@@ -71,6 +75,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       final localeProvider = context.read<LocaleProvider>();
       AppConfig().toggleDevMode().then((_) {
         if (mounted) {
+          final oldIndex = _tabController.index;
+          _tabController.dispose();
+          _tabController = TabController(
+            length: AppConfig().devMode ? 3 : 2,
+            vsync: this,
+            initialIndex: oldIndex.clamp(0, AppConfig().devMode ? 2 : 1),
+          );
           setState(() {});
           final message = AppConfig().devMode ? localeProvider.translate('dev_mode_enabled') : localeProvider.translate('dev_mode_disabled');
           ScaffoldMessenger.of(
