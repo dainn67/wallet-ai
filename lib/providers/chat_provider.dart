@@ -138,7 +138,7 @@ class ChatProvider extends ChangeNotifier {
                       moneySourceId: sourceId,
                       categoryId: categoryId,
                       amount: amount,
-                      currency: StorageService().getString(StorageService.keyCurrency) ?? 'VND',
+                      currency: (StorageService().getString(StorageService.keyCurrency) ?? 'VND').split('.').last.toUpperCase(),
                       description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
                       type: type,
                     );
