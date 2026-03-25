@@ -1,26 +1,19 @@
-# Handoff: Task #108 - Add "Reset All Data" to HomeScreen drawer
+# Handoff: Task #110 - Write unit and integration tests
 
 ## Summary
-Added a "Data Management" section to the `HomeScreen` drawer with a "Reset All Data" button that triggers a confirmation dialog before resetting all application data.
+Ensured full test coverage and correctness for `resetAllData` and `deleteMoneySource` in `RecordRepository` and `RecordProvider`.
 
 ## Key Changes
-- **UI Layer**: Modified `lib/screens/home/home_screen.dart` to:
-  - Add a "Data Management" section in the drawer.
-  - Include a "Reset All Data" `ListTile` with destructive styling (red color).
-  - Wired the button to show a `ConfirmationDialog` with a destructive confirmation button.
-  - On confirmation, `RecordProvider.resetAllData()` is called and the drawer is closed.
-- **Testing**: Added `test/screens/home/home_screen_test.dart` to verify:
-  - Drawer presence and content.
-  - Tapping "Reset All Data" opens the confirmation dialog.
-  - Confirming the dialog calls the provider's reset method.
+- **Testing**: Updated `test/providers/record_provider_test.dart` to correctly mock the repository's behavior after deletion.
+- **Verification**: Verified that all repository and provider tests pass, specifically covering:
+  - `RecordRepository.deleteMoneySource`: Deletes source and all associated records.
+  - `RecordRepository.resetAllData`: Clears all records and resets all source amounts to 0.
+  - `RecordProvider.deleteMoneySource`: Calls repository, removes from internal list, and reloads data.
+  - `RecordProvider.resetAllData`: Calls repository, and reloads all data.
 
 ## Verification
-- `flutter test test/screens/home/home_screen_test.dart` passed.
-- `flutter analyze` passed.
-
-## Technical Details
-- Used `ConfirmationDialog` component for consistency and safety.
-- Followed existing drawer styling for section headers and tiles.
+- `fvm flutter test test/repositories/record_repository_test.dart` passed.
+- `fvm flutter test test/providers/record_provider_test.dart` passed.
 
 ## Next Steps
-- Task #109: Add "Delete" button to `EditSourcePopup`.
+- Task #111: Final integration verification & cleanup.

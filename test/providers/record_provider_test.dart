@@ -168,11 +168,14 @@ void main() {
         await recordProvider.loadAll();
 
         when(() => mockRepository.deleteMoneySource(1)).thenAnswer((_) async => 1);
+        // Mock that after deletion, getAllMoneySources returns empty
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
 
         await recordProvider.deleteMoneySource(1);
 
         expect(recordProvider.moneySources, isEmpty);
         verify(() => mockRepository.deleteMoneySource(1)).called(1);
+        verify(() => mockRepository.getAllMoneySources()).called(2); // Initial load + after delete
       });
 
       test('CRUD methods reload data on error', () async {
