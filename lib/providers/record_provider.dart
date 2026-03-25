@@ -150,8 +150,8 @@ class RecordProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final id = await _repository.createRecord(record);
-      _records.add(record.copyWith(recordId: id));
+      await _repository.createRecord(record);
+      await loadAll();
     } catch (e) {
       debugPrint('Error adding record in RecordProvider: $e');
       await loadAll();
@@ -184,7 +184,7 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _repository.deleteRecord(id);
-      _records.removeWhere((r) => r.recordId == id);
+      await loadAll();
     } catch (e) {
       debugPrint('Error deleting record in RecordProvider: $e');
       await loadAll();

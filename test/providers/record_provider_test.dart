@@ -91,6 +91,9 @@ void main() {
       test('addRecord adds to internal list and calls repository', () async {
         final newRecord = Record(moneySourceId: 1, categoryId: 1, amount: 50.0, currency: 'VND', description: 'New', type: 'expense');
         when(() => mockRepository.createRecord(newRecord)).thenAnswer((_) async => 10);
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => [newRecord.copyWith(recordId: 10)]);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
         await recordProvider.addRecord(newRecord);
 
@@ -126,6 +129,8 @@ void main() {
         await recordProvider.loadAll();
 
         when(() => mockRepository.deleteRecord(1)).thenAnswer((_) async => 1);
+        // Mock that after deletion, getAllRecords returns empty
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
 
         await recordProvider.deleteRecord(1);
 
@@ -136,6 +141,9 @@ void main() {
       test('addMoneySource adds to internal list and calls repository', () async {
         final newSource = MoneySource(sourceName: 'New Bank');
         when(() => mockRepository.createMoneySource(newSource)).thenAnswer((_) async => 5);
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => [newSource.copyWith(sourceId: 5)]);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
 
         await recordProvider.addMoneySource(newSource);
 

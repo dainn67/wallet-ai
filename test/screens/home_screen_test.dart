@@ -85,17 +85,23 @@ void main() {
     // Verify initial currency
     expect(find.text('VND'), findsOneWidget);
 
-    // Toggle currency
+    // Toggle currency to USD
     await tester.tap(find.text('Currency'));
-    await tester.pump();
+    await tester.pumpAndSettle(); // Wait for dialog
+
+    await tester.tap(find.text('USD'));
+    await tester.pumpAndSettle(); // Wait for dialog to close
 
     // Verify currency toggled to USD
     expect(find.text('USD'), findsOneWidget);
     expect(StorageService().getString(StorageService.keyCurrency), 'USD');
 
-    // Toggle back
+    // Toggle back to VND
     await tester.tap(find.text('Currency'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('VND'));
+    await tester.pumpAndSettle();
 
     // Verify currency toggled back to VND
     expect(find.text('VND'), findsOneWidget);

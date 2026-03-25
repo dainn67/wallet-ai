@@ -63,6 +63,10 @@ void main() {
     await provider.loadAll();
   });
 
+  tearDown(() async {
+    await RecordRepository().database.close();
+  });
+
   group('Balance Verification after Edits', () {
     test('Editing record amount updates source balance correctly', () async {
       // 1. Create a record: Expense 200 from Wallet (initial 1000) -> 800

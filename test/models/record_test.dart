@@ -13,10 +13,9 @@ void main() {
         type: 'expense',
       );
       
-      // recordId and lastUpdated should be >= now
-      expect(record.recordId, isNotNull);
+      // recordId should be 0 by default, and lastUpdated should be >= now
+      expect(record.recordId, equals(0));
       expect(record.lastUpdated, greaterThanOrEqualTo(now));
-      expect(record.lastUpdated, equals(record.recordId));
     });
 
     test('Record.fromMap with timestamp correctly retrieved', () {
