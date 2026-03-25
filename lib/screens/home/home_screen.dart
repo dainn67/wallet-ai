@@ -3,7 +3,6 @@ import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 import '../../configs/configs.dart';
 import '../../providers/providers.dart';
-import '../../services/storage_service.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
 import 'tabs/test_tab.dart';
@@ -116,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ],
         ),
       ),
-      drawer: _buildAppDrawer(context),
+      drawer: _buildAppDrawer(),
       body: SafeArea(
         child: TabBarView(
           controller: _tabController,
@@ -130,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildAppDrawer(BuildContext context) {
+  Widget _buildAppDrawer() {
     final l10n = context.watch<LocaleProvider>();
 
     return Drawer(
@@ -243,14 +242,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
               onTap: () async {
-                final current = L10nConfig.currencyCodes[l10n.currency] ?? 'VND';
+                final localeProvider = context.read<LocaleProvider>();
+                final recordProvider = context.read<RecordProvider>();
+                final navigator = Navigator.of(context);
+                final currentCurrency = localeProvider.currency;
+                final currentCode = L10nConfig.currencyCodes[currentCurrency] ?? 'VND';
+
                 final selected = await showCurrencySelectionPopup(
                   context: context,
-                  currentCurrency: current,
+                  currentCurrency: currentCode,
                 );
+                
                 if (selected != null && mounted) {
-                  final newCurrency = AppCurrency.values.firstWhere((e) => L10nConfig.currencyCodes[e] == selected, orElse: () => AppCurrency.vnd);
-                  l10n.setCurrency(newCurrency);
+                  final newCurrency = AppCurrency.values.firstWhere(
+                    (e) => L10nConfig.currencyCodes[e] == selected, 
+                    orElse: () => AppCurrency.vnd
+                  );
+                  
+                  if (newCurrency != currentCurrency) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ConfirmationDialog(
+                        title: localeProvider.translate('currency_change_confirm_title'),
+                        content: localeProvider.translate('currency_change_confirm_content'),
+                        confirmLabel: localeProvider.translate('popup_confirm'),
+                        cancelLabel: localeProvider.translate('popup_cancel'),
+                        isDestructive: true,
+                        onConfirm: () {
+                          recordProvider.resetAllData();
+                          localeProvider.setCurrency(newCurrency);
+                          navigator.pop(); // Close drawer
+                        },
+                      ),
+                    );
+                  }
                 }
               },
             ),

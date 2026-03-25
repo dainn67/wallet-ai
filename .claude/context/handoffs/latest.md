@@ -1,39 +1,29 @@
-# Handoff: Task #115 → Task #116
+# Handoff: Task #116 → Task #117
 
 ## Completed
-- Modified `ChatApiService.streamChat` to accept a `language` parameter and include it in the API request body.
-- Updated `ChatProvider` to depend on `LocaleProvider` and pass the current language string ("English" or "Vietnamese") to the API service.
-- Refactored `lib/main.dart` to use `ChangeNotifierProxyProvider2` for `ChatProvider`, ensuring it has access to both `RecordProvider` and `LocaleProvider`.
+- Localized `HomeScreen`, `ChatTab`, `RecordsTab`, `RecordsOverview`, `AddSourcePopup`, `EditSourcePopup`, and `EditRecordPopup`.
+- Added a Language selector in the `HomeScreen` drawer with immediate UI refresh.
+- Updated `L10nConfig` with comprehensive EN/VI translation sets.
+- Created `test/screens/home/home_localization_test.dart` to verify language switching.
 
 ## Decisions Made
-- Used explicit language strings ("English", "Vietnamese") instead of ISO codes to match current backend expectations.
-- Standardized `ChatProvider` initialization via `ProxyProvider` to maintain clean dependency injection.
-
-## Interfaces Exposed/Modified
-```dart
-// ChatApiService
-Stream<ChatStreamResponse> streamChat(String message, {
-  String? conversationId,
-  String? categoryList,
-  String? moneySourceList,
-  String language = 'English', // New parameter
-})
-
-// ChatProvider
-void update(RecordProvider rp, LocaleProvider lp) // Dependency sync
-```
+- Moved `AppLanguage` and `AppCurrency` enums to `l10n_config.dart` to avoid circular dependencies.
+- Used `context.watch<LocaleProvider>()` in widgets for reactive localization.
+- Reused `ConfirmationDialog` for destructive actions, ensuring its content is also localized.
 
 ## State of Tests
-- `test/providers/locale_provider_test.dart`: PASS (6 tests)
-- `test/configs/l10n_config_test.dart`: PASS (2 tests)
-- Regression tests pass after `main.dart` refactoring.
+- `test/screens/home/home_localization_test.dart`: PASS
+- All compilation errors resolved.
 
 ## Warnings for Next Task
-- UI components in Task #116 should use `context.watch<LocaleProvider>()` to ensure they react to language changes.
-- Ensure all hardcoded strings are moved to `L10nConfig`.
+- Task #117 (Protected currency change) must use the localized `reset_data_confirm_title` and `reset_data_confirm_content`.
+- Ensure the currency symbol in `RecordsOverview` correctly uses `L10nConfig.currencySymbols[l10n.currency]`.
 
 ## Files Changed
-- `lib/services/chat_api_service.dart` (modified)
-- `lib/providers/chat_provider.dart` (modified)
-- `lib/main.dart` (modified)
-- `.claude/epics/update-language-and-currency/115.md` (closed)
+- `lib/configs/l10n_config.dart` (modified)
+- `lib/providers/locale_provider.dart` (modified)
+- `lib/screens/home/home_screen.dart` (modified)
+- `lib/screens/home/tabs/records_tab.dart` (modified)
+- `lib/components/records_overview.dart` (modified)
+- `lib/components/popups/*.dart` (modified)
+- `test/screens/home/home_localization_test.dart` (new)
