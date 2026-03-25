@@ -1,11 +1,11 @@
 ---
 name: update-language-and-currency
 description: Implement multi-language support (EN/VI) and update currency management with destructive change protection.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-03-25T11:00:00Z
-updated: 2026-03-25T11:20:00Z
+updated: 2026-03-26T00:52:00Z
 ---
 
 # PRD: update-language-and-currency

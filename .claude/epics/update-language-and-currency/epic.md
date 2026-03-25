@@ -1,13 +1,14 @@
 ---
 name: update-language-and-currency
-status: done
+status: completed
 created: 2026-03-25T11:30:00Z
 progress: 100%
 priority: P1
 prd: .claude/prds/update-language-and-currency.md
 task_count: 7
 github: "https://github.com/dainn67/wallet-ai/issues/112"
-updated: 2026-03-25T13:10:00Z
+updated: 2026-03-26T00:50:00Z
+completed: 2026-03-26T00:50:00Z
 ---
 
 # Epic: update-language-and-currency
