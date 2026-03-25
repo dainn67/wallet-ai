@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AppConfig {
   static final AppConfig _instance = AppConfig._internal();
@@ -12,10 +13,10 @@ class AppConfig {
   AppConfig._internal();
 
   final String appName = 'Wally AI';
-  final String version = '1.2.3';
-  final String buildNumber = '4';
+  String _version = '1.0.0';
+  String _buildNumber = '1';
 
-  String get fullVersion => 'v$version($buildNumber)';
+  String get fullVersion => 'v$_version($_buildNumber)';
 
   bool _devMode = kDebugMode;
   bool get devMode => _devMode;
@@ -23,6 +24,10 @@ class AppConfig {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _devMode = prefs.getBool('dev_mode') ?? kDebugMode;
+    
+    final packageInfo = await PackageInfo.fromPlatform();
+    _version = packageInfo.version;
+    _buildNumber = packageInfo.buildNumber;
   }
 
   Future<void> toggleDevMode() async {
