@@ -1,22 +1,25 @@
-# Handoff Notes: reset-all Epic Complete
+# Handoff: Task #118 → Task #119
 
-## Overview
-The `reset-all` epic has been successfully implemented and verified. This feature provides users with a safe way to reset their entire financial history or delete individual money sources with cascading record removal.
+## Completed
+- Created `test/integration/epic_update-language-and-currency/l10n_integration_test.dart`.
+- Verified reactive language switching (SC-1) correctly updates UI strings between English and Vietnamese.
+- Verified protected currency switching (SC-3) correctly triggers a confirmation dialog, executes `resetAllData`, and updates stored preferences.
+- Verified state persistence of language and currency across simulated app restarts.
+- Resolved type collisions between `dart:core` and project `Record` models in tests.
+- Improved `HomeScreen` resilience by capturing providers before asynchronous dialog calls and awaiting data reset completion.
 
-## Key Changes
-- **Reusable UI**: Created `ConfirmationDialog` in `lib/components/popups/confirmation_dialog.dart` for all destructive actions.
-- **Backend Logic**: Implemented `resetAllData` and updated `deleteMoneySource` in `RecordRepository` using atomic transactions.
-- **State Management**: Updated `RecordProvider` to handle global resets and cascading deletions, ensuring the UI stays in sync.
-- **User Interface**: 
-    - Added "Reset All Data" to the navigation drawer under a new "Data Management" section.
-    - Added a "Delete" icon button to the `EditSourcePopup`.
-- **Quality Assurance**: Added comprehensive unit and widget tests for all new components and logic. Resolved multiple regressions in existing tests to ensure overall system stability.
+## Decisions Made
+- Used `find.byKey(const Key('confirm_elevated_button'))` for reliable button targeting in tests.
+- Refactored `HomeScreen.onTap` for currency to ensure consistent context usage across asynchronous boundaries.
 
-## Verification Results
-- **Unit/Integration Tests**: 94/94 tests passed (`fvm flutter test`).
-- **Build**: Success (`fvm flutter build apk --debug`).
-- **Functionality**: Verified atomic transactions, cascading deletions, and immediate UI updates.
+## State of Tests
+- `test/integration/epic_update-language-and-currency/l10n_integration_test.dart`: PASS
+- Total integration test suite: PASS
 
-## Next Steps
-- Consider merging the `epic/reset-all` branch into `main` after a final peer review.
-- Tag a new version if this completes the planned release cycle.
+## Warnings for Next Task
+- Final verification should include a full build and a manual smoke test of the Chat API language metadata to ensure the dynamic payload is correctly received by the backend.
+
+## Files Changed
+- `lib/screens/home/home_screen.dart` (modified for async safety)
+- `test/integration/epic_update-language-and-currency/l10n_integration_test.dart` (new)
+- `.claude/epics/update-language-and-currency/118.md` (closed)

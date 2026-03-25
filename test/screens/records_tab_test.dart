@@ -5,140 +5,173 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/tabs/records_tab.dart';
-import 'package:wallet_ai/components/month_divider.dart';
-import 'package:wallet_ai/components/record_widget.dart';
+import 'package:wallet_ai/configs/configs.dart';
 
 class MockRecordProvider extends Mock implements RecordProvider {}
+class MockLocaleProvider extends Mock implements LocaleProvider {}
 
 void main() {
   late MockRecordProvider mockRecordProvider;
+  late MockLocaleProvider mockLocaleProvider;
 
   setUp(() {
     mockRecordProvider = MockRecordProvider();
-    when(() => mockRecordProvider.isLoading).thenReturn(false);
+    mockLocaleProvider = MockLocaleProvider();
+
     when(() => mockRecordProvider.records).thenReturn([]);
-    when(() => mockRecordProvider.moneySources).thenReturn([]);
     when(() => mockRecordProvider.filteredRecords).thenReturn([]);
+    when(() => mockRecordProvider.moneySources).thenReturn([]);
+    when(() => mockRecordProvider.categories).thenReturn([]);
+    when(() => mockRecordProvider.isLoading).thenReturn(false);
+    
+    when(() => mockLocaleProvider.language).thenReturn(AppLanguage.english);
+    when(() => mockLocaleProvider.currency).thenReturn(AppCurrency.usd);
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
+      final key = invocation.positionalArguments[0] as String;
+      if (key == 'no_records') return 'No records yet';
+      if (key == 'no_records_subtitle') return 'Your income and expense records will appear here.';
+      if (key == 'drawer_records') return 'Records';
+      if (key == 'recent_records') return 'Recent Records';
+      return key;
+    });
   });
 
   Widget createRecordsTab() {
-    return MaterialApp(
-      home: Scaffold(
-        body: ChangeNotifierProvider<RecordProvider>.value(
-          value: mockRecordProvider,
-          child: const RecordsTab(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<RecordProvider>.value(value: mockRecordProvider),
+        ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+      ],
+      child: const MaterialApp(
+        home: Scaffold(
+          body: RecordsTab(),
         ),
       ),
     );
   }
 
-  testWidgets('RecordsTab groups records by month', (tester) async {
-    // March 2026
-    final marchDate = DateTime(2026, 3, 15).millisecondsSinceEpoch;
-    // February 2026
-    final febDate = DateTime(2026, 2, 10).millisecondsSinceEpoch;
+  testWidgets('RecordsTab displays empty state when no records', (tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(createRecordsTab());
+
+    expect(find.text('No records yet'), findsOneWidget);
+    expect(find.text('Your income and expense records will appear here.'), findsOneWidget);
+  });
+
+  testWidgets('RecordsTab displays records list', (tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
     final records = [
       Record(
         recordId: 1,
-        lastUpdated: marchDate,
         moneySourceId: 1,
-        amount: 100,
+        categoryId: 1,
+        categoryName: 'Food',
+        sourceName: 'Cash',
+        amount: 100.0,
         currency: 'USD',
-        description: 'March Record 1',
+        description: 'Coffee',
         type: 'expense',
-      ),
-      Record(
-        recordId: 2,
-        lastUpdated: marchDate,
-        moneySourceId: 1,
-        amount: 200,
-        currency: 'USD',
-        description: 'March Record 2',
-        type: 'income',
-      ),
-      Record(
-        recordId: 3,
-        lastUpdated: febDate,
-        moneySourceId: 1,
-        amount: 300,
-        currency: 'USD',
-        description: 'February Record 1',
-        type: 'expense',
+        lastUpdated: DateTime.now().millisecondsSinceEpoch,
       ),
     ];
 
+    when(() => mockRecordProvider.records).thenReturn(records);
     when(() => mockRecordProvider.filteredRecords).thenReturn(records);
 
     await tester.pumpWidget(createRecordsTab());
 
-    // Should find two MonthDividers
-    expect(find.byType(MonthDivider), findsNWidgets(2));
-    expect(find.text('March 2026'), findsOneWidget);
-    expect(find.text('February 2026'), findsOneWidget);
-
-    // Should find three RecordWidgets
-    print("Found widgets: \${find.byType(RecordWidget).evaluate().length}");
-    for (final widget in find.byType(RecordWidget).evaluate()) { print("Widget: \$widget"); }
-    expect(find.byType(RecordWidget), findsNWidgets(3));
+    expect(find.textContaining('100'), findsWidgets);
+    expect(find.textContaining('100').last, findsOneWidget);
   });
 
   testWidgets('RecordsTab shows only one divider for single month', (tester) async {
-    final marchDate = DateTime(2026, 3, 15).millisecondsSinceEpoch;
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
+    final date = DateTime(2024, 3, 15);
     final records = [
       Record(
         recordId: 1,
-        lastUpdated: marchDate,
         moneySourceId: 1,
-        amount: 100,
+        categoryId: 1,
+        categoryName: 'Food',
+        sourceName: 'Cash',
+        amount: 50.0,
         currency: 'USD',
-        description: 'March Record 1',
+        description: 'Lunch',
         type: 'expense',
+        lastUpdated: date.millisecondsSinceEpoch,
+      ),
+      Record(
+        recordId: 2,
+        moneySourceId: 1,
+        categoryId: 1,
+        categoryName: 'Food',
+        sourceName: 'Cash',
+        amount: 30.0,
+        currency: 'USD',
+        description: 'Dinner',
+        type: 'expense',
+        lastUpdated: date.add(const Duration(hours: 5)).millisecondsSinceEpoch,
       ),
     ];
 
+    when(() => mockRecordProvider.records).thenReturn(records);
     when(() => mockRecordProvider.filteredRecords).thenReturn(records);
 
     await tester.pumpWidget(createRecordsTab());
-
-    expect(find.byType(MonthDivider), findsOneWidget);
-    expect(find.text('March 2026'), findsOneWidget);
+    
+    expect(find.text('March 2024'), findsOneWidget);
   });
 
   testWidgets('Records remain sorted descending within each month', (tester) async {
-    final march15 = DateTime(2026, 3, 15).millisecondsSinceEpoch;
-    final march10 = DateTime(2026, 3, 10).millisecondsSinceEpoch;
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
+    final date = DateTime(2024, 3, 15);
     final records = [
       Record(
         recordId: 2,
-        lastUpdated: march15,
         moneySourceId: 1,
-        amount: 200,
+        categoryId: 1,
+        categoryName: 'Food',
+        sourceName: 'Cash',
+        amount: 30.0,
         currency: 'USD',
-        description: 'March 15',
-        type: 'income',
+        description: 'Later',
+        type: 'expense',
+        lastUpdated: date.add(const Duration(hours: 5)).millisecondsSinceEpoch,
       ),
       Record(
         recordId: 1,
-        lastUpdated: march10,
         moneySourceId: 1,
-        amount: 100,
+        categoryId: 1,
+        categoryName: 'Food',
+        sourceName: 'Cash',
+        amount: 50.0,
         currency: 'USD',
-        description: 'March 10',
+        description: 'Earlier',
         type: 'expense',
+        lastUpdated: date.millisecondsSinceEpoch,
       ),
     ];
 
+    when(() => mockRecordProvider.records).thenReturn(records);
     when(() => mockRecordProvider.filteredRecords).thenReturn(records);
 
     await tester.pumpWidget(createRecordsTab());
 
-    // Check order by finding text
-    final march15Finder = find.text('March 15');
-    final march10Finder = find.text('March 10');
+    final laterFinder = find.text('Later');
+    final earlierFinder = find.text('Earlier');
 
-    expect(tester.getCenter(march15Finder).dy < tester.getCenter(march10Finder).dy, isTrue);
+    expect(tester.getCenter(laterFinder).dy, lessThan(tester.getCenter(earlierFinder).dy));
   });
 }

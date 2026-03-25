@@ -6,6 +6,7 @@ import 'package:wallet_ai/services/services.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 import '../configs/configs.dart';
 import 'record_provider.dart';
+import 'locale_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [
@@ -22,6 +23,11 @@ class ChatProvider extends ChangeNotifier {
   int _dbUpdateVersion = 0;
   StreamSubscription<ChatStreamResponse>? _streamSubscription;
   RecordProvider? _recordProvider;
+  LocaleProvider? _localeProvider;
+
+  ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider})
+      : _recordProvider = recordProvider,
+        _localeProvider = localeProvider;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
@@ -31,6 +37,10 @@ class ChatProvider extends ChangeNotifier {
 
   set recordProvider(RecordProvider? value) {
     _recordProvider = value;
+  }
+
+  set localeProvider(LocaleProvider? value) {
+    _localeProvider = value;
   }
 
   @visibleForTesting
@@ -60,12 +70,13 @@ class ChatProvider extends ChangeNotifier {
 
     final categoryList = ChatApiService.formatCategories(_recordProvider?.categories);
     final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources);
+    final language = _localeProvider?.language == AppLanguage.vietnamese ? 'Vietnamese' : 'English';
 
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(content, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList)
+          .streamChat(content, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language)
           .listen(
             (response) {
               if (response.conversationId != null) {

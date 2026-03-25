@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
-import '../../configs/app_config.dart';
+import '../../configs/configs.dart';
 import '../../providers/providers.dart';
-import '../../services/storage_service.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
 import 'tabs/test_tab.dart';
@@ -69,12 +68,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     if (_tapCount >= 10) {
       _tapCount = 0;
+      final localeProvider = context.read<LocaleProvider>();
       AppConfig().toggleDevMode().then((_) {
         if (mounted) {
           setState(() {});
+          final message = AppConfig().devMode ? localeProvider.translate('dev_mode_enabled') : localeProvider.translate('dev_mode_disabled');
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Developer mode ${AppConfig().devMode ? 'enabled' : 'disabled'}'), duration: const Duration(seconds: 2)));
+          ).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 2)));
         }
       });
     }
@@ -97,6 +98,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
       appBar: AppBar(
@@ -106,13 +109,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           controller: _tabController,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
-            const Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
-            const Tab(icon: Icon(Icons.receipt_long), text: 'Records'),
+            Tab(icon: const Icon(Icons.chat_bubble_outline), text: l10n.translate('drawer_chat')),
+            Tab(icon: const Icon(Icons.receipt_long), text: l10n.translate('drawer_records')),
             if (AppConfig().devMode) const Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
           ],
         ),
       ),
-      drawer: _buildAppDrawer(context),
+      drawer: _buildAppDrawer(),
       body: SafeArea(
         child: TabBarView(
           controller: _tabController,
@@ -126,7 +129,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildAppDrawer(BuildContext context) {
+  Widget _buildAppDrawer() {
+    final l10n = context.watch<LocaleProvider>();
+
     return Drawer(
       child: SafeArea(
         top: false,
@@ -163,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     ),
                     Text(
-                      'Personal finance copilot',
+                      l10n.translate('app_subtitle'),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
@@ -173,11 +178,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Settings',
-                style: TextStyle(
+                l10n.translate('settings_header'),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey,
@@ -186,33 +191,101 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.currency_exchange, size: 20),
-              title: const Text('Currency'),
+              leading: const Icon(Icons.language, size: 20),
+              title: Text(l10n.translate('language_label')),
               trailing: Text(
-                StorageService().getString(StorageService.keyCurrency) ?? 'VND',
+                l10n.language == AppLanguage.english ? 'English' : 'Tiếng Việt',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue,
+                ),
+              ),
+              onTap: () {
+                final current = l10n.language;
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                  builder: (context) => SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          title: const Text('English'),
+                          trailing: current == AppLanguage.english ? const Icon(Icons.check, color: Colors.blue) : null,
+                          onTap: () {
+                            l10n.setLanguage(AppLanguage.english);
+                            Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          title: const Text('Tiếng Việt'),
+                          trailing: current == AppLanguage.vietnamese ? const Icon(Icons.check, color: Colors.blue) : null,
+                          onTap: () {
+                            l10n.setLanguage(AppLanguage.vietnamese);
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.currency_exchange, size: 20),
+              title: Text(l10n.translate('currency_label')),
+              trailing: Text(
+                L10nConfig.currencyCodes[l10n.currency] ?? 'VND',
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Colors.blue,
                 ),
               ),
               onTap: () async {
-                final current = StorageService().getString(StorageService.keyCurrency) ?? 'VND';
+                final localeProvider = context.read<LocaleProvider>();
+                final recordProvider = context.read<RecordProvider>();
+                final navigator = Navigator.of(context);
+                final currentCurrency = localeProvider.currency;
+                final currentCode = L10nConfig.currencyCodes[currentCurrency] ?? 'VND';
+
                 final selected = await showCurrencySelectionPopup(
                   context: context,
-                  currentCurrency: current,
+                  currentCurrency: currentCode,
                 );
-                if (selected != null && mounted) {
-                  StorageService().setString(StorageService.keyCurrency, selected);
-                  setState(() {});
+                
+                if (selected != null) {
+                  final newCurrency = AppCurrency.values.firstWhere(
+                    (e) => L10nConfig.currencyCodes[e] == selected, 
+                    orElse: () => AppCurrency.vnd
+                  );
+                  
+                  if (newCurrency != currentCurrency) {
+                    // ignore: use_build_context_synchronously
+                    showDialog(
+                      context: context,
+                      builder: (dialogContext) => ConfirmationDialog(
+                        title: localeProvider.translate('currency_change_confirm_title'),
+                        content: localeProvider.translate('currency_change_confirm_content'),
+                        confirmLabel: localeProvider.translate('popup_confirm'),
+                        cancelLabel: localeProvider.translate('popup_cancel'),
+                        isDestructive: true,
+                        onConfirm: () async {
+                          await recordProvider.resetAllData();
+                          await localeProvider.setCurrency(newCurrency);
+                          navigator.pop(); // Close drawer
+                        },
+                      ),
+                    );
+                  }
                 }
               },
             ),
             const Divider(),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Data Management',
-                style: TextStyle(
+                l10n.translate('data_management_header'),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey,
@@ -222,15 +295,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
             ListTile(
               leading: const Icon(Icons.delete_forever, size: 20, color: Colors.red),
-              title: const Text('Reset All Data', style: TextStyle(color: Colors.red)),
+              title: Text(l10n.translate('reset_all_data'), style: const TextStyle(color: Colors.red)),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => ConfirmationDialog(
-                    title: 'Reset All Data',
-                    content: 'Are you sure you want to delete all records and reset all balances to zero? This action cannot be undone.',
-                    confirmLabel: 'Reset',
-                    cancelLabel: 'Cancel',
+                    title: l10n.translate('reset_data_confirm_title'),
+                    content: l10n.translate('reset_data_confirm_content'),
+                    confirmLabel: l10n.translate('reset_button'),
+                    cancelLabel: l10n.translate('popup_cancel'),
                     isDestructive: true,
                     onConfirm: () {
                       context.read<RecordProvider>().resetAllData();

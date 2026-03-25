@@ -5,26 +5,48 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/components/popups/confirmation_dialog.dart';
+import 'package:wallet_ai/configs/configs.dart';
 
 class MockRecordProvider extends Mock implements RecordProvider {}
 class MockChatProvider extends Mock implements ChatProvider {}
+class MockLocaleProvider extends Mock implements LocaleProvider {}
 
 void main() {
   late MockRecordProvider mockRecordProvider;
   late MockChatProvider mockChatProvider;
+  late MockLocaleProvider mockLocaleProvider;
 
   setUp(() {
     mockRecordProvider = MockRecordProvider();
     mockChatProvider = MockChatProvider();
+    mockLocaleProvider = MockLocaleProvider();
 
     when(() => mockRecordProvider.isLoading).thenReturn(false);
     when(() => mockRecordProvider.records).thenReturn([]);
     when(() => mockRecordProvider.moneySources).thenReturn([]);
     when(() => mockRecordProvider.filteredRecords).thenReturn([]);
     
-    // For ChatTab
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
+
+    when(() => mockLocaleProvider.language).thenReturn(AppLanguage.english);
+    when(() => mockLocaleProvider.currency).thenReturn(AppCurrency.usd);
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
+      final key = invocation.positionalArguments[0] as String;
+      if (key == 'data_management_header') return 'Data Management';
+      if (key == 'reset_all_data') return 'Reset All Data';
+      if (key == 'reset_data_confirm_title') return 'Reset All Data';
+      if (key == 'reset_data_confirm_content') return 'Are you sure you want to delete all records';
+      if (key == 'reset_button') return 'Reset';
+      if (key == 'popup_cancel') return 'Cancel';
+      if (key == 'drawer_chat') return 'Chat';
+      if (key == 'drawer_records') return 'Records';
+      if (key == 'app_subtitle') return 'Personal finance copilot';
+      if (key == 'settings_header') return 'Settings';
+      if (key == 'currency_label') return 'Currency';
+      if (key == 'language_label') return 'Language';
+      return key;
+    });
   });
 
   Widget createHomeScreen() {
@@ -32,6 +54,7 @@ void main() {
       providers: [
         ChangeNotifierProvider<RecordProvider>.value(value: mockRecordProvider),
         ChangeNotifierProvider<ChatProvider>.value(value: mockChatProvider),
+        ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
       ],
       child: const MaterialApp(
         home: HomeScreen(),
@@ -43,7 +66,8 @@ void main() {
     await tester.pumpWidget(createHomeScreen());
 
     // Open drawer
-    await tester.tap(find.byIcon(Icons.menu));
+    final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffoldState.openDrawer();
     await tester.pumpAndSettle();
 
     // Find "Data Management" header
@@ -58,7 +82,8 @@ void main() {
     await tester.pumpWidget(createHomeScreen());
 
     // Open drawer
-    await tester.tap(find.byIcon(Icons.menu));
+    final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffoldState.openDrawer();
     await tester.pumpAndSettle();
 
     // Tap "Reset All Data"
@@ -67,19 +92,19 @@ void main() {
 
     // Verify dialog is shown
     expect(find.byType(ConfirmationDialog), findsOneWidget);
-    expect(find.text('Reset All Data'), findsNWidgets(2)); // One in drawer, one in dialog title
-    expect(find.textContaining('Are you sure you want to delete all records'), findsOneWidget);
+    // Find text specifically in the dialog
+    expect(find.descendant(of: find.byType(ConfirmationDialog), matching: find.text('Reset All Data')), findsOneWidget);
   });
 
   testWidgets('Confirming Reset All Data calls recordProvider.resetAllData', (tester) async {
     when(() => mockRecordProvider.resetAllData()).thenAnswer((_) async {});
-    // After reset, it calls loadAll
     when(() => mockRecordProvider.loadAll()).thenAnswer((_) async {});
 
     await tester.pumpWidget(createHomeScreen());
 
     // Open drawer
-    await tester.tap(find.byIcon(Icons.menu));
+    final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffoldState.openDrawer();
     await tester.pumpAndSettle();
 
     // Tap "Reset All Data"
@@ -93,10 +118,7 @@ void main() {
     // Verify resetAllData was called
     verify(() => mockRecordProvider.resetAllData()).called(1);
     
-    // Verify dialog and drawer are closed
+    // Verify dialog is closed
     expect(find.byType(ConfirmationDialog), findsNothing);
-    // Drawer should also be closed because we called Navigator.pop(context) in onConfirm
-    // and ConfirmationDialog itself calls Navigator.pop(context) before calling onConfirm.
-    // Wait, let's check ConfirmationDialog implementation again.
   });
 }

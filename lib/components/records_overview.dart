@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'popups/add_source_popup.dart';
 import 'package:wallet_ai/services/storage_service.dart';
@@ -20,6 +21,7 @@ class RecordsOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -33,15 +35,15 @@ class RecordsOverview extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Total Balance Section
-          _buildBalanceHeader(),
+          _buildBalanceHeader(l10n),
           const SizedBox(height: 12),
 
           // Income and Expense Summary
           Row(
             children: [
-              Expanded(child: _buildSummaryItem('Income', totalIncome, Colors.greenAccent)),
+              Expanded(child: _buildSummaryItem(l10n.translate('income_label'), totalIncome, Colors.greenAccent)),
               const SizedBox(width: 16),
-              Expanded(child: _buildSummaryItem('Spent', totalExpense, Colors.orangeAccent)),
+              Expanded(child: _buildSummaryItem(l10n.translate('spent_label'), totalExpense, Colors.orangeAccent)),
             ],
           ),
 
@@ -54,7 +56,7 @@ class RecordsOverview extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Sources',
+                l10n.translate('sources_label'),
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w500),
               ),
               IconButton(
@@ -91,7 +93,7 @@ class RecordsOverview extends StatelessWidget {
     );
   }
 
-  Widget _buildBalanceHeader() {
+  Widget _buildBalanceHeader(LocaleProvider l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -100,7 +102,7 @@ class RecordsOverview extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Total Balance',
+                l10n.translate('total_balance_label'),
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 2),
@@ -118,7 +120,7 @@ class RecordsOverview extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      StorageService().getString(StorageService.keyCurrency) ?? 'VND',
+                      L10nConfig.currencyCodes[l10n.currency] ?? 'VND',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.5),
                         fontSize: 12,

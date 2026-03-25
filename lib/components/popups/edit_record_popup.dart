@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
-import '../../providers/record_provider.dart';
+import '../../providers/providers.dart';
 
 /// A popup dialog for editing an existing [Record].
 ///
@@ -46,6 +46,8 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
+
     return Consumer<RecordProvider>(
       builder: (context, provider, child) {
         final moneySources = provider.moneySources;
@@ -74,9 +76,9 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Edit Record',
-                    style: TextStyle(
+                  Text(
+                    l10n.translate('edit_record_title'),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1E293B),
@@ -87,7 +89,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                   const SizedBox(height: 24),
 
                   // Type Toggle
-                  _buildLabel('Type'),
+                  _buildLabel(l10n.translate('type_label')),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(4),
@@ -97,15 +99,15 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     ),
                     child: Row(
                       children: [
-                        _buildTypeOption('Income', 'income', Colors.green),
-                        _buildTypeOption('Expense', 'expense', Colors.red),
+                        _buildTypeOption(l10n.translate('income_label'), 'income', Colors.green),
+                        _buildTypeOption(l10n.translate('spent_label'), 'expense', Colors.red),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
 
                   // Amount
-                  _buildLabel('Amount'),
+                  _buildLabel(l10n.translate('income_label')), // Reuse label? Or add amount_label
                   const SizedBox(height: 8),
                   TextField(
                     controller: _amountController,
@@ -117,7 +119,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     ),
                     decoration: _buildInputDecoration(
                       hint: '0.00',
-                      error: _amountError,
+                      error: _amountError != null ? l10n.translate(_amountError!) : null,
                     ),
                     onChanged: (_) {
                       if (_amountError != null) {
@@ -128,7 +130,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                   const SizedBox(height: 20),
 
                   // Money Source Dropdown
-                  _buildLabel('Money Source'),
+                  _buildLabel(l10n.translate('money_source_label')),
                   const SizedBox(height: 8),
                   _buildDropdown<int>(
                     value: _selectedSourceId,
@@ -152,7 +154,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                   const SizedBox(height: 20),
 
                   // Category Dropdown
-                  _buildLabel('Category'),
+                  _buildLabel(l10n.translate('category_label')),
                   const SizedBox(height: 8),
                   _buildDropdown<int>(
                     value: _selectedCategoryId,
@@ -178,18 +180,18 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                   const SizedBox(height: 20),
 
                   // Description
-                  _buildLabel('Description'),
+                  _buildLabel(l10n.translate('description_label')),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _descriptionController,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1E293B),
                       fontSize: 15,
                       fontFamily: 'Poppins',
                     ),
                     decoration: _buildInputDecoration(
-                      hint: 'Enter description',
-                      error: _descriptionError,
+                      hint: l10n.translate('description_hint'),
+                      error: _descriptionError != null ? l10n.translate(_descriptionError!) : null,
                     ),
                     onChanged: (_) {
                       if (_descriptionError != null) {
@@ -212,8 +214,8 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Cancel',
+                          child: Text(
+                            l10n.translate('popup_cancel'),
                             style: const TextStyle(
                               color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
@@ -236,9 +238,9 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.translate('save_button'),
+                            style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                               fontFamily: 'Poppins',
@@ -338,18 +340,18 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
     double? amount;
     setState(() {
       if (amountStr.isEmpty) {
-        _amountError = 'Amount is required';
+        _amountError = 'amount_required_error';
       } else {
         amount = double.tryParse(amountStr);
         if (amount == null) {
-          _amountError = 'Invalid amount';
+          _amountError = 'invalid_amount_error';
         } else if (amount! <= 0) {
-          _amountError = 'Amount must be positive';
+          _amountError = 'amount_positive_error';
         }
       }
 
       if (description.isEmpty) {
-        _descriptionError = 'Description is required';
+        _descriptionError = 'description_required_error';
       }
     });
 
