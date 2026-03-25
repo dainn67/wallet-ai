@@ -33,6 +33,10 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => AppConfig()),
         Provider(create: (_) => StorageService()),
+        ChangeNotifierProxyProvider<StorageService, LocaleProvider>(
+          create: (context) => LocaleProvider(Provider.of<StorageService>(context, listen: false)),
+          update: (_, storageService, previous) => previous ?? LocaleProvider(storageService),
+        ),
         ChangeNotifierProvider(create: (_) => RecordProvider()..loadAll()),
         ChangeNotifierProxyProvider<RecordProvider, ChatProvider>(
           create: (_) => ChatProvider(),
