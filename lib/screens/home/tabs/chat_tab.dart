@@ -101,6 +101,7 @@ class _ChatTabState extends State<ChatTab> {
 
   Widget _buildInputArea() {
     final isStreaming = context.watch<ChatProvider>().isStreaming;
+    final l10n = context.watch<LocaleProvider>();
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -117,9 +118,9 @@ class _ChatTabState extends State<ChatTab> {
                 controller: _controller,
                 focusNode: widget.focusNode,
                 style: const TextStyle(fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: 'Ask me anything...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: l10n.translate('chat_hint'),
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => isStreaming ? null : _handleSend(),
@@ -201,12 +202,13 @@ class _StreamingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
           Text(
-            'AI is typing',
+            l10n.translate('ai_typing'),
             style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 8),

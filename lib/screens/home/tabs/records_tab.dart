@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:wallet_ai/components/components.dart';
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/models/models.dart';
 
@@ -10,6 +11,7 @@ class RecordsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
     return Consumer<RecordProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading && provider.records.isEmpty && provider.moneySources.isEmpty) {
@@ -45,28 +47,28 @@ class RecordsTab extends StatelessWidget {
                         children: [
                           Icon(Icons.receipt_long, size: 40, color: Colors.grey.shade400),
                           const SizedBox(height: 12),
-                          const Text(
-                            'No records yet',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                          Text(
+                            l10n.translate('no_records'),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Your income and expense records will appear here.',
+                          Text(
+                            l10n.translate('no_records_subtitle'),
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),
                     )
                   else ...[
-                    const Padding(
-                      padding: EdgeInsets.only(left: 4, bottom: 4),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 4),
                       child: Text(
-                        'Recent Records',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                        l10n.translate('recent_records'),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                       ),
                     ),
-                    ..._buildGroupedRecords(context, records),
+                    ..._buildGroupedRecords(context, records, l10n),
                   ],
                 ],
               ),
@@ -77,7 +79,7 @@ class RecordsTab extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildGroupedRecords(BuildContext context, List<Record> records) {
+  List<Widget> _buildGroupedRecords(BuildContext context, List<Record> records, LocaleProvider l10n) {
     if (records.isEmpty) return [];
 
     final List<Widget> groupedWidgets = [];
@@ -85,11 +87,11 @@ class RecordsTab extends StatelessWidget {
 
     for (final record in records) {
       final date = DateTime.fromMillisecondsSinceEpoch(record.lastUpdated);
-      final monthYear = DateFormat('MMMM yyyy').format(date);
+      final monthYear = DateFormat(l10n.language == AppLanguage.english ? 'MMMM yyyy' : 'MM/yyyy').format(date);
 
       if (currentMonth != monthYear) {
         currentMonth = monthYear;
-        groupedWidgets.add(MonthDivider(label: monthYear));
+        groupedWidgets.add(MonthDivider(label: currentMonth));
       }
 
       groupedWidgets.add(

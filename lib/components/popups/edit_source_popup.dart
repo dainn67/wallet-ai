@@ -31,6 +31,8 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
+
     return Dialog(
       backgroundColor: Colors.white,
       shadowColor: Colors.black12,
@@ -47,7 +49,7 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                 const SizedBox(width: 48), // Spacer to balance the delete icon
                 Expanded(
                   child: Text(
-                    'Edit ${widget.source.sourceName}',
+                    '${l10n.translate('edit_source_title')} ${widget.source.sourceName}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -58,16 +60,16 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                   ),
                 ),
                 IconButton(
-                  onPressed: _handleDelete,
+                  onPressed: () => _handleDelete(l10n),
                   icon: const Icon(Icons.delete_outline, color: Colors.red, size: 24),
-                  tooltip: 'Delete Source',
+                  tooltip: l10n.translate('delete_source_tooltip'),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Update Amount',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+            Text(
+              l10n.translate('update_amount_label'),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -80,7 +82,7 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
               decoration: InputDecoration(
                 hintText: '0.00',
                 hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
-                errorText: _amountError,
+                errorText: _amountError != null ? l10n.translate(_amountError!) : null,
                 errorStyle: const TextStyle(fontFamily: 'Poppins'),
                 filled: true,
                 fillColor: const Color(0xFFF1F5F9),
@@ -98,16 +100,16 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                    child: Text(
+                      l10n.translate('popup_cancel'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _handleSave,
+                    onPressed: () => _handleSave(l10n),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
                       foregroundColor: Colors.white,
@@ -115,9 +117,9 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                    child: Text(
+                      l10n.translate('save_button'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
                     ),
                   ),
                 ),
@@ -129,30 +131,30 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
     );
   }
 
-  void _handleSave() {
+  void _handleSave(LocaleProvider l10n) {
     final amountStr = _amountController.text.trim();
     if (amountStr.isEmpty) {
-      setState(() => _amountError = 'Amount is required');
+      setState(() => _amountError = 'amount_required_error');
       return;
     }
 
     final amount = double.tryParse(amountStr);
     if (amount == null) {
-      setState(() => _amountError = 'Invalid amount');
+      setState(() => _amountError = 'invalid_amount_error');
       return;
     }
 
     Navigator.of(context).pop(amount);
   }
 
-  void _handleDelete() {
+  void _handleDelete(LocaleProvider l10n) {
     showDialog(
       context: context,
       builder: (dialogContext) => ConfirmationDialog(
-        title: 'Delete Source',
-        content: 'Are you sure you want to delete \'${widget.source.sourceName}\'? This will also delete all transaction records associated with this source. This cannot be undone.',
-        confirmLabel: 'Delete',
-        cancelLabel: 'Cancel',
+        title: l10n.translate('delete_source_confirm_title'),
+        content: l10n.translate('delete_source_confirm_content'),
+        confirmLabel: l10n.translate('delete_button'),
+        cancelLabel: l10n.translate('popup_cancel'),
         isDestructive: true,
         onConfirm: () async {
           if (widget.source.sourceId != null) {

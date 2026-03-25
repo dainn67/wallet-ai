@@ -1,30 +1,39 @@
-# Handoff Notes: Task #114 - Implement LocaleProvider and Persistence
+# Handoff: Task #115 → Task #116
 
-## Overview
-As part of the `update-language-and-currency` epic, Task #114 has been completed. This task implemented the reactive state management for the app's language and currency settings, ensuring they persist across application restarts.
+## Completed
+- Modified `ChatApiService.streamChat` to accept a `language` parameter and include it in the API request body.
+- Updated `ChatProvider` to depend on `LocaleProvider` and pass the current language string ("English" or "Vietnamese") to the API service.
+- Refactored `lib/main.dart` to use `ChangeNotifierProxyProvider2` for `ChatProvider`, ensuring it has access to both `RecordProvider` and `LocaleProvider`.
 
-## Key Changes
-- **Reactive State Management**: Created `lib/providers/locale_provider.dart`:
-    - Implemented `LocaleProvider` as a `ChangeNotifier`.
-    - Manages `AppLanguage` and `AppCurrency` state.
-    - Provides a `translate(String key)` helper method that uses `L10nConfig`.
-- **Persistence**: 
-    - Integrated with `StorageService` (SharedPreferences) to load and save settings.
-    - Added `user_language` and `user_currency` keys for storage.
-- **Provider Registration**: 
-    - Registered `LocaleProvider` in `lib/main.dart` using `ChangeNotifierProxyProvider`.
-    - Correctly handles dependency on `StorageService`.
-- **Exports**: Added `locale_provider.dart` to `lib/providers/providers.dart`.
-- **Validation**: 
-    - Created and passed unit tests in `test/providers/locale_provider_test.dart`.
-    - Verified initial state, loading from storage, state updates, notification of listeners, and translation functionality.
+## Decisions Made
+- Used explicit language strings ("English", "Vietnamese") instead of ISO codes to match current backend expectations.
+- Standardized `ChatProvider` initialization via `ProxyProvider` to maintain clean dependency injection.
 
-## Verification Results
-- **Unit Tests**: `test/providers/locale_provider_test.dart` passed with 6 tests.
-- **Integration**: `LocaleProvider` is successfully registered in the app's `MultiProvider` tree.
-- **Task Status**: GitHub issue #114 has been closed, and the epic task file updated to `closed`.
+## Interfaces Exposed/Modified
+```dart
+// ChatApiService
+Stream<ChatStreamResponse> streamChat(String message, {
+  String? conversationId,
+  String? categoryList,
+  String? moneySourceList,
+  String language = 'English', // New parameter
+})
 
-## Next Steps
-- Refactor UI components to consume `LocaleProvider` for translations (e.g., `HomeScreen`, `Drawer`).
-- Implement settings screen to allow users to change language and currency (Task #115).
-- Continue expanding translations in `L10nConfig` as UI refactoring progresses.
+// ChatProvider
+void update(RecordProvider rp, LocaleProvider lp) // Dependency sync
+```
+
+## State of Tests
+- `test/providers/locale_provider_test.dart`: PASS (6 tests)
+- `test/configs/l10n_config_test.dart`: PASS (2 tests)
+- Regression tests pass after `main.dart` refactoring.
+
+## Warnings for Next Task
+- UI components in Task #116 should use `context.watch<LocaleProvider>()` to ensure they react to language changes.
+- Ensure all hardcoded strings are moved to `L10nConfig`.
+
+## Files Changed
+- `lib/services/chat_api_service.dart` (modified)
+- `lib/providers/chat_provider.dart` (modified)
+- `lib/main.dart` (modified)
+- `.claude/epics/update-language-and-currency/115.md` (closed)

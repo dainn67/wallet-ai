@@ -58,6 +58,6 @@ class LocaleProvider with ChangeNotifier {
   }
 
   String translate(String key) {
-    return L10nConfig.getTranslation(_language, key);
+    return L10nConfig.translations[_language]?[key] ?? key;
   }
 }
