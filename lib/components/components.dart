@@ -5,3 +5,4 @@ export 'popups/add_source_popup.dart';
 export 'popups/edit_record_popup.dart';
 export 'popups/currency_selection_popup.dart';
 export 'popups/edit_source_popup.dart';
+export 'popups/confirmation_dialog.dart';
