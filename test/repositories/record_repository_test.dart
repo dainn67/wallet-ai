@@ -215,42 +215,32 @@ void main() {
       expect(updated.name, 'Dining');
     });
 
-    test('updateCategory(1) throws exception', () async {
+    test('updateCategory(1) throws ArgumentError', () async {
       final category = Category(categoryId: 1, name: 'Changed', type: 'expense');
-      expect(() => repository.updateCategory(category), throwsException);
+      expect(() => repository.updateCategory(category), throwsArgumentError);
     });
 
-    test('deleteCategory(1) throws exception', () async {
-      expect(() => repository.deleteCategory(1), throwsException);
+    test('deleteCategory(1) throws ArgumentError', () async {
+      expect(() => repository.deleteCategory(1), throwsArgumentError);
     });
 
-    test('deleteCategory moves records to ID 1 and deletes category', () async {
-      // 1. Setup: Category (ID 2: Food) and some records
-      final record1 = Record(
-        moneySourceId: 1,
-        categoryId: 2,
-        amount: 50.0,
-        currency: 'VND',
-        description: 'Lunch',
-        type: 'expense',
-        lastUpdated: 1000,
-      );
-      await repository.createRecord(record1);
-
-      final record2 = Record(
-        moneySourceId: 1,
-        categoryId: 2,
-        amount: 100.0,
-        currency: 'VND',
-        description: 'Dinner',
-        type: 'expense',
-        lastUpdated: 2000,
-      );
-      await repository.createRecord(record2);
+    test('deleteCategory moves records to ID 1 and deletes category (5 records)', () async {
+      // 1. Setup: Category (ID 2: Food) and 5 records
+      for (int i = 0; i < 5; i++) {
+        await repository.createRecord(Record(
+          moneySourceId: 1,
+          categoryId: 2,
+          amount: 10.0 + i,
+          currency: 'VND',
+          description: 'Record $i',
+          type: 'expense',
+          lastUpdated: 1000 + i,
+        ));
+      }
 
       // Verify records are in Category 2
       var records = await repository.getAllRecords();
-      expect(records.where((r) => r.categoryId == 2).length, 2);
+      expect(records.where((r) => r.categoryId == 2).length, 5);
 
       // 2. Execute deleteCategory(2)
       await repository.deleteCategory(2);
@@ -262,7 +252,7 @@ void main() {
       // 4. Verify records are moved to Category 1
       records = await repository.getAllRecords();
       expect(records.where((r) => r.categoryId == 2).length, 0);
-      expect(records.where((r) => r.categoryId == 1).length, 2);
+      expect(records.where((r) => r.categoryId == 1).length, 5);
     });
 
     test('getRecordCountByCategoryId returns correct count', () async {

@@ -41,6 +41,7 @@ void main() {
     when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => <int, double>{});
     when(() => mockRepository.resetAllData()).thenAnswer((_) async {});
     
     // Initialize AppConfig

@@ -17,6 +17,7 @@ void main() {
     when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => <int, double>{});
   });
 
   testWidgets('RecordProvider.loadAll is triggered when ChatProvider.dbUpdateVersion changes', (WidgetTester tester) async {

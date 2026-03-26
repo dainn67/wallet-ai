@@ -21,7 +21,8 @@ void main() {
     when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
-    
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => <int, double>{});
+
     RecordRepository.setMockInstance(mockRepository);
 
     // Mock home_widget channel

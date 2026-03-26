@@ -62,7 +62,7 @@ class CategoriesTab extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.between,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     l10n.translate('drawer_categories'),
@@ -106,7 +106,9 @@ class CategoriesTab extends StatelessWidget {
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            category.name,
+                            isUncategorized 
+                                ? '${category.name} (${l10n.translate('category_default_label')})' 
+                                : category.name,
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                           subtitle: Text(

@@ -401,7 +401,7 @@ class RecordRepository {
   Future<int> updateCategory(Category category) async {
     try {
       if (category.categoryId == 1) {
-        throw Exception("Cannot update Uncategorized category");
+        throw ArgumentError("Cannot update Uncategorized category");
       }
       return await database.update(
         'Category',
@@ -418,7 +418,7 @@ class RecordRepository {
   Future<int> deleteCategory(int id) async {
     try {
       if (id == 1) {
-        throw Exception("Cannot delete Uncategorized category");
+        throw ArgumentError("Cannot delete Uncategorized category");
       }
       return await database.transaction((txn) async {
         // Step 1: Update Record SET category_id = 1 WHERE category_id = ?
