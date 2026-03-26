@@ -1,11 +1,13 @@
 ---
 name: update-category
-status: backlog
+status: completed
 created: 2026-03-26T16:25:00Z
-progress: 0%
+updated: 2026-03-26T17:52:00Z
+completed: 2026-03-26T17:52:00Z
+progress: 100%
 priority: P1
 prd: .claude/prds/update-category.md
-task_count: 5
+task_count: 6
 github: "https://github.com/dainn67/wallet-ai/issues/121"
 ---
 
