@@ -134,11 +134,12 @@ class ChatProvider extends ChangeNotifier {
                     final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
                     final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
 
+                    final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
                     final record = Record(
                       moneySourceId: sourceId,
                       categoryId: categoryId,
                       amount: amount,
-                      currency: (StorageService().getString(StorageService.keyCurrency) ?? 'VND').split('.').last.toUpperCase(),
+                      currency: currencyString,
                       description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
                       type: type,
                     );

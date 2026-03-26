@@ -294,7 +294,7 @@ class RecordRepository {
             moneySourceId: sourceId,
             categoryId: 1, // Uncategorized
             amount: source.amount,
-            currency: StorageService().getString(StorageService.keyCurrency) ?? 'VND',
+            currency: StorageService().getString(StorageService.keyCurrency) ?? 'USD',
             description: 'Initial Balance',
             type: 'income',
           );

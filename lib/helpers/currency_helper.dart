@@ -7,7 +7,7 @@ class CurrencyHelper {
   /// USD: 1,234,567.89 (comma for thousands, dot for decimals)
   static String format(double amount, {String? currency}) {
     try {
-      final rawCurrency = currency ?? StorageService().getString(StorageService.keyCurrency) ?? 'VND';
+      final rawCurrency = currency ?? StorageService().getString(StorageService.keyCurrency) ?? 'USD';
       final effectiveCurrency = rawCurrency.toUpperCase();
       final isUSD = effectiveCurrency.contains('USD');
 

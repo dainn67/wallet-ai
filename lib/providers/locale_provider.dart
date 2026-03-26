@@ -31,7 +31,7 @@ class LocaleProvider with ChangeNotifier {
     if (currStr != null) {
       _currency = AppCurrency.values.firstWhere(
         (e) => e.toString() == currStr || e.name == currStr || L10nConfig.currencyCodes[e] == currStr,
-        orElse: () => AppCurrency.vnd,
+        orElse: () => AppCurrency.usd,
       );
     }
     notifyListeners();

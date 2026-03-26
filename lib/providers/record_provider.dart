@@ -141,7 +141,7 @@ class RecordProvider extends ChangeNotifier {
     HomeWidget.saveWidgetData<String>('total_balance', CurrencyHelper.format(totalBalance));
     HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(totalIncome));
     HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(totalSpend));
-    HomeWidget.saveWidgetData<String>('currency', StorageService().getString(StorageService.keyCurrency) ?? 'VND');
+    HomeWidget.saveWidgetData<String>('currency', StorageService().getString(StorageService.keyCurrency) ?? 'USD');
     HomeWidget.updateWidget(androidName: 'MyWidgetReceiver', iOSName: 'Quick_Chat_Widget');
   }
 
