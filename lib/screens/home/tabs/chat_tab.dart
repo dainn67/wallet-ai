@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/services/services.dart';
 
 class ChatTab extends StatefulWidget {
   final FocusNode? focusNode;
