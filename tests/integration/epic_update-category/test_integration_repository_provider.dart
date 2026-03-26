@@ -1,17 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:wallet_ai/models/models.dart';
-import 'package:wallet_ai/providers/record_provider.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 
-/// Integration test: RecordRepository <-> RecordProvider CRUD propagation
+/// Integration test: Category CRUD end-to-end through repository
+/// Verifies create → read → update → delete flows and data integrity
 void main() {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
   late Database db;
   late RecordRepository repository;
-  late RecordProvider provider;
 
   setUp(() async {
     db = await openDatabase(inMemoryDatabasePath, version: 1,
@@ -50,81 +49,132 @@ void main() {
     });
     RecordRepository.setMockDatabase(db);
     repository = RecordRepository();
-    provider = RecordProvider(repository: repository);
   });
 
   tearDown(() async {
     await db.close();
   });
 
-  test('Integration: loadAll populates categories from repository', () async {
-    await provider.loadAll();
+  test('Integration: full CRUD cycle - create, read, update, delete category', () async {
+    // CREATE
+    final catId = await repository.createCategory(
+      Category(name: 'Transport', type: 'expense'),
+    );
+    expect(catId, 3);
 
-    expect(provider.categories.length, 2);
-    expect(provider.categories.any((c) => c.name == 'Uncategorized'), isTrue);
-    expect(provider.categories.any((c) => c.name == 'Food'), isTrue);
+    // READ
+    var categories = await repository.getAllCategories();
+    expect(categories.length, 3);
+    expect(categories.any((c) => c.name == 'Transport'), isTrue);
+
+    // UPDATE
+    await repository.updateCategory(
+      Category(categoryId: catId, name: 'Travel', type: 'expense'),
+    );
+    categories = await repository.getAllCategories();
+    expect(categories.firstWhere((c) => c.categoryId == catId).name, 'Travel');
+
+    // DELETE
+    await repository.deleteCategory(catId);
+    categories = await repository.getAllCategories();
+    expect(categories.any((c) => c.categoryId == catId), isFalse);
+    expect(categories.length, 2); // Back to Uncategorized + Food
   });
 
-  test('Integration: createCategory updates provider state', () async {
-    await provider.loadAll();
-    expect(provider.categories.length, 2);
+  test('Integration: delete category with records moves all to Uncategorized and verifies totals', () async {
+    // Create records in Food category (ID 2)
+    for (int i = 0; i < 3; i++) {
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 100.0,
+        currency: 'USD',
+        description: 'Meal $i',
+        type: 'expense',
+      ));
+    }
 
-    await provider.createCategory(Category(name: 'Transport', type: 'expense'));
-    // Provider should reload after create
-    expect(provider.categories.length, 3);
-    expect(provider.categories.any((c) => c.name == 'Transport'), isTrue);
-  });
-
-  test('Integration: deleteCategory updates provider state and moves records', () async {
-    await provider.loadAll();
-
-    // Add records to Food category (ID 2)
-    await provider.addRecord(Record(
-      moneySourceId: 1,
-      categoryId: 2,
-      amount: 30.0,
-      currency: 'USD',
-      description: 'Lunch',
-      type: 'expense',
-    ));
+    // Verify totals before delete
+    var totals = await repository.getCategoryTotals();
+    expect(totals[2], 300.0);
 
     // Delete Food category
-    await provider.deleteCategory(2);
+    await repository.deleteCategory(2);
 
-    // Food should be gone
-    expect(provider.categories.any((c) => c.categoryId == 2), isFalse);
-
-    // Record should be in Uncategorized now
-    final records = provider.records;
+    // All records should now be in Uncategorized
+    final records = await repository.getAllRecords();
+    expect(records.length, 3);
     for (final r in records) {
-      if (r.description == 'Lunch') {
-        expect(r.categoryId, 1);
-      }
+      expect(r.categoryId, 1);
     }
+
+    // Totals should now be under Uncategorized
+    totals = await repository.getCategoryTotals();
+    expect(totals[1], 300.0);
+    expect(totals[2], isNull); // Food category no longer has records
   });
 
-  test('Integration: getCategoryTotal returns correct sum after operations', () async {
-    // Add records to Food category
-    await repository.createRecord(Record(
-      moneySourceId: 1,
-      categoryId: 2,
-      amount: 100.0,
-      currency: 'USD',
-      description: 'Dinner',
-      type: 'expense',
-    ));
+  test('Integration: getCategoryTotals aggregates across multiple categories', () async {
+    // Create a new category
+    final incomeId = await repository.createCategory(
+      Category(name: 'Salary', type: 'income'),
+    );
+
+    // Add expense records to Food
     await repository.createRecord(Record(
       moneySourceId: 1,
       categoryId: 2,
       amount: 50.0,
       currency: 'USD',
-      description: 'Snack',
+      description: 'Lunch',
+      type: 'expense',
+    ));
+    await repository.createRecord(Record(
+      moneySourceId: 1,
+      categoryId: 2,
+      amount: 75.0,
+      currency: 'USD',
+      description: 'Dinner',
       type: 'expense',
     ));
 
-    await provider.loadAll();
+    // Add income record to Salary
+    await repository.createRecord(Record(
+      moneySourceId: 1,
+      categoryId: incomeId,
+      amount: 3000.0,
+      currency: 'USD',
+      description: 'Monthly salary',
+      type: 'income',
+    ));
 
-    final total = provider.getCategoryTotal(2);
-    expect(total, 150.0);
+    final totals = await repository.getCategoryTotals();
+    expect(totals[2], 125.0); // Food: 50 + 75
+    expect(totals[incomeId], 3000.0); // Salary
+    expect(totals[1], isNull); // Uncategorized: no records
+  });
+
+  test('Integration: record count by category is accurate through operations', () async {
+    // Initially no records in any category
+    expect(await repository.getRecordCountByCategoryId(1), 0);
+    expect(await repository.getRecordCountByCategoryId(2), 0);
+
+    // Add 3 records to Food
+    for (int i = 0; i < 3; i++) {
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 10.0,
+        currency: 'USD',
+        description: 'Item $i',
+        type: 'expense',
+      ));
+    }
+
+    expect(await repository.getRecordCountByCategoryId(2), 3);
+
+    // Delete Food category → records move to Uncategorized
+    await repository.deleteCategory(2);
+    expect(await repository.getRecordCountByCategoryId(1), 3);
   });
 }
