@@ -6,7 +6,7 @@ The AI Chat feature provides a streaming interface for users to interact with an
 ## Technical Mapping
 
 ### UI Layer
-- **ChatTab**: Main interface component within the `HomeScreen`'s `PageView`. Handles user input via `TextEditingController` and displays messages using a scrollable list.
+- **ChatTab**: Main interface component within the `HomeScreen`'s `PageView`. Handles user input via `TextEditingController`, unfocuses the keyboard on message submission, and displays messages using a scrollable list.
 - **ChatBubble**: Renders individual messages and conditionally displays parsed record cards when available.
 
 ### Provider Layer
@@ -75,3 +75,8 @@ To ensure the AI uses existing IDs, the app sends formatted lists to the API:
 
 ### Session Management
 - **Conversation ID:** A unique `conversationId` is persisted in `ChatProvider` and included in subsequent requests to maintain context throughout the chat session.
+
+### Interaction Details
+- **Keyboard Management**: To provide a clean user experience, the system automatically dismisses the keyboard when:
+  - A message is submitted (via send button or enter key).
+  - The user taps anywhere outside the chat input field within the `HomeScreen`.

@@ -6,7 +6,7 @@ Wally AI uses a single-screen architecture with a `PageView` for top-level navig
 ## Technical Mapping
 
 ### UI Layer
-- **HomeScreen**: The core container of the app. It holds a `Scaffold` with an `AppBar`, `Drawer`, `BottomNavigationBar`, and a `PageView`.
+- **HomeScreen**: The core container of the app. It holds a `Scaffold` with an `AppBar`, `Drawer`, `BottomNavigationBar`, and a `PageView`. It is wrapped in a `GestureDetector` to dismiss the keyboard when tapping outside of inputs.
 - **GlobalNavigationDrawer**: A custom drawer component allowing users to switch between the "Chat Assistant" and "Financial Records" views, as well as accessing settings or app information.
 - **PageView**: The central widget of `HomeScreen`. It manages two primary tabs:
   1. **ChatTab**: The AI Chat interface.

@@ -61,6 +61,7 @@ class _ChatTabState extends State<ChatTab> {
     if (text.isNotEmpty) {
       _controller.clear();
       try {
+        FocusManager.instance.primaryFocus?.unfocus();
         await context.read<ChatProvider>().sendMessage(text);
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       } catch (e) {

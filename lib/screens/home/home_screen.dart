@@ -111,30 +111,34 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
-      appBar: AppBar(
-        title: _buildAppBarTitle(),
-        // actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
-        bottom: TabBar(
-          controller: _tabController,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          tabs: [
-            Tab(icon: const Icon(Icons.chat_bubble_outline), text: l10n.translate('drawer_chat')),
-            Tab(icon: const Icon(Icons.receipt_long), text: l10n.translate('drawer_records')),
-            if (AppConfig().devMode) const Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
-          ],
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
+        appBar: AppBar(
+          title: _buildAppBarTitle(),
+          // actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
+          bottom: TabBar(
+            controller: _tabController,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+            tabs: [
+              Tab(icon: const Icon(Icons.chat_bubble_outline), text: l10n.translate('drawer_chat')),
+              Tab(icon: const Icon(Icons.receipt_long), text: l10n.translate('drawer_records')),
+              if (AppConfig().devMode) const Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
+            ],
+          ),
         ),
-      ),
-      drawer: _buildAppDrawer(),
-      body: SafeArea(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            ChatTab(focusNode: _recordingFocusNode),
-            const RecordsTab(),
-            if (AppConfig().devMode) const TestTab(),
-          ],
+        drawer: _buildAppDrawer(),
+        body: SafeArea(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              ChatTab(focusNode: _recordingFocusNode),
+              const RecordsTab(),
+              if (AppConfig().devMode) const TestTab(),
+            ],
+          ),
         ),
       ),
     );
