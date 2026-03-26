@@ -6,6 +6,7 @@ class L10nConfig {
     AppLanguage.english: {
       'drawer_records': 'Records',
       'drawer_chat': 'Chat',
+      'drawer_categories': 'Categories',
       'reset_all_data': 'Reset All Data',
       'confirm_delete_source': 'Delete this source and all its records?',
       'popup_ok': 'OK',
@@ -25,6 +26,7 @@ class L10nConfig {
       'ai_typing': 'AI is typing',
       'no_records': 'No records yet',
       'no_records_subtitle': 'Your income and expense records will appear here.',
+      'no_categories': 'No categories yet',
       'recent_records': 'Recent Records',
       'income_label': 'Income',
       'spent_label': 'Spent',
@@ -58,6 +60,7 @@ class L10nConfig {
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
       'drawer_chat': 'Trò chuyện',
+      'drawer_categories': 'Danh mục',
       'reset_all_data': 'Đặt lại tất cả dữ liệu',
       'confirm_delete_source': 'Xóa nguồn này và tất cả hồ sơ của nó?',
       'popup_ok': 'OK',
@@ -77,6 +80,7 @@ class L10nConfig {
       'ai_typing': 'AI đang gõ',
       'no_records': 'Chưa có hồ sơ nào',
       'no_records_subtitle': 'Hồ sơ thu nhập và chi tiêu của bạn sẽ xuất hiện ở đây.',
+      'no_categories': 'Chưa có danh mục nào',
       'recent_records': 'Hồ sơ gần đây',
       'income_label': 'Thu nhập',
       'spent_label': 'Đã chi',

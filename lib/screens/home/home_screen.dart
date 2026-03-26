@@ -5,6 +5,7 @@ import '../../configs/configs.dart';
 import '../../providers/providers.dart';
 import 'tabs/chat_tab.dart';
 import 'tabs/records_tab.dart';
+import 'tabs/categories_tab.dart';
 import 'tabs/test_tab.dart';
 import '../../components/components.dart';
 
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: AppConfig().devMode ? 3 : 2,
+      length: AppConfig().devMode ? 4 : 3,
       vsync: this,
       initialIndex: 0,
     );
@@ -78,9 +79,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           final oldIndex = _tabController.index;
           _tabController.dispose();
           _tabController = TabController(
-            length: AppConfig().devMode ? 3 : 2,
+            length: AppConfig().devMode ? 4 : 3,
             vsync: this,
-            initialIndex: oldIndex.clamp(0, AppConfig().devMode ? 2 : 1),
+            initialIndex: oldIndex.clamp(0, AppConfig().devMode ? 3 : 2),
           );
           setState(() {});
           final message = AppConfig().devMode ? localeProvider.translate('dev_mode_enabled') : localeProvider.translate('dev_mode_disabled');
@@ -125,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             tabs: [
               Tab(icon: const Icon(Icons.chat_bubble_outline), text: l10n.translate('drawer_chat')),
               Tab(icon: const Icon(Icons.receipt_long), text: l10n.translate('drawer_records')),
+              Tab(icon: const Icon(Icons.category_outlined), text: l10n.translate('drawer_categories')),
               if (AppConfig().devMode) const Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
             ],
           ),
@@ -136,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             children: [
               ChatTab(focusNode: _recordingFocusNode),
               const RecordsTab(),
+              const CategoriesTab(),
               if (AppConfig().devMode) const TestTab(),
             ],
           ),
