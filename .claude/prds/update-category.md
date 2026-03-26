@@ -1,11 +1,11 @@
 ---
 name: update-category
 description: Quản lý danh mục (CRUD) tinh gọn với Tab hiển thị tổng chi tiêu và ToastService dùng chung.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-03-26T16:15:00Z
-updated: null
+updated: 2026-03-26T17:52:00Z
 ---
 
 # PRD: update-category
