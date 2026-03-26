@@ -306,6 +306,10 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
+  Future<int> getRecordCountByCategoryId(int id) async {
+    return await _repository.getRecordCountByCategoryId(id);
+  }
+
   Future<void> resetAllData() async {
     _isLoading = true;
     notifyListeners();

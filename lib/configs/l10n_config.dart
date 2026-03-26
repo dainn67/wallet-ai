@@ -56,6 +56,13 @@ class L10nConfig {
       'category_label': 'Category',
       'description_label': 'Description',
       'description_hint': 'Enter description',
+      'add_category_title': 'Add Category',
+      'edit_category_title': 'Edit Category',
+      'category_name_label': 'Category Name',
+      'category_name_hint': 'e.g. Shopping, Travel',
+      'category_already_exists': 'Category name already exists',
+      'delete_category_confirm_title': 'Delete Category',
+      'delete_category_confirm_content': 'Deleting this category will move {count} records to Uncategorized. Continue?',
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -110,6 +117,13 @@ class L10nConfig {
       'category_label': 'Danh mục',
       'description_label': 'Mô tả',
       'description_hint': 'Nhập mô tả',
+      'add_category_title': 'Thêm danh mục',
+      'edit_category_title': 'Chỉnh sửa danh mục',
+      'category_name_label': 'Tên danh mục',
+      'category_name_hint': 'Ví dụ: Mua sắm, Du lịch',
+      'category_already_exists': 'Tên danh mục đã tồn tại',
+      'delete_category_confirm_title': 'Xóa danh mục',
+      'delete_category_confirm_content': 'Xóa danh mục này sẽ chuyển {count} giao dịch về Chưa phân loại. Tiếp tục?',
     },
   };
 
