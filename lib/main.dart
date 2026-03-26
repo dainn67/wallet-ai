@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: AppConfig().appName,
+        scaffoldMessengerKey: ToastService.messengerKey,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

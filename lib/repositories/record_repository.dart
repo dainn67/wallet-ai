@@ -388,4 +388,88 @@ class RecordRepository {
       rethrow;
     }
   }
+
+  Future<int> createCategory(Category category) async {
+    try {
+      return await database.insert('Category', category.toMap());
+    } catch (e) {
+      print("Error creating category: $e");
+      rethrow;
+    }
+  }
+
+  Future<int> updateCategory(Category category) async {
+    try {
+      if (category.categoryId == 1) {
+        throw ArgumentError("Cannot update Uncategorized category");
+      }
+      return await database.update(
+        'Category',
+        category.toMap(),
+        where: 'category_id = ?',
+        whereArgs: [category.categoryId],
+      );
+    } catch (e) {
+      print("Error updating category: $e");
+      rethrow;
+    }
+  }
+
+  Future<int> deleteCategory(int id) async {
+    try {
+      if (id == 1) {
+        throw ArgumentError("Cannot delete Uncategorized category");
+      }
+      return await database.transaction((txn) async {
+        // Step 1: Update Record SET category_id = 1 WHERE category_id = ?
+        await txn.update(
+          'Record',
+          {'category_id': 1},
+          where: 'category_id = ?',
+          whereArgs: [id],
+        );
+        // Step 2: DELETE FROM Category WHERE category_id = ?
+        return await txn.delete(
+          'Category',
+          where: 'category_id = ?',
+          whereArgs: [id],
+        );
+      });
+    } catch (e) {
+      print("Error deleting category: $e");
+      rethrow;
+    }
+  }
+
+  Future<int> getRecordCountByCategoryId(int id) async {
+    try {
+      final results = await database.rawQuery(
+        'SELECT COUNT(*) as count FROM Record WHERE category_id = ?',
+        [id],
+      );
+      return results.first['count'] as int;
+    } catch (e) {
+      print("Error getting record count by category: $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<int, double>> getCategoryTotals() async {
+    try {
+      final List<Map<String, dynamic>> results = await database.rawQuery(
+        'SELECT category_id, SUM(amount) as total FROM Record GROUP BY category_id',
+      );
+
+      final Map<int, double> totals = {};
+      for (var row in results) {
+        final id = row['category_id'] as int;
+        final total = (row['total'] as num).toDouble();
+        totals[id] = total;
+      }
+      return totals;
+    } catch (e) {
+      print("Error getting category totals: $e");
+      rethrow;
+    }
+  }
 }

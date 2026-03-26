@@ -72,6 +72,7 @@ void main() {
     when(() => mockRepository.deleteMoneySource(1)).thenAnswer((_) async => 1);
     when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
     when(() => mockRepository.getAllCategories()).thenAnswer((_) async => []);
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => <int, double>{});
     when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
 
     await tester.pumpWidget(createPopupWrapper(source));

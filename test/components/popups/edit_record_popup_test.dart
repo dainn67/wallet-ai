@@ -25,6 +25,7 @@ void main() {
     mockLocaleProvider = MockLocaleProvider();
     
     when(() => mockStorageService.getString(any())).thenReturn(null);
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => <int, double>{});
     when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
       final key = invocation.positionalArguments[0] as String;
       if (key == 'edit_record_title') return 'Edit Record';

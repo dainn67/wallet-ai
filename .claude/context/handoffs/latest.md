@@ -1,20 +1,20 @@
-# Handoff Notes: update-language-and-currency Epic Complete
+# Handoff Notes: Task #020 - Verification & Edge Case Handling
 
-## Overview
-The `update-language-and-currency` epic has been successfully implemented and verified. The app now supports English and Vietnamese, and users can safely switch between USD and VND with full data protection.
+## What was done
+Task #020 was already fully implemented by previous tasks. All three acceptance criteria were verified:
 
-## Key Changes
-- **Localization Infrastructure**: Implemented `LocaleProvider` and `L10nConfig` for reactive UI translations.
-- **Multi-language UI**: Localized all core screens, tabs, and popups. Added a language selector in the drawer.
-- **AI Language Awareness**: Updated `ChatApiService` to send the active language in the API request body.
-- **Protected Currency Switching**: Implemented a destructive currency change flow that requires user confirmation and wipes historical data to maintain integrity.
-- **Quality Assurance**: Added integration tests (`l10n_integration_test.dart`) covering translations, persistence, and destructive flows. Fixed regressions in 10+ existing test files.
+1. **UI Protection** (`categories_tab.dart`): Edit/Delete buttons hidden for Category ID 1 via `isUncategorized` check. "(Default)" label appended to Uncategorized name.
+2. **Repository Guard** (`record_repository.dart`): Both `updateCategory` and `deleteCategory` throw `ArgumentError` when `id == 1`.
+3. **Deletion Cleanup** (`record_repository.dart`): `deleteCategory` atomically moves records to `category_id = 1` before deleting the category.
 
-## Verification Results
-- **Unit/Integration Tests**: 108/108 tests passed (`fvm flutter test`).
-- **Build**: Success (`fvm flutter build apk --debug`).
-- **Functionality**: Verified EN/VI toggling, persistence across restarts, and atomic "wipe-then-switch" currency logic.
+## Verification
+- 14/14 unit tests pass in `test/repositories/record_repository_test.dart`
+- Tests cover: ID 1 update/delete rejection, 5-record migration on delete, count and totals queries
 
-## Next Steps
-- Merge `epic/update-language-and-currency` into `main`.
-- Consider adding more languages (e.g., Japanese or French) using the now established `L10nConfig` pattern.
+## Files (no changes needed)
+- `lib/screens/home/tabs/categories_tab.dart` - UI protection already in place
+- `lib/repositories/record_repository.dart` - Guards already in place
+- `test/repositories/record_repository_test.dart` - Tests already written
+
+## Next task
+Task #090 (Integration verification & cleanup) should now be unblocked.
