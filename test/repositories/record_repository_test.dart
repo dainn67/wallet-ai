@@ -195,6 +195,139 @@ void main() {
     });
   });
 
+  group('Category Management', () {
+    test('createCategory creates a new category', () async {
+      final category = Category(name: 'Education', type: 'expense');
+      final id = await repository.createCategory(category);
+      expect(id, 3); // Uncategorized (1), Food (2), Education (3)
+
+      final categories = await repository.getAllCategories();
+      expect(categories.length, 3);
+      expect(categories.any((c) => c.name == 'Education'), isTrue);
+    });
+
+    test('updateCategory updates an existing category', () async {
+      final category = Category(categoryId: 2, name: 'Dining', type: 'expense');
+      await repository.updateCategory(category);
+
+      final categories = await repository.getAllCategories();
+      final updated = categories.firstWhere((c) => c.categoryId == 2);
+      expect(updated.name, 'Dining');
+    });
+
+    test('updateCategory(1) throws exception', () async {
+      final category = Category(categoryId: 1, name: 'Changed', type: 'expense');
+      expect(() => repository.updateCategory(category), throwsException);
+    });
+
+    test('deleteCategory(1) throws exception', () async {
+      expect(() => repository.deleteCategory(1), throwsException);
+    });
+
+    test('deleteCategory moves records to ID 1 and deletes category', () async {
+      // 1. Setup: Category (ID 2: Food) and some records
+      final record1 = Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 50.0,
+        currency: 'VND',
+        description: 'Lunch',
+        type: 'expense',
+        lastUpdated: 1000,
+      );
+      await repository.createRecord(record1);
+
+      final record2 = Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 100.0,
+        currency: 'VND',
+        description: 'Dinner',
+        type: 'expense',
+        lastUpdated: 2000,
+      );
+      await repository.createRecord(record2);
+
+      // Verify records are in Category 2
+      var records = await repository.getAllRecords();
+      expect(records.where((r) => r.categoryId == 2).length, 2);
+
+      // 2. Execute deleteCategory(2)
+      await repository.deleteCategory(2);
+
+      // 3. Verify category 2 is gone
+      final categories = await repository.getAllCategories();
+      expect(categories.any((c) => c.categoryId == 2), isFalse);
+
+      // 4. Verify records are moved to Category 1
+      records = await repository.getAllRecords();
+      expect(records.where((r) => r.categoryId == 2).length, 0);
+      expect(records.where((r) => r.categoryId == 1).length, 2);
+    });
+
+    test('getRecordCountByCategoryId returns correct count', () async {
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 10.0,
+        currency: 'USD',
+        description: 'Test 1',
+        type: 'expense',
+      ));
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 20.0,
+        currency: 'USD',
+        description: 'Test 2',
+        type: 'expense',
+      ));
+
+      final count = await repository.getRecordCountByCategoryId(2);
+      expect(count, 2);
+
+      final emptyCount = await repository.getRecordCountByCategoryId(1);
+      expect(emptyCount, 0);
+    });
+
+    test('getCategoryTotals returns correct sums', () async {
+      // Category 1: 0 records
+      // Category 2: 100 + 50 = 150
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 100.0,
+        currency: 'USD',
+        description: 'Test 3',
+        type: 'expense',
+      ));
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 2,
+        amount: 50.0,
+        currency: 'USD',
+        description: 'Test 4',
+        type: 'expense',
+      ));
+
+      // Category 3: 200
+      await repository.createCategory(Category(name: 'New', type: 'income')); // ID: 3
+      await repository.createRecord(Record(
+        moneySourceId: 1,
+        categoryId: 3,
+        amount: 200.0,
+        currency: 'USD',
+        description: 'Test 5',
+        type: 'income',
+      ));
+
+      final totals = await repository.getCategoryTotals();
+      expect(totals[2], 150.0);
+      expect(totals[3], 200.0);
+      expect(totals[1], isNull); // No records for category 1
+    });
+  });
+
   group('resetAllData', () {
     test('resetAllData deletes all records and resets source amounts', () async {
       // 1. Setup: Ensure we have some data

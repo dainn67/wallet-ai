@@ -4,6 +4,7 @@ import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
 import 'package:wallet_ai/services/storage_service.dart';
+import 'package:wallet_ai/services/toast_service.dart';
 
 class RecordProvider extends ChangeNotifier {
   final RecordRepository _repository;
@@ -12,6 +13,7 @@ class RecordProvider extends ChangeNotifier {
   List<MoneySource> _moneySources = [];
   List<Category> _categories = [];
   Map<int, String> _categoryCache = {};
+  Map<int, double> _categoryTotals = {};
   bool _isLoading = false;
   int lastDbUpdateVersion = 0;
 
@@ -30,6 +32,8 @@ class RecordProvider extends ChangeNotifier {
   String getCategoryName(int id) {
     return _categoryCache[id] ?? 'Unknown';
   }
+
+  double getCategoryTotal(int id) => _categoryTotals[id] ?? 0.0;
 
   // Filter getters
   int? get selectedSourceId => _selectedSourceId;
@@ -94,11 +98,13 @@ class RecordProvider extends ChangeNotifier {
         _repository.getAllRecords(),
         _repository.getAllMoneySources(),
         _repository.getAllCategories(),
+        _repository.getCategoryTotals(),
       ]);
 
       _records = results[0] as List<Record>;
       _moneySources = results[1] as List<MoneySource>;
       _categories = results[2] as List<Category>;
+      _categoryTotals = results[3] as Map<int, double>;
 
       print("Log: RecordProvider loaded ${_records.length} records and ${_moneySources.length} sources");
       for (var s in _moneySources) {
@@ -248,6 +254,55 @@ class RecordProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       _updateWidget();
+    }
+  }
+
+  // Category CRUD
+  Future<void> addCategory(Category category) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.createCategory(category);
+      await loadAll();
+    } catch (e) {
+      debugPrint('Error adding category in RecordProvider: $e');
+      ToastService().showError(e.toString());
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateCategory(Category category) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.updateCategory(category);
+      await loadAll();
+    } catch (e) {
+      debugPrint('Error updating category in RecordProvider: $e');
+      ToastService().showError(e.toString());
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteCategory(int id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.deleteCategory(id);
+      await loadAll();
+    } catch (e) {
+      debugPrint('Error deleting category in RecordProvider: $e');
+      ToastService().showError(e.toString());
+      await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

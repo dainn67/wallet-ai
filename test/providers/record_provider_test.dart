@@ -29,6 +29,7 @@ void main() {
 
   setUp(() {
     mockRepository = MockRecordRepository();
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => <int, double>{});
     recordProvider = RecordProvider(repository: mockRepository);
   });
 
