@@ -62,6 +62,8 @@ class MyApp extends StatelessWidget {
           textTheme: const TextTheme().apply(fontFamily: 'Poppins'),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent, // Disable Material 3 surface tint
+            scrolledUnderElevation: 0,
             elevation: 0,
             centerTitle: true,
             titleTextStyle: TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
