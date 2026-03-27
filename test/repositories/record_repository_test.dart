@@ -12,13 +12,14 @@ void main() {
   late RecordRepository repository;
 
   setUp(() async {
-    db = await openDatabase(inMemoryDatabasePath, version: 5,
+    db = await openDatabase(inMemoryDatabasePath, version: 7,
         onCreate: (Database db, int version) async {
       await db.execute('''
         CREATE TABLE Category (
           category_id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
-          type TEXT NOT NULL
+          type TEXT NOT NULL,
+          parent_id INTEGER NOT NULL DEFAULT -1
         )
       ''');
 
