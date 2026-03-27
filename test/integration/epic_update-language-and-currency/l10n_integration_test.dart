@@ -11,6 +11,7 @@ import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/services/services.dart';
 import 'package:wallet_ai/components/popups/confirmation_dialog.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:wallet_ai/models/models.dart';
 
 class MockRecordRepository extends Mock implements RecordRepository {}
@@ -29,6 +30,13 @@ void main() {
   late StorageService storageService;
 
   setUp(() async {
+    PackageInfo.setMockInitialValues(
+      appName: 'Wallet AI',
+      packageName: 'com.example.wallet_ai',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: 'signature',
+    );
     SharedPreferences.setMockInitialValues({
       'user_language': AppLanguage.english.toString(),
       'user_currency': AppCurrency.usd.toString(),

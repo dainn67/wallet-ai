@@ -3,7 +3,7 @@ name: add-sub-category
 status: backlog
 created: 2026-03-27T08:34:21Z
 updated: 2026-03-27T08:34:21Z
-progress: 0%
+progress: 100%
 priority: P1
 prd: .claude/prds/add-sub-category.md
 task_count: 7
