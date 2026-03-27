@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import 'confirmation_dialog.dart';
 
 class CategoryFormDialog extends StatefulWidget {
   final Category? category;
@@ -30,6 +31,32 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
     super.dispose();
   }
 
+  Future<void> _handleDelete(BuildContext context) async {
+    final recordProvider = context.read<RecordProvider>();
+    final l10n = context.read<LocaleProvider>();
+    final categoryId = widget.category!.categoryId!;
+    
+    final count = await recordProvider.getRecordCountByCategoryId(categoryId);
+    
+    if (!mounted) return;
+
+    // ignore: use_build_context_synchronously
+    showDialog(
+      context: context,
+      builder: (dialogContext) => ConfirmationDialog(
+        title: l10n.translate('delete_category_confirm_title'),
+        content: l10n.translate('delete_category_confirm_content').replaceFirst('{count}', count.toString()),
+        confirmLabel: l10n.translate('delete_button'),
+        cancelLabel: l10n.translate('popup_cancel'),
+        isDestructive: true,
+        onConfirm: () {
+          recordProvider.deleteCategory(categoryId);
+          Navigator.of(context).pop(); // Close CategoryFormDialog
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
@@ -39,6 +66,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
     return AlertDialog(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Text(
         isEdit ? l10n.translate('edit_category_title') : l10n.translate('add_category_title'),
@@ -50,9 +78,11 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
         ),
         textAlign: TextAlign.center,
       ),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,11 +157,38 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                   ),
                 ],
               ),
+              if (isEdit) ...[
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () => _handleDelete(context),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    label: Text(
+                      l10n.translate('delete_button'),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+    ),
+    actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       actions: [
         Row(
           children: [
