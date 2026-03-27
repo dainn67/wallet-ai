@@ -298,19 +298,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 }
               },
             ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                l10n.translate('data_management_header'),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
+            const Spacer(),
+            const Divider(indent: 16, endIndent: 16),
             ListTile(
               leading: const Icon(Icons.delete_forever, size: 20, color: Colors.red),
               title: Text(l10n.translate('reset_all_data'), style: const TextStyle(color: Colors.red)),
@@ -331,8 +320,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 );
               },
             ),
-            const Divider(),
-            const Spacer(),
+            const Divider(indent: 16, endIndent: 16),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
