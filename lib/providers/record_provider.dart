@@ -12,6 +12,7 @@ class RecordProvider extends ChangeNotifier {
   List<Record> _records = [];
   List<MoneySource> _moneySources = [];
   List<Category> _categories = [];
+  Map<int, List<Category>> _subCategories = {};
   Map<int, String> _categoryCache = {};
   Map<int, double> _categoryTotals = {};
   bool _isLoading = false;
@@ -27,10 +28,28 @@ class RecordProvider extends ChangeNotifier {
   List<Record> get records => List.unmodifiable(_records);
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
   List<Category> get categories => List.unmodifiable(_categories);
+  List<Category> getSubCategories(int parentId) => _subCategories[parentId] ?? [];
   bool get isLoading => _isLoading;
 
   String getCategoryName(int id) {
-    return _categoryCache[id] ?? 'Unknown';
+    final category = _categories.firstWhere(
+      (c) => c.categoryId == id,
+      orElse: () => Category(name: 'Unknown', type: 'expense'),
+    );
+
+    if (category.name == 'Unknown') return 'Unknown';
+
+    if (category.parentId != -1) {
+      final parent = _categories.firstWhere(
+        (c) => c.categoryId == category.parentId,
+        orElse: () => Category(name: '', type: 'expense'),
+      );
+      if (parent.name.isNotEmpty) {
+        return '${parent.name} - ${category.name}';
+      }
+    }
+
+    return category.name;
   }
 
   double getCategoryTotal(int id) => _categoryTotals[id] ?? 0.0;
@@ -106,6 +125,13 @@ class RecordProvider extends ChangeNotifier {
       _categories = results[2] as List<Category>;
       _categoryTotals = results[3] as Map<int, double>;
 
+      // Populate _subCategories
+      _subCategories = {};
+      final subs = _categories.where((c) => c.parentId != -1).toList();
+      for (var sub in subs) {
+        _subCategories.putIfAbsent(sub.parentId, () => []).add(sub);
+      }
+
       print("Log: RecordProvider loaded ${_records.length} records and ${_moneySources.length} sources");
       for (var s in _moneySources) {
         print("Log: Source ${s.sourceId} (${s.sourceName}): ${s.amount}");
@@ -114,7 +140,7 @@ class RecordProvider extends ChangeNotifier {
       // Update cache
       _categoryCache = {
         for (var c in _categories)
-          if (c.categoryId != null) c.categoryId!: c.name
+          if (c.categoryId != null) c.categoryId!: getCategoryName(c.categoryId!)
       };
     } catch (e) {
       debugPrint('Error loading data in RecordProvider: $e');
