@@ -298,5 +298,43 @@ void main() {
         print('Filtering 1000 records took: ${stopwatch.elapsedMilliseconds}ms');
       });
     });
+
+    group('hierarchical categories', () {
+      final mockCategories = [
+        Category(categoryId: 1, name: 'Food', type: 'expense', parentId: -1),
+        Category(categoryId: 2, name: 'Transport', type: 'expense', parentId: -1),
+        Category(categoryId: 3, name: 'Pizza', type: 'expense', parentId: 1),
+        Category(categoryId: 4, name: 'Burger', type: 'expense', parentId: 1),
+        Category(categoryId: 5, name: 'Bus', type: 'expense', parentId: 2),
+      ];
+
+      setUp(() async {
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => mockCategories);
+        await recordProvider.loadAll();
+      });
+
+      test('getSubCategories returns correct children', () {
+        final foodSubs = recordProvider.getSubCategories(1);
+        expect(foodSubs.length, 2);
+        expect(foodSubs.any((c) => c.name == 'Pizza'), isTrue);
+        expect(foodSubs.any((c) => c.name == 'Burger'), isTrue);
+
+        final transportSubs = recordProvider.getSubCategories(2);
+        expect(transportSubs.length, 1);
+        expect(transportSubs[0].name, 'Bus');
+
+        final emptySubs = recordProvider.getSubCategories(3);
+        expect(emptySubs, isEmpty);
+      });
+
+      test('getCategoryName returns "Parent - Child" for sub-categories', () {
+        expect(recordProvider.getCategoryName(1), 'Food');
+        expect(recordProvider.getCategoryName(3), 'Food - Pizza');
+        expect(recordProvider.getCategoryName(5), 'Transport - Bus');
+        expect(recordProvider.getCategoryName(99), 'Unknown');
+      });
+    });
   });
 }

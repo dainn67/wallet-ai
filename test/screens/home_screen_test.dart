@@ -27,6 +27,7 @@ void main() {
     when(() => mockRecordProvider.records).thenReturn([]);
     when(() => mockRecordProvider.moneySources).thenReturn([]);
     when(() => mockRecordProvider.categories).thenReturn([]);
+    when(() => mockRecordProvider.getCategoryName(any())).thenReturn('Test Category');
     when(() => mockRecordProvider.isLoading).thenReturn(false);
     
     when(() => mockChatProvider.messages).thenReturn([]);

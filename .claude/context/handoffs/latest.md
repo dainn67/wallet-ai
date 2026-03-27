@@ -1,20 +1,23 @@
-# Handoff Notes: Task #020 - Verification & Edge Case Handling
+# Handoff Notes: Task #129 - Update Category Model
 
 ## What was done
-Task #020 was already fully implemented by previous tasks. All three acceptance criteria were verified:
+Implemented the `parentId` field in the `Category` model to support hierarchical category relationships.
 
-1. **UI Protection** (`categories_tab.dart`): Edit/Delete buttons hidden for Category ID 1 via `isUncategorized` check. "(Default)" label appended to Uncategorized name.
-2. **Repository Guard** (`record_repository.dart`): Both `updateCategory` and `deleteCategory` throw `ArgumentError` when `id == 1`.
-3. **Deletion Cleanup** (`record_repository.dart`): `deleteCategory` atomically moves records to `category_id = 1` before deleting the category.
+- Added `final int parentId;` to `Category` class.
+- Updated constructor to default `parentId` to `-1` (indicating a parent category).
+- Updated `toMap()` to include `'parent_id': parentId`.
+- Updated `fromMap()` to read `'parent_id'` from the map, defaulting to `-1` if not present.
+- Updated `copyWith()` and `toString()` to include `parentId`.
+- Created `test/models/category_test.dart` to verify the model changes.
 
 ## Verification
-- 14/14 unit tests pass in `test/repositories/record_repository_test.dart`
-- Tests cover: ID 1 update/delete rejection, 5-record migration on delete, count and totals queries
+- Ran unit tests in `test/models/category_test.dart`: 7/7 tests passed.
+- Ran `fvm flutter analyze lib/models/category.dart`: No issues found.
 
-## Files (no changes needed)
-- `lib/screens/home/tabs/categories_tab.dart` - UI protection already in place
-- `lib/repositories/record_repository.dart` - Guards already in place
-- `test/repositories/record_repository_test.dart` - Tests already written
+## Files Changed
+- `lib/models/category.dart`
+- `test/models/category_test.dart` (New file)
 
-## Next task
-Task #090 (Integration verification & cleanup) should now be unblocked.
+## Warnings for next task
+- **Database Schema**: The `toMap()` method now includes `'parent_id'`. Until Task #130 updates the database schema to version 7 and adds the `parent_id` column to the `Category` table, any `insert` or `update` operations on the `Category` table using `toMap()` will fail.
+- **Dependency**: Task #130 should be executed immediately to align the database schema with the updated model.

@@ -44,7 +44,7 @@ void main() {
 
       expect(localeProvider.language, AppLanguage.vietnamese);
       expect(notified, true);
-      verify(() => mockStorageService.setString('user_language', AppLanguage.vietnamese.toString())).called(1);
+      verify(() => mockStorageService.setString('user_language', AppLanguage.vietnamese.name)).called(1);
     });
 
     test('setCurrency updates state, notifies listeners, and persists', () async {
@@ -55,7 +55,8 @@ void main() {
 
       expect(localeProvider.currency, AppCurrency.vnd);
       expect(notified, true);
-      verify(() => mockStorageService.setString('user_currency', AppCurrency.vnd.toString())).called(1);
+      final expectedCode = L10nConfig.currencyCodes[AppCurrency.vnd];
+      verify(() => mockStorageService.setString('user_currency', expectedCode!)).called(1);
     });
 
     test('translate returns correct values', () async {

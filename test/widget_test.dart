@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:wallet_ai/main.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_ai/configs/app_config.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
@@ -14,6 +15,13 @@ void main() {
   late MockRecordRepository mockRepository;
 
   setUp(() async {
+    PackageInfo.setMockInitialValues(
+      appName: 'Wallet AI',
+      packageName: 'com.example.wallet_ai',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: 'signature',
+    );
     SharedPreferences.setMockInitialValues({});
     await AppConfig().init();
 

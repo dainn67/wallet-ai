@@ -65,14 +65,15 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 6;
+  static const int _dbVersion = 7;
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE Category (
         category_id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        type TEXT NOT NULL
+        type TEXT NOT NULL,
+        parent_id INTEGER NOT NULL DEFAULT -1
       )
     ''');
 
@@ -109,14 +110,29 @@ class RecordRepository {
   }
 
   static Future<void> _seedDatabase(Database db) async {
-    // Seed Categories
-    await db.insert('Category', {'name': 'Uncategorized', 'type': 'expense'}); // ID: 1
-    await db.insert('Category', {'name': 'Food', 'type': 'expense'});
-    await db.insert('Category', {'name': 'Transport', 'type': 'expense'});
-    await db.insert('Category', {'name': 'Entertainment', 'type': 'expense'});
-    await db.insert('Category', {'name': 'Salary', 'type': 'income'});
-    await db.insert('Category', {'name': 'Rent', 'type': 'expense'});
-    await db.insert('Category', {'name': 'Health', 'type': 'expense'});
+    // Seed Parent Categories (IDs 1-8)
+    await db.insert('Category', {'name': 'Uncategorized', 'type': 'expense', 'parent_id': -1}); // 1
+    await db.insert('Category', {'name': 'Food', 'type': 'expense', 'parent_id': -1});          // 2
+    await db.insert('Category', {'name': 'Transport', 'type': 'expense', 'parent_id': -1});     // 3
+    await db.insert('Category', {'name': 'Entertainment', 'type': 'expense', 'parent_id': -1}); // 4
+    await db.insert('Category', {'name': 'Salary', 'type': 'income', 'parent_id': -1});         // 5
+    await db.insert('Category', {'name': 'Rent', 'type': 'expense', 'parent_id': -1});          // 6
+    await db.insert('Category', {'name': 'Health', 'type': 'expense', 'parent_id': -1});        // 7
+    await db.insert('Category', {'name': 'Shopping', 'type': 'expense', 'parent_id': -1});      // 8
+
+    // Seed Sub-Categories
+    // Food
+    await db.insert('Category', {'name': 'Groceries', 'type': 'expense', 'parent_id': 2});
+    await db.insert('Category', {'name': 'Dining Out', 'type': 'expense', 'parent_id': 2});
+    // Transport
+    await db.insert('Category', {'name': 'Taxi', 'type': 'expense', 'parent_id': 3});
+    await db.insert('Category', {'name': 'Fuel', 'type': 'expense', 'parent_id': 3});
+    // Entertainment
+    await db.insert('Category', {'name': 'Cinema', 'type': 'expense', 'parent_id': 4});
+    await db.insert('Category', {'name': 'Streaming', 'type': 'expense', 'parent_id': 4});
+    // Shopping
+    await db.insert('Category', {'name': 'Clothes', 'type': 'expense', 'parent_id': 8});
+    await db.insert('Category', {'name': 'Electronics', 'type': 'expense', 'parent_id': 8});
 
     // Seed MoneySources
     await db.insert('MoneySource', {'source_name': 'Wallet', 'amount': 0});
@@ -151,6 +167,8 @@ class RecordRepository {
       await db.execute('DROP TABLE IF EXISTS MoneySource');
       await db.execute('DROP TABLE IF EXISTS Category');
       await _onCreate(db, newVersion);
+    } else if (oldVersion < 7) {
+      await db.execute('ALTER TABLE Category ADD COLUMN parent_id INTEGER NOT NULL DEFAULT -1');
     }
   }
 
@@ -182,9 +200,12 @@ class RecordRepository {
   Future<List<Record>> getAllRecords() async {
     try {
       final List<Map<String, dynamic>> maps = await database.rawQuery('''
-        SELECT r.*, c.name as category_name, ms.source_name
+        SELECT r.*, 
+               COALESCE(p.name || ' - ' || c.name, c.name) as category_name, 
+               ms.source_name
         FROM Record r
         LEFT JOIN Category c ON r.category_id = c.category_id
+        LEFT JOIN Category p ON c.parent_id = p.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
         ORDER BY r.last_updated DESC
       ''');
@@ -198,9 +219,12 @@ class RecordRepository {
   Future<Record?> getRecordById(int id) async {
     try {
       final maps = await database.rawQuery('''
-        SELECT r.*, c.name as category_name, ms.source_name
+        SELECT r.*, 
+               COALESCE(p.name || ' - ' || c.name, c.name) as category_name, 
+               ms.source_name
         FROM Record r
         LEFT JOIN Category c ON r.category_id = c.category_id
+        LEFT JOIN Category p ON c.parent_id = p.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
         WHERE r.record_id = ?
         LIMIT 1
@@ -219,9 +243,12 @@ class RecordRepository {
       await database.transaction((txn) async {
         // Fetch existing record within the same transaction to ensure consistency
         final maps = await txn.rawQuery('''
-          SELECT r.*, c.name as category_name, ms.source_name
+          SELECT r.*, 
+                 COALESCE(p.name || ' - ' || c.name, c.name) as category_name, 
+                 ms.source_name
           FROM Record r
           LEFT JOIN Category c ON r.category_id = c.category_id
+          LEFT JOIN Category p ON c.parent_id = p.category_id
           LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
           WHERE r.record_id = ?
           LIMIT 1
@@ -260,9 +287,12 @@ class RecordRepository {
       await database.transaction((txn) async {
         // Fetch existing record within the transaction
         final maps = await txn.rawQuery('''
-          SELECT r.*, c.name as category_name, ms.source_name
+          SELECT r.*, 
+                 COALESCE(p.name || ' - ' || c.name, c.name) as category_name, 
+                 ms.source_name
           FROM Record r
           LEFT JOIN Category c ON r.category_id = c.category_id
+          LEFT JOIN Category p ON c.parent_id = p.category_id
           LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
           WHERE r.record_id = ?
           LIMIT 1

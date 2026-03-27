@@ -71,12 +71,13 @@ class ChatProvider extends ChangeNotifier {
     final categoryList = ChatApiService.formatCategories(_recordProvider?.categories);
     final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources);
     final language = _localeProvider?.language == AppLanguage.vietnamese ? 'Vietnamese' : 'English';
-
+    final currency = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
+    
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(content, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language)
+          .streamChat(content, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency)
           .listen(
             (response) {
               if (response.conversationId != null) {

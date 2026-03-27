@@ -24,13 +24,14 @@ void main() {
 
   setUp(() async {
     repository = RecordRepository();
-    final db = await openDatabase(inMemoryDatabasePath, version: 6,
+    final db = await openDatabase(inMemoryDatabasePath, version: 7,
         onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE Category (
           category_id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
-          type TEXT NOT NULL
+          type TEXT NOT NULL,
+          parent_id INTEGER NOT NULL DEFAULT -1
         )
       ''');
       await db.execute('''

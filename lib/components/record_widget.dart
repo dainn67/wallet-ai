@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/providers/record_provider.dart';
 
 /// A reusable component for displaying a [Record] (income or expense).
 ///
@@ -63,7 +65,12 @@ class RecordWidget extends StatelessWidget {
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                   ),
                   const SizedBox(height: 2),
-                  Text(_buildSubtitle(), style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  Text(
+                    _buildSubtitle(context),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -98,12 +105,15 @@ class RecordWidget extends StatelessWidget {
     );
   }
 
-  String _buildSubtitle() {
+  String _buildSubtitle(BuildContext context) {
     final isExpense = record.type == 'expense';
     final parts = <String>[];
 
     // Add category if available
-    if (record.categoryName != null && record.categoryName!.isNotEmpty) {
+    final categoryName = context.read<RecordProvider>().getCategoryName(record.categoryId);
+    if (categoryName != 'Unknown') {
+      parts.add(categoryName);
+    } else if (record.categoryName != null && record.categoryName!.isNotEmpty) {
       parts.add(record.categoryName!);
     } else {
       parts.add(isExpense ? 'Expense' : 'Income');

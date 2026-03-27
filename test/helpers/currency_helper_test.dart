@@ -13,7 +13,8 @@ void main() {
 
   group('CurrencyHelper.format', () {
     test('formats VND correctly (dot for thousands, comma for decimals)', () async {
-      // Default is VND
+      // Explicitly set to VND for this test
+      await StorageService().setString(StorageService.keyCurrency, 'VND');
       expect(CurrencyHelper.format(1234567.89), '1.234.567,89');
       expect(CurrencyHelper.format(1000), '1.000');
     });

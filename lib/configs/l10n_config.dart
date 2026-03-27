@@ -64,6 +64,7 @@ class L10nConfig {
       'category_default_label': 'Default',
       'delete_category_confirm_title': 'Delete Category',
       'delete_category_confirm_content': 'Deleting this category will move {count} records to Uncategorized. Continue?',
+      'add_sub_category': 'Add Sub-category',
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -126,6 +127,7 @@ class L10nConfig {
       'category_default_label': 'Mặc định',
       'delete_category_confirm_title': 'Xóa danh mục',
       'delete_category_confirm_content': 'Xóa danh mục này sẽ chuyển {count} giao dịch về Chưa phân loại. Tiếp tục?',
+      'add_sub_category': 'Thêm danh mục con',
     },
   };
 
