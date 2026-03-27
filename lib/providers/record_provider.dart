@@ -13,7 +13,7 @@ class RecordProvider extends ChangeNotifier {
   List<MoneySource> _moneySources = [];
   List<Category> _categories = [];
   Map<int, List<Category>> _subCategories = {};
-  Map<int, String> _categoryCache = {};
+
   Map<int, double> _categoryTotals = {};
   bool _isLoading = false;
   int lastDbUpdateVersion = 0;
@@ -113,12 +113,7 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await Future.wait([
-        _repository.getAllRecords(),
-        _repository.getAllMoneySources(),
-        _repository.getAllCategories(),
-        _repository.getCategoryTotals(),
-      ]);
+      final results = await Future.wait([_repository.getAllRecords(), _repository.getAllMoneySources(), _repository.getAllCategories(), _repository.getCategoryTotals()]);
 
       _records = results[0] as List<Record>;
       _moneySources = results[1] as List<MoneySource>;
@@ -136,12 +131,6 @@ class RecordProvider extends ChangeNotifier {
       for (var s in _moneySources) {
         print("Log: Source ${s.sourceId} (${s.sourceName}): ${s.amount}");
       }
-
-      // Update cache
-      _categoryCache = {
-        for (var c in _categories)
-          if (c.categoryId != null) c.categoryId!: getCategoryName(c.categoryId!)
-      };
     } catch (e) {
       debugPrint('Error loading data in RecordProvider: $e');
     } finally {
