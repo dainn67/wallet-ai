@@ -163,12 +163,14 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                         .map((c) => DropdownMenuItem(
                       value: c.categoryId!,
                       child: Text(
-                        c.name,
+                        provider.getCategoryName(c.categoryId!),
                         style: const TextStyle(
                           color: Color(0xFF1E293B),
                           fontFamily: 'Poppins',
                           fontSize: 15,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     )).toList(),
                     onChanged: (val) {
@@ -357,7 +359,6 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
 
     if (_amountError == null && _descriptionError == null && amount != null) {
       final source = provider.moneySources.firstWhere((s) => s.sourceId == _selectedSourceId);
-      final category = provider.categories.firstWhere((c) => c.categoryId == _selectedCategoryId);
 
       final updatedRecord = widget.record.copyWith(
         amount: amount,
@@ -366,7 +367,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
         moneySourceId: _selectedSourceId,
         categoryId: _selectedCategoryId,
         sourceName: source.sourceName,
-        categoryName: category.name,
+        categoryName: provider.getCategoryName(_selectedCategoryId),
       );
 
       Navigator.of(context).pop(updatedRecord);
