@@ -29,7 +29,14 @@ class ChatApiService {
 
   static String formatCategories(List<Category>? categories) {
     if (categories == null || categories.isEmpty) return 'No categories available';
-    return categories.map((c) => '${c.categoryId}-${c.name}').join(', ');
+    final categoryMap = {for (var c in categories) c.categoryId: c.name};
+    return categories.map((c) {
+      if (c.parentId != -1) {
+        final parentName = categoryMap[c.parentId] ?? 'Unknown';
+        return '${c.categoryId}-${c.name} (Parent: $parentName)';
+      }
+      return '${c.categoryId}-${c.name}';
+    }).join(', ');
   }
 
   Stream<ChatStreamResponse> streamChat(String message, {String? conversationId, String? categoryList, String? moneySourceList, String language = 'English'}) async* {
