@@ -61,12 +61,18 @@ class ChatProvider extends ChangeNotifier {
 
     final localAssistantId = (DateTime.now().millisecondsSinceEpoch + 1).toString();
     var currentAssistantId = localAssistantId;
-    var assistantMessage = ChatMessage(id: localAssistantId, role: ChatRole.assistant, content: '', timestamp: DateTime.now());
+    var assistantMessage = ChatMessage(
+      id: localAssistantId,
+      role: ChatRole.assistant,
+      content: _localeProvider?.translate('chat_analyzing') ?? 'Analyzing...',
+      timestamp: DateTime.now(),
+    );
     _messages.add(assistantMessage);
     notifyListeners();
 
     String fullText = '';
     bool displayTextCompleted = false;
+    bool hasStartedStreaming = false;
 
     final categoryList = ChatApiService.formatCategories(_recordProvider?.categories);
     final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources);
@@ -93,6 +99,11 @@ class ChatProvider extends ChangeNotifier {
                 }
 
                 String displayText = assistantMessage.content;
+
+                if (!hasStartedStreaming && response.answer.isNotEmpty) {
+                  displayText = '';
+                  hasStartedStreaming = true;
+                }
 
                 if (!displayTextCompleted) {
                   if (response.answer.contains(ChatConfig.partialDelimiter) || response.answer.contains(ChatConfig.jsonStart)) {
@@ -146,8 +157,8 @@ class ChatProvider extends ChangeNotifier {
                     );
 
                     // Save to repository
-                    await recordRepository.createRecord(record);
-                    records.add(record);
+                    final recordId = await recordRepository.createRecord(record);
+                    records.add(record.copyWith(recordId: recordId));
                   }
 
                   if (records.isNotEmpty) {
@@ -183,6 +194,22 @@ class ChatProvider extends ChangeNotifier {
       _isStreaming = false;
       notifyListeners();
       rethrow;
+    }
+  }
+
+  void updateMessageRecord(String messageId, Record updatedRecord) {
+    final msgIndex = _messages.indexWhere((m) => m.id == messageId);
+    if (msgIndex != -1) {
+      final records = _messages[msgIndex].records;
+      if (records != null) {
+        final recordIndex = records.indexWhere((r) => r.recordId == updatedRecord.recordId);
+        if (recordIndex != -1) {
+          final newRecords = List<Record>.from(records);
+          newRecords[recordIndex] = updatedRecord;
+          _messages[msgIndex] = _messages[msgIndex].copyWith(records: newRecords);
+          notifyListeners();
+        }
+      }
     }
   }
 

@@ -65,6 +65,7 @@ class L10nConfig {
       'delete_category_confirm_title': 'Delete Category',
       'delete_category_confirm_content': 'Deleting this category will move {count} records to Uncategorized. Continue?',
       'add_sub_category': 'Add Sub-category',
+      'chat_analyzing': 'Analyzing...',
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -128,6 +129,7 @@ class L10nConfig {
       'delete_category_confirm_title': 'Xóa danh mục',
       'delete_category_confirm_content': 'Xóa danh mục này sẽ chuyển {count} giao dịch về Chưa phân loại. Tiếp tục?',
       'add_sub_category': 'Thêm danh mục con',
+      'chat_analyzing': 'Đang phân tích...',
     },
   };
 

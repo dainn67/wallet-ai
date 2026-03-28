@@ -188,13 +188,36 @@ class ChatBubble extends StatelessWidget {
                   ),
                   child: Text(message.content.trim(), style: TextStyle(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
                 ),
-                if (message.records != null && message.records!.isNotEmpty) ...[const SizedBox(height: 8), ...message.records!.map((record) => RecordWidget(record: record))],
+                if (message.records != null && message.records!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ...message.records!.map(
+                    (record) => RecordWidget(
+                      record: record,
+                      isEditable: true,
+                      onEdit: () => _showEditRecordPopup(context, record),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _showEditRecordPopup(BuildContext context, Record record) async {
+    final updatedRecord = await showDialog<Record>(
+      context: context,
+      builder: (context) => EditRecordPopup(record: record),
+    );
+
+    if (updatedRecord != null && context.mounted) {
+      // 1. Update in DB
+      await context.read<RecordProvider>().updateRecord(updatedRecord);
+      // 2. Update in ChatProvider (so the UI reflects the change in the bubble)
+      context.read<ChatProvider>().updateMessageRecord(message.id, updatedRecord);
+    }
   }
 }
 
