@@ -9,3 +9,4 @@ export 'popups/currency_selection_popup.dart';
 export 'popups/edit_source_popup.dart';
 export 'popups/confirmation_dialog.dart';
 export 'popups/category_form_dialog.dart';
+export 'popups/add_sub_category_dialog.dart';
