@@ -7,11 +7,13 @@
 ## Typography
 - **Poppins**: The ONLY font family used. Served via **LOCAL ASSETS** to ensure full offline support.
 - **Prohibited**: The `google_fonts` package is forbidden to prevent network-related rendering delays (FOUT).
-- **Configuration**: Managed in `pubspec.yaml` (18 weights/styles) and applied via `ThemeData` in `main.dart`.
+- **Configuration**: Managed in `pubspec.yaml` and applied via `ThemeData` in `main.dart`.
 
 ## State Management (Provider)
 - **MultiProvider**: Set up in `main.dart`.
-- **RecordProvider**: Central state for Records, MoneySources, and Categories. Reactive and synchronized with the repository.
+- **RecordProvider**: Central state for Records, MoneySources, and Categories.
+  - **In-Memory Aggregation**: Calculations for category totals (flat and hierarchical) are performed in-memory using cached data to ensure immediate UI responsiveness during filtering.
+  - **Shared Filter State**: `RecordProvider` manages the global `selectedDateRange` (initialized to current month) which filters all transaction data across all tabs.
 - **ChatProvider**: Manages streaming chat state, conversation history, and AI response parsing. Refers to `RecordProvider` for contextual data.
 - **Consumption**: Use `context.read<T>()` for actions and `Consumer<T>` or `context.watch<T>()` for reactive UI updates.
 
@@ -25,7 +27,7 @@
 - **Transactions**: All balance-affecting operations (creating/updating/deleting records) are executed as atomic database transactions.
 - **Schema**:
   - `Record`: Transaction data with foreign keys to `Category` and `MoneySource`.
-  - `Category`: User-defined or default classification.
+  - `Category`: User-defined or default classification. Supports `parent_id` for grouping.
   - `MoneySource`: Named sources with tracked balances.
 
 ## Initialization Flow

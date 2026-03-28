@@ -1,35 +1,34 @@
 # Categories Management Feature Documentation
 
 ## Technical Overview
-The Categories Management system allows users to define and track financial classifications for their transactions. Each category is specifically typed as either 'income' or 'expense' and is used to group records for summary calculations.
+The Categories Management system allows users to define and track financial classifications for their transactions. Each category is strictly typed as either 'income' or 'expense' and can be organized into a two-level hierarchy (Parent and Sub-categories). All category data and summary totals are persisted locally.
 
 ## Technical Mapping
 
 ### UI Layer
-- **CategoriesTab**: Displays the list of all categories with their total accumulated amounts. Uses `CategoryWidget` for each item. Tapping a category item (except "Uncategorized") directly opens the `CategoryFormDialog` for editing or deletion.
-- **CategoryWidget**: A clean, minimal card component that follows the design pattern of `RecordWidget`. Displays the category icon, name, type, total amount, and a trailing chevron for interaction.
-- **CategoryFormDialog**: Consolidated modal interface for category management. When editing, it provides both field modification and a dedicated Delete button that triggers a secondary confirmation step.
+- **CategoriesTab**: Main interface for category management.
+  - **Month Selector**: A horizontal control at the top that allows users to filter category totals by month/year.
+  - **ExpansionTile Hierarchy**: Parent categories are shown as expandable cards. Expanding a card reveals its sub-categories.
+  - **Add Sub Category Button**: A prominent full-width button (within the indented area) at the bottom of each parent's group to quickly create children.
+- **CategoryWidget**: A consistent card component displaying:
+  - **Icon**: Visual indicator of transaction type.
+  - **Details**: Name, type label, and dynamic total amount.
+  - **Context-Aware Padding**: Used for both standalone parent items and indented sub-category items.
+- **CategoryFormDialog**: Modal for creating or editing categories.
 
 ### Provider Layer
-- **RecordProvider**: Manages the state and operations for categories.
-  - `categories`: The list of all categories.
-  - `getCategoryTotal(categoryId)`: Calculates the sum of all records belonging to a specific category.
-  - `deleteCategory(categoryId)`: Removes a category and reassigns its records to "Uncategorized" (ID: 1).
+- **RecordProvider**: Centralized logic for category data and reactive totals.
+  - **Monthly Filter**: `selectedDateRange` defines the current viewing window (defaults to current month).
+  - **In-Memory Calculation**: `_calculateCategoryTotals()` computes totals for all categories and their children by iterating through the cached `_records` list. This eliminates redundant database queries during month-to-month navigation.
+  - **Parent Aggregation**: Parent category totals automatically include the sum of all their sub-categories' totals.
+  - **Hierarchical Indexing**: `_subCategories` map stores pre-computed lists of children for efficient lookup by parent ID.
 
 ### Repository Layer
-- **RecordRepository**: Handles SQLite operations for the `Category` table.
-  - `createCategory(category)`: Adds a new category to the database.
-  - `updateCategory(category)`: Modifies an existing category's details.
-  - `deleteCategory(categoryId)`: Removes the category and handles record cleanup (reassignment) within a transaction.
+- **RecordRepository**: SQLite storage management.
+  - **Category Table**: Includes `parent_id` (default: -1) for hierarchical associations.
+  - **Date-Range Totals**: `getCategoryTotals()` supports server-side (disk) aggregation, though the provider currently performs this in-memory for immediate responsiveness.
 
-## Design Pattern (Category Card)
-
-The `CategoryWidget` mimics the `RecordWidget` for visual consistency:
-- **Rounded Corners**: 16px border radius.
-- **Border & Shadow**: Subtle border (`#E2E8F0`) and soft shadow.
-- **Icon Container**: Circular background with a color corresponding to its type (green for income, red for expense).
-- **Typography**: Uses Poppins (the project standard) with specific weights for hierarchy.
-
-## Data Relationships
-- **Uncategorized (ID 1)**: The system-default category. It cannot be edited or deleted and serves as the destination for records whose category was deleted.
-- **Type Restriction**: Categories are strictly typed. An income category only affects the income calculation of records, and vice versa.
+## Hierarchy & Rules
+- **Parent vs. Sub**: Parent categories have `parentId = -1`. Sub-categories point to their parent's ID.
+- **Uncategorized (ID 1)**: The system-default category. It cannot be deleted and serves as a fallback.
+- **Aggregated Totals**: The amount shown on a parent category's card is the aggregate sum of its own records and all its children's records within the filtered date range.
