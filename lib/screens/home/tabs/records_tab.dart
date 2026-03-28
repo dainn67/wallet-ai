@@ -19,9 +19,9 @@ class RecordsTab extends StatelessWidget {
         }
 
         final records = provider.filteredRecords;
-        final totalIncome = records.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
-        final totalExpense = records.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
-        final totalBalance = provider.moneySources.fold<double>(0, (sum, s) => sum + s.amount);
+        final totalIncome = provider.filteredTotalIncome;
+        final totalExpense = provider.filteredTotalExpense;
+        final totalBalance = provider.totalBalance;
 
         return Column(
           children: [

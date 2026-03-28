@@ -173,6 +173,25 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
+  // Computed getters
+  double get filteredTotalIncome =>
+      filteredRecords.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
+
+  double get filteredTotalExpense =>
+      filteredRecords.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
+
+  double get totalBalance =>
+      _moneySources.fold<double>(0, (sum, s) => sum + s.amount);
+
+  void navigateMonth(int delta) {
+    final current = _selectedDateRange?.start ?? DateTime.now();
+    final newMonth = DateTime(current.year, current.month + delta);
+    selectedDateRange = DateTimeRange(
+      start: newMonth,
+      end: DateTime(newMonth.year, newMonth.month + 1, 0, 23, 59, 59, 999),
+    );
+  }
+
   Future<void> _performOperation(
     Future<void> Function() operation, {
     bool reloadAll = true,

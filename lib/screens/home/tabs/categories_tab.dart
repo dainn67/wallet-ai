@@ -8,16 +8,6 @@ import '../../../models/models.dart';
 class CategoriesTab extends StatelessWidget {
   const CategoriesTab({super.key});
 
-  void _updateMonth(BuildContext context, int delta) {
-    final provider = context.read<RecordProvider>();
-    final current = provider.selectedDateRange?.start ?? DateTime.now();
-    final newMonth = DateTime(current.year, current.month + delta);
-    provider.selectedDateRange = DateTimeRange(
-      start: newMonth,
-      end: DateTime(newMonth.year, newMonth.month + 1, 0, 23, 59, 59, 999),
-    );
-  }
-
   void _showAddDialog(BuildContext context) {
     showDialog(context: context, builder: (context) => const CategoryFormDialog());
   }
@@ -142,7 +132,7 @@ class CategoriesTab extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF64748B)),
-                      onPressed: () => _updateMonth(context, -1),
+                      onPressed: () => context.read<RecordProvider>().navigateMonth(-1),
                     ),
                     Text(
                       DateFormat('MMMM yyyy').format(selectedDate),
@@ -150,7 +140,7 @@ class CategoriesTab extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF64748B)),
-                      onPressed: () => _updateMonth(context, 1),
+                      onPressed: () => context.read<RecordProvider>().navigateMonth(1),
                     ),
                   ],
                 ),
