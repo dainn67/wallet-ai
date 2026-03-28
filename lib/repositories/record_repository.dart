@@ -484,11 +484,19 @@ class RecordRepository {
     }
   }
 
-  Future<Map<int, double>> getCategoryTotals() async {
+  Future<Map<int, double>> getCategoryTotals({DateTime? start, DateTime? end}) async {
     try {
-      final List<Map<String, dynamic>> results = await database.rawQuery(
-        'SELECT category_id, SUM(amount) as total FROM Record GROUP BY category_id',
-      );
+      String query = 'SELECT category_id, SUM(amount) as total FROM Record';
+      List<dynamic> args = [];
+      
+      if (start != null && end != null) {
+        query += ' WHERE last_updated >= ? AND last_updated <= ?';
+        args = [start.millisecondsSinceEpoch, end.millisecondsSinceEpoch];
+      }
+      
+      query += ' GROUP BY category_id';
+      
+      final List<Map<String, dynamic>> results = await database.rawQuery(query, args);
 
       final Map<int, double> totals = {};
       for (var row in results) {

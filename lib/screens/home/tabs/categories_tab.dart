@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/providers.dart';
 import '../../../components/components.dart';
@@ -6,6 +7,16 @@ import '../../../models/models.dart';
 
 class CategoriesTab extends StatelessWidget {
   const CategoriesTab({super.key});
+
+  void _updateMonth(BuildContext context, int delta) {
+    final provider = context.read<RecordProvider>();
+    final current = provider.selectedDateRange?.start ?? DateTime.now();
+    final newMonth = DateTime(current.year, current.month + delta);
+    provider.selectedDateRange = DateTimeRange(
+      start: newMonth,
+      end: DateTime(newMonth.year, newMonth.month + 1, 0, 23, 59, 59, 999),
+    );
+  }
 
   void _showAddDialog(BuildContext context) {
     showDialog(context: context, builder: (context) => const CategoryFormDialog());
@@ -96,6 +107,7 @@ class CategoriesTab extends StatelessWidget {
 
         final categories = provider.categories;
         final parentCategories = categories.where((c) => c.parentId == -1).toList();
+        final selectedDate = provider.selectedDateRange?.start ?? DateTime.now();
 
         return Column(
           children: [
@@ -115,6 +127,36 @@ class CategoriesTab extends StatelessWidget {
                 ],
               ),
             ),
+            // Month Selector
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF64748B)),
+                      onPressed: () => _updateMonth(context, -1),
+                    ),
+                    Text(
+                      DateFormat('MMMM yyyy').format(selectedDate),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF64748B)),
+                      onPressed: () => _updateMonth(context, 1),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             Expanded(
               child: parentCategories.isEmpty
                   ? Center(
@@ -159,7 +201,7 @@ class CategoriesTab extends StatelessWidget {
                                 onEdit: category.categoryId == 1 ? null : () => _showEditDialog(context, category),
                                 showChevron: false,
                                 showDecoration: false,
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               ),
                               children: [
                                 const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF1F5F9)),
@@ -170,34 +212,32 @@ class CategoriesTab extends StatelessWidget {
                                     typeLabel: sub.type == 'income' ? l10n.translate('income_label') : l10n.translate('spent_label'),
                                     onTap: () => _showEditDialog(context, sub),
                                     showDecoration: false,
-                                    padding: const EdgeInsets.only(left: 56, top: 12, bottom: 12, right: 16),
+                                    padding: const EdgeInsets.only(left: 56, top: 8, bottom: 8, right: 16),
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 56, bottom: 16, top: 8),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: InkWell(
-                                      onTap: () => _showAddSubCategoryDialog(context, category),
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
-                                          borderRadius: BorderRadius.circular(8),
-                                          color: Colors.blue.withValues(alpha: 0.03),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.add, size: 14, color: Colors.blue),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              l10n.translate('add_sub_category'),
-                                              style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 12),
-                                            ),
-                                          ],
-                                        ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  child: InkWell(
+                                    onTap: () => _showAddSubCategoryDialog(context, category),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.blue.withValues(alpha: 0.15)),
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.blue.withValues(alpha: 0.02),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.add, size: 14, color: Colors.blue),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            l10n.translate('add_sub_category'),
+                                            style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 13),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),

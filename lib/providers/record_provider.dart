@@ -23,7 +23,14 @@ class RecordProvider extends ChangeNotifier {
   String? _selectedType;
   DateTimeRange? _selectedDateRange;
 
-  RecordProvider({RecordRepository? repository}) : _repository = repository ?? RecordRepository();
+  RecordProvider({RecordRepository? repository}) : _repository = repository ?? RecordRepository() {
+    // Set initial date range to current month
+    final now = DateTime.now();
+    _selectedDateRange = DateTimeRange(
+      start: DateTime(now.year, now.month),
+      end: DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999),
+    );
+  }
 
   List<Record> get records => List.unmodifiable(_records);
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
@@ -72,6 +79,7 @@ class RecordProvider extends ChangeNotifier {
 
   set selectedDateRange(DateTimeRange? value) {
     _selectedDateRange = value;
+    _calculateCategoryTotals();
     notifyListeners();
   }
 
@@ -113,12 +121,15 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await Future.wait([_repository.getAllRecords(), _repository.getAllMoneySources(), _repository.getAllCategories(), _repository.getCategoryTotals()]);
+      final results = await Future.wait([
+        _repository.getAllRecords(),
+        _repository.getAllMoneySources(),
+        _repository.getAllCategories(),
+      ]);
 
       _records = results[0] as List<Record>;
       _moneySources = results[1] as List<MoneySource>;
       _categories = results[2] as List<Category>;
-      _categoryTotals = results[3] as Map<int, double>;
 
       // Populate _subCategories
       _subCategories = {};
@@ -127,16 +138,38 @@ class RecordProvider extends ChangeNotifier {
         _subCategories.putIfAbsent(sub.parentId, () => []).add(sub);
       }
 
+      _calculateCategoryTotals();
+
       print("Log: RecordProvider loaded ${_records.length} records and ${_moneySources.length} sources");
-      for (var s in _moneySources) {
-        print("Log: Source ${s.sourceId} (${s.sourceName}): ${s.amount}");
-      }
     } catch (e) {
       debugPrint('Error loading data in RecordProvider: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
       _updateWidget();
+    }
+  }
+
+  void _calculateCategoryTotals() {
+    _categoryTotals = {};
+    final filtered = filteredRecords;
+    
+    // 1. Calculate base totals for all categories
+    for (var record in filtered) {
+      _categoryTotals[record.categoryId] = (_categoryTotals[record.categoryId] ?? 0.0) + record.amount;
+    }
+
+    // 2. Aggregate child totals into parents
+    // We do this by iterating over parent categories and adding their sub-category totals
+    final parents = _categories.where((c) => c.parentId == -1).toList();
+    for (var parent in parents) {
+      final parentId = parent.categoryId!;
+      final subs = getSubCategories(parentId);
+      double aggregatedTotal = _categoryTotals[parentId] ?? 0.0;
+      for (var sub in subs) {
+        aggregatedTotal += _categoryTotals[sub.categoryId!] ?? 0.0;
+      }
+      _categoryTotals[parentId] = aggregatedTotal;
     }
   }
 

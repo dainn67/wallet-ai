@@ -38,7 +38,7 @@ class CategoryWidget extends StatelessWidget {
 
     Widget content = Container(
       width: double.infinity,
-      padding: padding ?? const EdgeInsets.all(12),
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: showDecoration
           ? BoxDecoration(
               color: Colors.white,
