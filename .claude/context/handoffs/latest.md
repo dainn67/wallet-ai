@@ -1,23 +1,26 @@
-# Handoff Notes: Task #129 - Update Category Model
+# Handoff Notes: Task #001 - Fix ChatProvider Direct Repository Access
 
 ## What was done
-Implemented the `parentId` field in the `Category` model to support hierarchical category relationships.
+Removed direct `RecordRepository` usage from `ChatProvider` and routed record creation through `RecordProvider` per AD-1.
 
-- Added `final int parentId;` to `Category` class.
-- Updated constructor to default `parentId` to `-1` (indicating a parent category).
-- Updated `toMap()` to include `'parent_id': parentId`.
-- Updated `fromMap()` to read `'parent_id'` from the map, defaulting to `-1` if not present.
-- Updated `copyWith()` and `toString()` to include `parentId`.
-- Created `test/models/category_test.dart` to verify the model changes.
+- Added `Future<int> createRecord(Record record)` to `RecordProvider` — lightweight, no loading state, no `notifyListeners()`. Calls `_repository.createRecord(record)` and returns the inserted ID.
+- Removed `import 'package:wallet_ai/repositories/record_repository.dart';` from `ChatProvider`.
+- Removed `final recordRepository = RecordRepository();` instantiation in `onDone` handler.
+- Replaced `await recordRepository.createRecord(record)` with `await _recordProvider!.createRecord(record)`.
 
 ## Verification
-- Ran unit tests in `test/models/category_test.dart`: 7/7 tests passed.
-- Ran `fvm flutter analyze lib/models/category.dart`: No issues found.
+- `fvm flutter analyze lib/providers/` — 1 pre-existing `avoid_print` info only, zero errors.
+- `grep -r "import.*repositories" lib/providers/chat_provider.dart` — 0 results.
+- `grep -r "RecordRepository" lib/providers/chat_provider.dart` — 0 results.
 
 ## Files Changed
-- `lib/models/category.dart`
-- `test/models/category_test.dart` (New file)
+- `lib/providers/record_provider.dart` — added `createRecord()` method
+- `lib/providers/chat_provider.dart` — removed repo import, removed local instantiation, replaced direct call
 
-## Warnings for next task
-- **Database Schema**: The `toMap()` method now includes `'parent_id'`. Until Task #130 updates the database schema to version 7 and adds the `parent_id` column to the `Category` table, any `insert` or `update` operations on the `Category` table using `toMap()` will fail.
-- **Dependency**: Task #130 should be executed immediately to align the database schema with the updated model.
+## Key Decisions
+- `createRecord()` on RecordProvider is intentionally lightweight (no `loadAll()`, no `notifyListeners()`) — ChatProvider's `onDone` calls `_recordProvider?.loadAll()` after the loop completes, which handles the UI refresh.
+- Used `_recordProvider!` (null assertion) as the task spec instructs — consistent with existing `_recordProvider?.loadAll()` pattern showing it's assumed non-null at this point.
+
+## Warnings for Next Task
+- T2 (boilerplate consolidation in RecordProvider) can now safely include the new `createRecord()` method in its `_performOperation()` consolidation.
+- The pre-existing `avoid_print` in `record_provider.dart` line 143 is out of scope for this task but should be cleaned up eventually.

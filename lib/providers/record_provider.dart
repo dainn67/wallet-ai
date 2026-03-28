@@ -354,6 +354,12 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
+  /// Lightweight record creation for batch use (e.g., ChatProvider).
+  /// Returns the inserted record ID. Does NOT call loadAll() or notifyListeners().
+  Future<int> createRecord(Record record) async {
+    return await _repository.createRecord(record);
+  }
+
   Future<int> getRecordCountByCategoryId(int id) async {
     return await _repository.getRecordCountByCategoryId(id);
   }
