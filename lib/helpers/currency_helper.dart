@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../services/storage_service.dart';
+
+import 'package:wallet_ai/services/storage_service.dart';
 
 class CurrencyHelper {
   /// Formats a double amount based on the currency.

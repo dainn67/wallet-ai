@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/configs/configs.dart';
-import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
 
 class RecordsTab extends StatelessWidget {
   const RecordsTab({super.key});

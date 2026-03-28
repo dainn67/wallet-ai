@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
-import 'package:wallet_ai/models/models.dart';
-import 'package:wallet_ai/helpers/currency_helper.dart';
+
 import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+
 import 'popups/add_source_popup.dart';
-import 'package:wallet_ai/services/storage_service.dart';
 
 /// A component that displays a financial overview including total balance,
 /// income, expenses, and a horizontal list of money sources.

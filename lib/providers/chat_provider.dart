@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/services.dart';
-import '../configs/configs.dart';
-import 'record_provider.dart';
+
 import 'locale_provider.dart';
+import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [

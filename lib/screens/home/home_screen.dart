@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
-import '../../configs/configs.dart';
-import '../../providers/providers.dart';
-import 'tabs/chat_tab.dart';
-import 'tabs/records_tab.dart';
-import 'tabs/categories_tab.dart';
-import 'tabs/test_tab.dart';
-import '../../components/components.dart';
+
+import 'package:wallet_ai/components/components.dart';
+import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/screens/home/tabs/categories_tab.dart';
+import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
+import 'package:wallet_ai/screens/home/tabs/records_tab.dart';
+import 'package:wallet_ai/screens/home/tabs/test_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

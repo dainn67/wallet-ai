@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/models.dart';
-import '../helpers/currency_helper.dart';
-import '../services/storage_service.dart';
+
+import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
 class CategoryWidget extends StatelessWidget {
   final Category category;

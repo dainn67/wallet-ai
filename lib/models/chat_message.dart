@@ -1,4 +1,4 @@
-import 'package:wallet_ai/models/record.dart';
+import 'record.dart';
 
 enum ChatRole {
   user,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:wallet_ai/models/models.dart';
-import 'package:wallet_ai/components/record_widget.dart';
+
+import 'record_widget.dart';
 
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;

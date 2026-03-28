@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
-import '../../models/models.dart';
-import '../../providers/providers.dart';
+
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
 
 Future<void> showAddSubCategoryDialog({
   required BuildContext context,

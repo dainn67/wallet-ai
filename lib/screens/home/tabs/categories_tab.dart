@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/providers.dart';
-import '../../../components/components.dart';
-import '../../../models/models.dart';
+
+import 'package:wallet_ai/components/components.dart';
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
 
 class CategoriesTab extends StatelessWidget {
   const CategoriesTab({super.key});
