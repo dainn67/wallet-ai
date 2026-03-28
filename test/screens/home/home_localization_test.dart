@@ -28,9 +28,13 @@ void main() {
     localeProvider = LocaleProvider(mockStorageService);
 
     when(() => mockRecordProvider.records).thenReturn([]);
+    when(() => mockRecordProvider.filteredRecords).thenReturn([]);
     when(() => mockRecordProvider.moneySources).thenReturn([]);
     when(() => mockRecordProvider.categories).thenReturn([]);
     when(() => mockRecordProvider.isLoading).thenReturn(false);
+    when(() => mockRecordProvider.filteredTotalIncome).thenReturn(0.0);
+    when(() => mockRecordProvider.filteredTotalExpense).thenReturn(0.0);
+    when(() => mockRecordProvider.totalBalance).thenReturn(0.0);
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
   });

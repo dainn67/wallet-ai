@@ -24,6 +24,9 @@ void main() {
     when(() => mockRecordProvider.categories).thenReturn([]);
     when(() => mockRecordProvider.getCategoryName(any())).thenReturn('Test Category');
     when(() => mockRecordProvider.isLoading).thenReturn(false);
+    when(() => mockRecordProvider.filteredTotalIncome).thenReturn(0.0);
+    when(() => mockRecordProvider.filteredTotalExpense).thenReturn(0.0);
+    when(() => mockRecordProvider.totalBalance).thenReturn(0.0);
     
     when(() => mockLocaleProvider.language).thenReturn(AppLanguage.english);
     when(() => mockLocaleProvider.currency).thenReturn(AppCurrency.usd);

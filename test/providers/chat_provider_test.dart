@@ -3,26 +3,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
-import 'package:wallet_ai/repositories/record_repository.dart';
+import 'package:wallet_ai/providers/record_provider.dart';
 import 'package:wallet_ai/services/services.dart';
 
 class MockChatApiService extends Mock implements ChatApiService {}
-class MockRecordRepository extends Mock implements RecordRepository {}
+class MockRecordProvider extends Mock implements RecordProvider {}
 
 void main() {
   late ChatProvider chatProvider;
   late MockChatApiService mockChatApiService;
-  late MockRecordRepository mockRecordRepository;
+  late MockRecordProvider mockRecordProvider;
 
   setUp(() {
     mockChatApiService = MockChatApiService();
-    mockRecordRepository = MockRecordRepository();
+    mockRecordProvider = MockRecordProvider();
 
     ChatApiService.setMockInstance(mockChatApiService);
-    RecordRepository.setMockInstance(mockRecordRepository);
 
-    chatProvider = ChatProvider();
-    
+    chatProvider = ChatProvider(recordProvider: mockRecordProvider);
+
     // Default mocks
     registerFallbackValue(Record(
       moneySourceId: 1,
@@ -31,13 +30,15 @@ void main() {
       description: '',
       type: 'expense',
     ));
-    
-    when(() => mockRecordRepository.createRecord(any())).thenAnswer((_) async => 1);
+
+    when(() => mockRecordProvider.createRecord(any())).thenAnswer((_) async => 1);
+    when(() => mockRecordProvider.loadAll()).thenAnswer((_) async {});
+    when(() => mockRecordProvider.categories).thenReturn([]);
+    when(() => mockRecordProvider.moneySources).thenReturn([]);
   });
 
   tearDown(() {
     ChatApiService.setMockInstance(null);
-    RecordRepository.setMockInstance(null);
   });
 
   test('sendMessage parses records with IDs and fallbacks correctly', () async {
@@ -79,7 +80,7 @@ void main() {
     await future;
 
     // Verify first record
-    verify(() => mockRecordRepository.createRecord(any(
+    verify(() => mockRecordProvider.createRecord(any(
       that: predicate<Record>((r) => 
         r.moneySourceId == 2 && 
         r.categoryId == 3 && 
@@ -90,7 +91,7 @@ void main() {
     ))).called(1);
 
     // Verify second record (fallbacks)
-    verify(() => mockRecordRepository.createRecord(any(
+    verify(() => mockRecordProvider.createRecord(any(
       that: predicate<Record>((r) => 
         r.moneySourceId == 1 && 
         r.categoryId == 1 && 
