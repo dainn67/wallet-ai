@@ -173,8 +173,27 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
-  /// Alias for loadAll() to support different naming conventions.
-  Future<void> fetchData() => loadAll();
+  Future<void> _performOperation(
+    Future<void> Function() operation, {
+    bool reloadAll = true,
+    bool updateWidget = true,
+    bool showToastOnError = false,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await operation();
+      if (reloadAll) await loadAll();
+    } catch (e) {
+      debugPrint('Error in RecordProvider: $e');
+      if (showToastOnError) ToastService().showError(e.toString());
+      if (reloadAll) await loadAll();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+      if (updateWidget) _updateWidget();
+    }
+  }
 
   void _updateWidget() {
     double totalBalance = 0;
@@ -200,54 +219,16 @@ class RecordProvider extends ChangeNotifier {
   }
 
   // Record CRUD
-  Future<void> addRecord(Record record) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _repository.createRecord(record);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error adding record in RecordProvider: $e');
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-      _updateWidget();
-    }
-  }
+  Future<void> addRecord(Record record) =>
+      _performOperation(() => _repository.createRecord(record));
 
-  Future<void> updateRecord(Record record) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      final updatedRecord = record.copyWith(lastUpdated: DateTime.now().millisecondsSinceEpoch);
-      await _repository.updateRecord(updatedRecord);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error updating record in RecordProvider: $e');
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-      _updateWidget();
-    }
-  }
+  Future<void> updateRecord(Record record) => _performOperation(() async {
+        final updatedRecord = record.copyWith(lastUpdated: DateTime.now().millisecondsSinceEpoch);
+        await _repository.updateRecord(updatedRecord);
+      });
 
-  Future<void> deleteRecord(int id) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _repository.deleteRecord(id);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error deleting record in RecordProvider: $e');
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-      _updateWidget();
-    }
-  }
+  Future<void> deleteRecord(int id) =>
+      _performOperation(() => _repository.deleteRecord(id));
 
   // MoneySource CRUD
   Future<void> addMoneySource(MoneySource source) async {
@@ -256,11 +237,9 @@ class RecordProvider extends ChangeNotifier {
     try {
       final id = await _repository.createMoneySource(source);
       _moneySources.add(source.copyWith(sourceId: id));
-      if (source.amount > 0) {
-        await loadAll();
-      }
+      if (source.amount > 0) await loadAll();
     } catch (e) {
-      debugPrint('Error adding money source in RecordProvider: $e');
+      debugPrint('Error in RecordProvider: $e');
       await loadAll();
     } finally {
       _isLoading = false;
@@ -275,11 +254,9 @@ class RecordProvider extends ChangeNotifier {
     try {
       await _repository.updateMoneySource(source);
       final index = _moneySources.indexWhere((ms) => ms.sourceId == source.sourceId);
-      if (index != -1) {
-        _moneySources[index] = source;
-      }
+      if (index != -1) _moneySources[index] = source;
     } catch (e) {
-      debugPrint('Error updating money source in RecordProvider: $e');
+      debugPrint('Error in RecordProvider: $e');
       await loadAll();
     } finally {
       _isLoading = false;
@@ -288,71 +265,29 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteMoneySource(int id) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _repository.deleteMoneySource(id);
-      _moneySources.removeWhere((ms) => ms.sourceId == id);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error deleting money source in RecordProvider: $e');
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-      _updateWidget();
-    }
-  }
+  Future<void> deleteMoneySource(int id) => _performOperation(() async {
+        _moneySources.removeWhere((ms) => ms.sourceId == id);
+        await _repository.deleteMoneySource(id);
+      });
 
   // Category CRUD
-  Future<void> addCategory(Category category) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _repository.createCategory(category);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error adding category in RecordProvider: $e');
-      ToastService().showError(e.toString());
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<void> addCategory(Category category) => _performOperation(
+        () => _repository.createCategory(category),
+        showToastOnError: true,
+        updateWidget: false,
+      );
 
-  Future<void> updateCategory(Category category) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _repository.updateCategory(category);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error updating category in RecordProvider: $e');
-      ToastService().showError(e.toString());
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<void> updateCategory(Category category) => _performOperation(
+        () => _repository.updateCategory(category),
+        showToastOnError: true,
+        updateWidget: false,
+      );
 
-  Future<void> deleteCategory(int id) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await _repository.deleteCategory(id);
-      await loadAll();
-    } catch (e) {
-      debugPrint('Error deleting category in RecordProvider: $e');
-      ToastService().showError(e.toString());
-      await loadAll();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<void> deleteCategory(int id) => _performOperation(
+        () => _repository.deleteCategory(id),
+        showToastOnError: true,
+        updateWidget: false,
+      );
 
   /// Lightweight record creation for batch use (e.g., ChatProvider).
   /// Returns the inserted record ID. Does NOT call loadAll() or notifyListeners().

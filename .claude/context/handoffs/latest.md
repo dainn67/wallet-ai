@@ -1,26 +1,30 @@
-# Handoff Notes: Task #001 - Fix ChatProvider Direct Repository Access
+# Handoff Notes: Task #002 - Clean up RecordProvider
 
 ## What was done
-Removed direct `RecordRepository` usage from `ChatProvider` and routed record creation through `RecordProvider` per AD-1.
+Extracted `_performOperation()` private helper in RecordProvider, refactored CRUD methods to use it, removed `fetchData()` alias, and standardized error handling.
 
-- Added `Future<int> createRecord(Record record)` to `RecordProvider` — lightweight, no loading state, no `notifyListeners()`. Calls `_repository.createRecord(record)` and returns the inserted ID.
-- Removed `import 'package:wallet_ai/repositories/record_repository.dart';` from `ChatProvider`.
-- Removed `final recordRepository = RecordRepository();` instantiation in `onDone` handler.
-- Replaced `await recordRepository.createRecord(record)` with `await _recordProvider!.createRecord(record)`.
+- Added `_performOperation(Future<void> Function() operation, {bool reloadAll, bool updateWidget, bool showToastOnError})` helper.
+- Removed `Future<void> fetchData() => loadAll();` alias (was only defined, not called elsewhere).
+- Refactored Record CRUD (addRecord, updateRecord, deleteRecord) to use `_performOperation`.
+- Refactored Category CRUD (addCategory, updateCategory, deleteCategory) to use `_performOperation` with `showToastOnError: true, updateWidget: false`.
+- Refactored `deleteMoneySource` to use `_performOperation`.
+- Kept `addMoneySource` and `updateMoneySource` inline — they have special behavior (local list patching, conditional reload) that doesn't fit the helper cleanly.
+- Kept `createRecord()` (from T1) outside `_performOperation` — it's lightweight batch-use with no loading state.
+- `resetAllData` kept inline — unique pattern (loadAll in finally, not try).
+- Standardized error messages in addMoneySource/updateMoneySource to `'Error in RecordProvider: $e'` to match helper pattern.
 
 ## Verification
-- `fvm flutter analyze lib/providers/` — 1 pre-existing `avoid_print` info only, zero errors.
-- `grep -r "import.*repositories" lib/providers/chat_provider.dart` — 0 results.
-- `grep -r "RecordRepository" lib/providers/chat_provider.dart` — 0 results.
+- `fvm flutter analyze lib/providers/record_provider.dart` — 1 pre-existing `avoid_print` info on line 143, zero errors.
+- `fetchData` removed — no callers found in lib/.
 
 ## Files Changed
-- `lib/providers/record_provider.dart` — added `createRecord()` method
-- `lib/providers/chat_provider.dart` — removed repo import, removed local instantiation, replaced direct call
+- `lib/providers/record_provider.dart` — extracted helper, refactored 7 of 9 CRUD methods, removed fetchData alias
 
 ## Key Decisions
-- `createRecord()` on RecordProvider is intentionally lightweight (no `loadAll()`, no `notifyListeners()`) — ChatProvider's `onDone` calls `_recordProvider?.loadAll()` after the loop completes, which handles the UI refresh.
-- Used `_recordProvider!` (null assertion) as the task spec instructs — consistent with existing `_recordProvider?.loadAll()` pattern showing it's assumed non-null at this point.
+- `addMoneySource` and `updateMoneySource` kept inline because they need to capture return values from the repository (sourceId) or patch local state conditionally.
+- `deleteMoneySource` local list removal happens inside the operation lambda (before the repo call) so the helper's catch block with `loadAll()` naturally handles rollback if the delete fails.
+- Category methods pass `updateWidget: false` preserving the original behavior (no widget update after category changes).
 
 ## Warnings for Next Task
-- T2 (boilerplate consolidation in RecordProvider) can now safely include the new `createRecord()` method in its `_performOperation()` consolidation.
-- The pre-existing `avoid_print` in `record_provider.dart` line 143 is out of scope for this task but should be cleaned up eventually.
+- Pre-existing `print` on line 143 in `loadAll()` still present — out of scope for T2, should be addressed separately.
+- T3 (computed getters) can now build cleanly on this refactored provider.
