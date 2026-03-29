@@ -1,8 +1,8 @@
 ---
 name: Verify all widget sizes and run tests
-status: open
+status: closed
 created: 2026-03-29T05:11:10Z
-updated: 2026-03-29T05:11:10Z
+updated: 2026-03-29T05:22:28Z
 complexity: simple
 recommended_model: sonnet
 phase: 3

@@ -1,8 +1,10 @@
 ---
 name: home-widget-android
-status: backlog
+status: completed
 created: 2026-03-29T05:05:11Z
-progress: 0%
+updated: 2026-03-29T08:43:41Z
+completed: 2026-03-29T08:43:41Z
+progress: 100%
 priority: P1
 prd: .claude/prds/home-widget-android.md
 task_count: 3
