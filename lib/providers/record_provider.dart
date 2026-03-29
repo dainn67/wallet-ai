@@ -28,10 +28,7 @@ class RecordProvider extends ChangeNotifier {
   RecordProvider({RecordRepository? repository}) : _repository = repository ?? RecordRepository() {
     // Set initial date range to current month
     final now = DateTime.now();
-    _selectedDateRange = DateTimeRange(
-      start: DateTime(now.year, now.month),
-      end: DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999),
-    );
+    _selectedDateRange = DateTimeRange(start: DateTime(now.year, now.month), end: DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999));
   }
 
   List<Record> get records => List.unmodifiable(_records);
@@ -123,11 +120,7 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await Future.wait([
-        _repository.getAllRecords(),
-        _repository.getAllMoneySources(),
-        _repository.getAllCategories(),
-      ]);
+      final results = await Future.wait([_repository.getAllRecords(), _repository.getAllMoneySources(), _repository.getAllCategories()]);
 
       _records = results[0] as List<Record>;
       _moneySources = results[1] as List<MoneySource>;
@@ -155,7 +148,7 @@ class RecordProvider extends ChangeNotifier {
   void _calculateCategoryTotals() {
     _categoryTotals = {};
     final filtered = filteredRecords;
-    
+
     // 1. Calculate base totals for all categories
     for (var record in filtered) {
       _categoryTotals[record.categoryId] = (_categoryTotals[record.categoryId] ?? 0.0) + record.amount;
@@ -176,30 +169,19 @@ class RecordProvider extends ChangeNotifier {
   }
 
   // Computed getters
-  double get filteredTotalIncome =>
-      filteredRecords.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
+  double get filteredTotalIncome => filteredRecords.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
 
-  double get filteredTotalExpense =>
-      filteredRecords.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
+  double get filteredTotalExpense => filteredRecords.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
 
-  double get totalBalance =>
-      _moneySources.fold<double>(0, (sum, s) => sum + s.amount);
+  double get totalBalance => _moneySources.fold<double>(0, (sum, s) => sum + s.amount);
 
   void navigateMonth(int delta) {
     final current = _selectedDateRange?.start ?? DateTime.now();
     final newMonth = DateTime(current.year, current.month + delta);
-    selectedDateRange = DateTimeRange(
-      start: newMonth,
-      end: DateTime(newMonth.year, newMonth.month + 1, 0, 23, 59, 59, 999),
-    );
+    selectedDateRange = DateTimeRange(start: newMonth, end: DateTime(newMonth.year, newMonth.month + 1, 0, 23, 59, 59, 999));
   }
 
-  Future<void> _performOperation(
-    Future<void> Function() operation, {
-    bool reloadAll = true,
-    bool updateWidget = true,
-    bool showToastOnError = false,
-  }) async {
+  Future<void> _performOperation(Future<void> Function() operation, {bool reloadAll = true, bool updateWidget = true, bool showToastOnError = false}) async {
     _isLoading = true;
     notifyListeners();
     try {
@@ -212,7 +194,7 @@ class RecordProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
-      if (updateWidget) _updateWidget();
+      if (updateWidget && !reloadAll) _updateWidget();
     }
   }
 
@@ -240,16 +222,14 @@ class RecordProvider extends ChangeNotifier {
   }
 
   // Record CRUD
-  Future<void> addRecord(Record record) =>
-      _performOperation(() => _repository.createRecord(record));
+  Future<void> addRecord(Record record) => _performOperation(() => _repository.createRecord(record));
 
   Future<void> updateRecord(Record record) => _performOperation(() async {
-        final updatedRecord = record.copyWith(lastUpdated: DateTime.now().millisecondsSinceEpoch);
-        await _repository.updateRecord(updatedRecord);
-      });
+    final updatedRecord = record.copyWith(lastUpdated: DateTime.now().millisecondsSinceEpoch);
+    await _repository.updateRecord(updatedRecord);
+  });
 
-  Future<void> deleteRecord(int id) =>
-      _performOperation(() => _repository.deleteRecord(id));
+  Future<void> deleteRecord(int id) => _performOperation(() => _repository.deleteRecord(id));
 
   // MoneySource CRUD
   Future<void> addMoneySource(MoneySource source) async {
@@ -287,28 +267,16 @@ class RecordProvider extends ChangeNotifier {
   }
 
   Future<void> deleteMoneySource(int id) => _performOperation(() async {
-        _moneySources.removeWhere((ms) => ms.sourceId == id);
-        await _repository.deleteMoneySource(id);
-      });
+    _moneySources.removeWhere((ms) => ms.sourceId == id);
+    await _repository.deleteMoneySource(id);
+  });
 
   // Category CRUD
-  Future<void> addCategory(Category category) => _performOperation(
-        () => _repository.createCategory(category),
-        showToastOnError: true,
-        updateWidget: false,
-      );
+  Future<void> addCategory(Category category) => _performOperation(() => _repository.createCategory(category), showToastOnError: true, updateWidget: false);
 
-  Future<void> updateCategory(Category category) => _performOperation(
-        () => _repository.updateCategory(category),
-        showToastOnError: true,
-        updateWidget: false,
-      );
+  Future<void> updateCategory(Category category) => _performOperation(() => _repository.updateCategory(category), showToastOnError: true, updateWidget: false);
 
-  Future<void> deleteCategory(int id) => _performOperation(
-        () => _repository.deleteCategory(id),
-        showToastOnError: true,
-        updateWidget: false,
-      );
+  Future<void> deleteCategory(int id) => _performOperation(() => _repository.deleteCategory(id), showToastOnError: true, updateWidget: false);
 
   /// Lightweight record creation for batch use (e.g., ChatProvider).
   /// Returns the inserted record ID. Does NOT call loadAll() or notifyListeners().
