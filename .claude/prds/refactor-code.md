@@ -1,11 +1,11 @@
 ---
 name: refactor-code
 description: Audit and refactor entire codebase to enforce clean architecture — separate concerns, clean providers, correct file structure.
-status: backlog
+status: complete
 priority: P1
 scale: large
 created: 2026-03-28T16:47:54Z
-updated: 2026-03-28T17:06:01Z
+updated: 2026-03-29T04:32:29Z
 ---
 
 # PRD: refactor-code
