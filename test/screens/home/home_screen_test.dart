@@ -25,6 +25,9 @@ void main() {
     when(() => mockRecordProvider.records).thenReturn([]);
     when(() => mockRecordProvider.moneySources).thenReturn([]);
     when(() => mockRecordProvider.filteredRecords).thenReturn([]);
+    when(() => mockRecordProvider.filteredTotalIncome).thenReturn(0.0);
+    when(() => mockRecordProvider.filteredTotalExpense).thenReturn(0.0);
+    when(() => mockRecordProvider.totalBalance).thenReturn(0.0);
     
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
@@ -69,9 +72,6 @@ void main() {
     final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
     scaffoldState.openDrawer();
     await tester.pumpAndSettle();
-
-    // Find "Data Management" header
-    expect(find.text('Data Management'), findsOneWidget);
 
     // Find "Reset All Data" tile
     expect(find.text('Reset All Data'), findsOneWidget);

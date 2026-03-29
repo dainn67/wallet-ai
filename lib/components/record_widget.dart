@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:wallet_ai/models/models.dart';
+
 import 'package:wallet_ai/helpers/currency_helper.dart';
+import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/record_provider.dart';
 
 /// A reusable component for displaying a [Record] (income or expense).

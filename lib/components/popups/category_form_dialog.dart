@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
-import '../../providers/providers.dart';
-import '../../models/models.dart';
+
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
+
 import 'confirmation_dialog.dart';
 
 class CategoryFormDialog extends StatefulWidget {

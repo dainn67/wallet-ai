@@ -1,8 +1,8 @@
 ---
 name: Final audit — flutter analyze, line counts, smoke test
-status: open
+status: closed
 created: 2026-03-28T17:50:49Z
-updated: 2026-03-28T17:50:49Z
+updated: 2026-03-28T18:34:13Z
 complexity: simple
 recommended_model: sonnet
 phase: 3

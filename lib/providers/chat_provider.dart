@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/services/services.dart';
-import 'package:wallet_ai/repositories/record_repository.dart';
-import '../configs/configs.dart';
-import 'record_provider.dart';
+
 import 'locale_provider.dart';
+import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<ChatMessage> _messages = [
@@ -130,7 +132,6 @@ class ChatProvider extends ChangeNotifier {
                 try {
                   final List<dynamic> recordsJson = jsonDecode(jsonString);
                   final List<Record> records = [];
-                  final recordRepository = RecordRepository();
 
                   for (var item in recordsJson) {
                     final sourceIdRaw = item['source_id'];
@@ -156,8 +157,8 @@ class ChatProvider extends ChangeNotifier {
                       type: type,
                     );
 
-                    // Save to repository
-                    final recordId = await recordRepository.createRecord(record);
+                    // Save via RecordProvider (AD-1: provider-only repository access)
+                    final recordId = await _recordProvider!.createRecord(record);
                     records.add(record.copyWith(recordId: recordId));
                   }
 

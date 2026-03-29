@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
-import '../configs/l10n_config.dart';
-import '../services/storage_service.dart';
+
+import 'package:wallet_ai/configs/l10n_config.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
 class LocaleProvider with ChangeNotifier {
   static const String _keyLanguage = 'user_language';

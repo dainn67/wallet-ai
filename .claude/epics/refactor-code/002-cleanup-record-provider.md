@@ -1,8 +1,8 @@
 ---
 name: Clean up RecordProvider — extract boilerplate, standardize error handling
-status: open
+status: closed
 created: 2026-03-28T17:50:49Z
-updated: 2026-03-28T17:50:49Z
+updated: 2026-03-28T18:16:38Z
 complexity: moderate
 recommended_model: sonnet
 phase: 1

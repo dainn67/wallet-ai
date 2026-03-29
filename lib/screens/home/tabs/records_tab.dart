@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/configs/configs.dart';
-import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
 
 class RecordsTab extends StatelessWidget {
   const RecordsTab({super.key});
@@ -19,9 +21,9 @@ class RecordsTab extends StatelessWidget {
         }
 
         final records = provider.filteredRecords;
-        final totalIncome = records.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
-        final totalExpense = records.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
-        final totalBalance = provider.moneySources.fold<double>(0, (sum, s) => sum + s.amount);
+        final totalIncome = provider.filteredTotalIncome;
+        final totalExpense = provider.filteredTotalExpense;
+        final totalBalance = provider.totalBalance;
 
         return Column(
           children: [
