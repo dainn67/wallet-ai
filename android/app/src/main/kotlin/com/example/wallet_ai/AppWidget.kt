@@ -57,7 +57,7 @@ class AppWidget : GlanceAppWidget() {
                 // Determine layout based on size
                 when {
                     // Small / Wide layouts (1x1 to 4x1) - Just the chat-style record bar
-                    size.height < 100.dp -> RecordBarOnlyLayout(context, surfaceColor, accentColor, textColorSecondary)
+                    size.height < 100.dp -> RecordBarOnlyLayout(context, surfaceColor, accentColor, textColorSecondary, size.width < 100.dp)
                     
                     // Vertical tall layout (1x2, 1x3, 1x4)
                     size.width < 130.dp -> VerticalDashboard(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary)
@@ -73,12 +73,12 @@ class AppWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun RecordBarOnlyLayout(context: Context, surfaceColor: Color, accentColor: Color, textColor: Color) {
+    private fun RecordBarOnlyLayout(context: Context, surfaceColor: Color, accentColor: Color, textColor: Color, isCompact: Boolean) {
         Box(
             modifier = GlanceModifier.fillMaxSize().padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            QuickRecordBar(context, surfaceColor, accentColor, textColor, "Add record")
+            QuickRecordBar(context, surfaceColor, accentColor, textColor, "Add record", isCompact)
         }
     }
 
@@ -234,25 +234,30 @@ class AppWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun QuickRecordBar(context: Context, surfaceColor: Color, accentColor: Color, textColor: Color, text: String) {
+    private fun QuickRecordBar(context: Context, surfaceColor: Color, accentColor: Color, textColor: Color, text: String, isCompact: Boolean = false) {
+        val barWidth = if (isCompact) 48.dp else GlanceModifier.fillMaxWidth()
+        
         Row(
             modifier = GlanceModifier
-                .fillMaxWidth()
+                .then(if (isCompact) GlanceModifier.width(48.dp) else GlanceModifier.fillMaxWidth())
                 .height(48.dp)
                 .background(surfaceColor)
                 .cornerRadius(24.dp)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = if (isCompact) 0.dp else 16.dp)
                 .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 provider = ImageProvider(R.drawable.ic_menu_edit), 
                 contentDescription = null, 
-                modifier = GlanceModifier.size(16.dp),
+                modifier = GlanceModifier.size(18.dp),
                 colorFilter = ColorFilter.tint(ColorProvider(accentColor))
             )
-            Spacer(GlanceModifier.width(12.dp))
-            Text(text, style = TextStyle(fontSize = 14.sp, color = ColorProvider(textColor)))
+            if (!isCompact) {
+                Spacer(GlanceModifier.width(12.dp))
+                Text(text, style = TextStyle(fontSize = 14.sp, color = ColorProvider(textColor)))
+            }
         }
     }
 }

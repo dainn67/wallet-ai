@@ -200,10 +200,30 @@ class RecordProvider extends ChangeNotifier {
   }
 
   void _updateWidget() {
-    final monthLabel = DateFormat('MMMM yyyy').format(_selectedDateRange?.start ?? DateTime.now());
+    final now = DateTime.now();
+    final monthLabel = DateFormat('MMMM yyyy').format(now);
+
+    // Calculate income and expense for the CURRENT month only, 
+    // regardless of the provider's filter selection.
+    final currentMonthStart = DateTime(now.year, now.month);
+    final currentMonthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+
+    final currentMonthRecords = _records.where((r) {
+      final created = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+      return !created.isBefore(currentMonthStart) && !created.isAfter(currentMonthEnd);
+    });
+
+    final currentMonthIncome = currentMonthRecords
+        .where((r) => r.type == 'income')
+        .fold<double>(0, (sum, r) => sum + r.amount);
+
+    final currentMonthSpend = currentMonthRecords
+        .where((r) => r.type == 'expense')
+        .fold<double>(0, (sum, r) => sum + r.amount);
+
     HomeWidget.saveWidgetData<String>('total_balance', CurrencyHelper.format(totalBalance));
-    HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(filteredTotalIncome));
-    HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(filteredTotalExpense));
+    HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(currentMonthIncome));
+    HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(currentMonthSpend));
     HomeWidget.saveWidgetData<String>('currency', StorageService().getString(StorageService.keyCurrency) ?? 'USD');
     HomeWidget.saveWidgetData<String>('current_month', monthLabel);
     HomeWidget.updateWidget(androidName: 'MyWidgetReceiver', iOSName: 'Quick_Chat_Widget');
