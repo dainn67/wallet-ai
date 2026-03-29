@@ -1,11 +1,11 @@
 ---
 name: home-widget-android
 description: Redesign Android home widget size layouts and fix income/expense data to show current-month filtered totals.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-03-29T04:58:09Z
-updated: null
+updated: 2026-03-29T08:43:41Z
 ---
 
 # PRD: home-widget-android
