@@ -1,27 +1,30 @@
-# Handoff Notes: Task #001 - Fix Widget Data Pipeline
+# Handoff Notes: Task #002 - Redesign AppWidget.kt with 5 responsive layouts
 
 ## Status
-COMPLETE — All checks PASS.
+COMPLETE — `flutter build apk --debug` passes.
 
 ## What Was Done
-Rewrote `_updateWidget()` in `lib/providers/record_provider.dart` to use existing provider getters instead of manual loops. Added `intl` import for `DateFormat`. Added new `current_month` widget key formatted as "MMMM yyyy".
+Rewrote `AppWidget.kt` to define 5 Glance `DpSize` breakpoints (SMALL/TALL/WIDE/MEDIUM/LARGE) instead of the previous 3. Redesigned SmallLayout from purple box + add icon to a compact QuickRecord-style pill with pencil icon and hint text. Added TallLayout (balance + QuickRecordBar stacked). Updated WideLayout to show balance on left, QuickRecordBar on right. Added MediumLayout with month label, balance, income/expense stats, and QuickRecordBar. Updated LargeDashboard with `current_month` label below the WALLY AI tag.
 
 ## Files Changed
-- `lib/providers/record_provider.dart`
-  - Added `import 'package:intl/intl.dart';` (third-party, after home_widget import)
-  - Replaced `_updateWidget()` body (was ~20 lines with manual loops) with 6-line version using `totalBalance`, `filteredTotalIncome`, `filteredTotalExpense` getters and new `current_month` key
+- `android/app/src/main/kotlin/com/example/wallet_ai/AppWidget.kt`
+  - Companion object: 3 breakpoints → 5 (SMALL 80x80, TALL 80x160, WIDE 160x80, MEDIUM 160x160, LARGE 240x200)
+  - Routing: updated `when` block with width/height thresholds (130dp, 200dp)
+  - SmallLayout: surfaceColor bg, pencil icon tinted accentColor, "Quick Record..." text at 12sp
+  - TallLayout: new composable — balance top, QuickRecordBar bottom
+  - WideLayout: now takes `prefs`, shows balance left + QuickRecordBar right (Row layout)
+  - MediumLayout: new composable — month label + balance + income/expense + QuickRecordBar
+  - LargeDashboard: reads `current_month` pref, displays below WALLY AI tag
 
 ## Decisions Made
-- AD-1: Used `_selectedDateRange?.start ?? DateTime.now()` for month context (matches app's navigated month)
-- AD-3: Replaced manual loops with existing getters as specified
-- Import ordering: `intl` placed after `home_widget` (both third-party), before `wallet_ai/*` imports
+- Breakpoint thresholds: 130dp for small/tall/wide split, 200dp for medium/large split (matches task spec)
+- SmallLayout does not receive `prefs` — only needs context and colors (no balance data at 1×1)
+- Reused existing `QuickRecordBar` and `StatItem` composables unchanged
 
 ## Verification Results
-- `flutter test` — 132/132 tests PASS
-- `flutter analyze` — 29 infos (all pre-existing), 0 warnings, 0 errors
+- `flutter build apk --debug` — SUCCESS
 
-## Warnings for Next Task (T2)
-- T2 (AppWidget.kt) needs to read the new `current_month` key from widget data
-- `current_month` format is "March 2026" (English month name + 4-digit year, English locale)
-- `filteredTotalIncome` and `filteredTotalExpense` are filtered by `_selectedDateRange` (current month by default)
-- `total_balance` remains all-time (sum of money sources, not filtered)
+## Warnings for Next Task (T3)
+- Manual testing needed: place widgets at each size on emulator to verify visual rendering
+- `current_month` key comes from T1's `_updateWidget()` — ensure widget has been updated at least once for month label to appear
+- Balance font sizes: 18sp (Tall), 16sp (Wide), 24sp (Medium), 28sp (Large) — check readability on real devices

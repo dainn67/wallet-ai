@@ -1,8 +1,8 @@
 ---
 name: Redesign AppWidget.kt with 5 responsive layouts
-status: open
+status: closed
 created: 2026-03-29T05:11:10Z
-updated: 2026-03-29T05:11:10Z
+updated: 2026-03-29T05:20:32Z
 complexity: moderate
 recommended_model: opus
 phase: 2

@@ -23,12 +23,14 @@ class AppWidget : GlanceAppWidget() {
     override val stateDefinition = HomeWidgetGlanceStateDefinition()
 
     companion object {
-        private val SMALL = DpSize(100.dp, 100.dp)
-        private val WIDE = DpSize(200.dp, 100.dp)
-        private val LARGE = DpSize(200.dp, 180.dp)
+        private val SMALL  = DpSize(80.dp, 80.dp)    // 1×1
+        private val TALL   = DpSize(80.dp, 160.dp)   // 1×2+
+        private val WIDE   = DpSize(160.dp, 80.dp)   // 2×1
+        private val MEDIUM = DpSize(160.dp, 160.dp)   // 2×2
+        private val LARGE  = DpSize(240.dp, 200.dp)   // 3×2+
     }
 
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, WIDE, LARGE))
+    override val sizeMode = SizeMode.Responsive(setOf(SMALL, TALL, WIDE, MEDIUM, LARGE))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -49,8 +51,10 @@ class AppWidget : GlanceAppWidget() {
                     .cornerRadius(28.dp)
             ) {
                 when {
-                    size.width < 150.dp -> SmallLayout(context, accentColor)
-                    size.height < 140.dp -> WideLayout(context, surfaceColor, accentColor)
+                    size.width < 130.dp && size.height < 130.dp -> SmallLayout(context, surfaceColor, accentColor)
+                    size.width < 130.dp -> TallLayout(context, prefs, surfaceColor, accentColor)
+                    size.height < 130.dp -> WideLayout(context, prefs, surfaceColor, accentColor)
+                    size.height < 200.dp -> MediumLayout(context, prefs, surfaceColor, accentColor)
                     else -> LargeDashboard(context, prefs, surfaceColor, accentColor)
                 }
             }
@@ -58,31 +62,111 @@ class AppWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun SmallLayout(context: Context, accentColor: Color) {
+    private fun SmallLayout(context: Context, surfaceColor: Color, accentColor: Color) {
         Box(
             modifier = GlanceModifier.fillMaxSize().padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Box(
+            Column(
                 modifier = GlanceModifier
-                    .size(56.dp)
-                    .background(accentColor)
+                    .fillMaxSize()
+                    .background(surfaceColor)
                     .cornerRadius(16.dp)
                     .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
-                contentAlignment = Alignment.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    provider = ImageProvider(R.drawable.ic_input_add),
+                    provider = ImageProvider(R.drawable.ic_menu_edit),
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(ColorProvider(Color.White))
+                    modifier = GlanceModifier.size(18.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(accentColor))
                 )
+                Spacer(GlanceModifier.height(4.dp))
+                Text("Quick Record...", style = TextStyle(fontSize = 12.sp, color = ColorProvider(Color(0xFF606060))))
             }
         }
     }
 
     @Composable
-    private fun WideLayout(context: Context, surfaceColor: Color, accentColor: Color) {
-        Column(modifier = GlanceModifier.fillMaxSize().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+    private fun TallLayout(context: Context, prefs: android.content.SharedPreferences, surfaceColor: Color, accentColor: Color) {
+        val balance = prefs.getString("total_balance", "0") ?: "0"
+        val currency = prefs.getString("currency", "VND") ?: "VND"
+
+        Column(
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Balance section
+            Text("Balance", style = TextStyle(fontSize = 10.sp, color = ColorProvider(Color.Gray)))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(balance, style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Black)))
+                Spacer(GlanceModifier.width(3.dp))
+                Text(currency, style = TextStyle(fontSize = 10.sp, color = ColorProvider(Color.Black)))
+            }
+
+            Spacer(GlanceModifier.defaultWeight())
+
+            QuickRecordBar(context, surfaceColor)
+        }
+    }
+
+    @Composable
+    private fun WideLayout(context: Context, prefs: android.content.SharedPreferences, surfaceColor: Color, accentColor: Color) {
+        val balance = prefs.getString("total_balance", "0") ?: "0"
+        val currency = prefs.getString("currency", "VND") ?: "VND"
+
+        Row(
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = GlanceModifier.defaultWeight()) {
+                Text("Balance", style = TextStyle(fontSize = 10.sp, color = ColorProvider(Color.Gray)))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(balance, style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Black)))
+                    Spacer(GlanceModifier.width(3.dp))
+                    Text(currency, style = TextStyle(fontSize = 9.sp, color = ColorProvider(Color.Black)))
+                }
+            }
+            Box(modifier = GlanceModifier.defaultWeight()) {
+                QuickRecordBar(context, surfaceColor)
+            }
+        }
+    }
+
+    @Composable
+    private fun MediumLayout(context: Context, prefs: android.content.SharedPreferences, surfaceColor: Color, accentColor: Color) {
+        val balance = prefs.getString("total_balance", "0") ?: "0"
+        val income = prefs.getString("total_income", "0") ?: "0"
+        val spend = prefs.getString("total_spend", "0") ?: "0"
+        val currency = prefs.getString("currency", "VND") ?: "VND"
+        val month = prefs.getString("current_month", "") ?: ""
+
+        Column(modifier = GlanceModifier.fillMaxSize().padding(14.dp)) {
+            // Month label
+            if (month.isNotEmpty()) {
+                Text(month, style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Gray)))
+                Spacer(GlanceModifier.height(8.dp))
+            }
+
+            // Balance
+            Text("Available Balance", style = TextStyle(fontSize = 10.sp, color = ColorProvider(Color(0xFF505050))))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(balance, style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Black)))
+                Spacer(GlanceModifier.width(4.dp))
+                Text(currency, style = TextStyle(fontSize = 11.sp, color = ColorProvider(Color.Black)))
+            }
+
+            Spacer(GlanceModifier.height(10.dp))
+
+            // Income/Expense
+            Row(modifier = GlanceModifier.fillMaxWidth()) {
+                StatItem("Income", income, currency, Color(0xFF2E7D32), GlanceModifier.defaultWeight())
+                StatItem("Spent", spend, currency, Color(0xFFC62828), GlanceModifier.defaultWeight())
+            }
+
+            Spacer(GlanceModifier.defaultWeight())
+
             QuickRecordBar(context, surfaceColor)
         }
     }
@@ -93,6 +177,7 @@ class AppWidget : GlanceAppWidget() {
         val income = prefs.getString("total_income", "0") ?: "0"
         val spend = prefs.getString("total_spend", "0") ?: "0"
         val currency = prefs.getString("currency", "VND") ?: "VND"
+        val month = prefs.getString("current_month", "") ?: ""
 
         Column(modifier = GlanceModifier.fillMaxSize().padding(16.dp)) {
             // Header Tag
@@ -100,6 +185,12 @@ class AppWidget : GlanceAppWidget() {
                 Box(GlanceModifier.size(10.dp, 4.dp).background(accentColor).cornerRadius(2.dp)) {}
                 Spacer(GlanceModifier.width(6.dp))
                 Text("WALLY AI", style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Gray)))
+            }
+
+            // Month label
+            if (month.isNotEmpty()) {
+                Spacer(GlanceModifier.height(2.dp))
+                Text(month, style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ColorProvider(Color.Gray)))
             }
 
             Spacer(GlanceModifier.defaultWeight())
@@ -111,7 +202,7 @@ class AppWidget : GlanceAppWidget() {
                 Spacer(GlanceModifier.width(4.dp))
                 Text(currency, style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ColorProvider(Color.Black)))
             }
-            
+
             Spacer(GlanceModifier.height(14.dp))
 
             // Income/Expense Row
