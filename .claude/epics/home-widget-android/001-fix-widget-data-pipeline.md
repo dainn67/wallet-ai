@@ -1,8 +1,8 @@
 ---
 name: Fix widget data pipeline — current-month filtered totals
-status: open
+status: closed
 created: 2026-03-29T05:11:10Z
-updated: 2026-03-29T05:11:10Z
+updated: 2026-03-29T05:18:16Z
 complexity: simple
 recommended_model: sonnet
 phase: 1

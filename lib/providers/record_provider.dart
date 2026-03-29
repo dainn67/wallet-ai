@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:home_widget/home_widget.dart';
+import 'package:intl/intl.dart';
 
 import 'package:wallet_ai/helpers/currency_helper.dart';
 import 'package:wallet_ai/models/models.dart';
@@ -199,25 +200,12 @@ class RecordProvider extends ChangeNotifier {
   }
 
   void _updateWidget() {
-    double totalBalance = 0;
-    for (var source in _moneySources) {
-      totalBalance += source.amount;
-    }
-
-    double totalIncome = 0;
-    double totalSpend = 0;
-    for (var record in _records) {
-      if (record.type.toLowerCase() == 'income') {
-        totalIncome += record.amount;
-      } else if (record.type.toLowerCase() == 'expense') {
-        totalSpend += record.amount;
-      }
-    }
-
+    final monthLabel = DateFormat('MMMM yyyy').format(_selectedDateRange?.start ?? DateTime.now());
     HomeWidget.saveWidgetData<String>('total_balance', CurrencyHelper.format(totalBalance));
-    HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(totalIncome));
-    HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(totalSpend));
+    HomeWidget.saveWidgetData<String>('total_income', CurrencyHelper.format(filteredTotalIncome));
+    HomeWidget.saveWidgetData<String>('total_spend', CurrencyHelper.format(filteredTotalExpense));
     HomeWidget.saveWidgetData<String>('currency', StorageService().getString(StorageService.keyCurrency) ?? 'USD');
+    HomeWidget.saveWidgetData<String>('current_month', monthLabel);
     HomeWidget.updateWidget(androidName: 'MyWidgetReceiver', iOSName: 'Quick_Chat_Widget');
   }
 
