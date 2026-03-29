@@ -27,9 +27,7 @@ class ChatProvider extends ChangeNotifier {
   RecordProvider? _recordProvider;
   LocaleProvider? _localeProvider;
 
-  ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider})
-      : _recordProvider = recordProvider,
-        _localeProvider = localeProvider;
+  ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider}) : _recordProvider = recordProvider, _localeProvider = localeProvider;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
@@ -80,7 +78,7 @@ class ChatProvider extends ChangeNotifier {
     final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources);
     final language = _localeProvider?.language == AppLanguage.vietnamese ? 'Vietnamese' : 'English';
     final currency = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
-    
+
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
@@ -129,6 +127,7 @@ class ChatProvider extends ChangeNotifier {
               final parts = fullText.split(ChatConfig.delimiter);
               if (parts.length >= 2) {
                 final jsonString = parts[1].trim();
+                print('jsonString: $jsonString');
                 try {
                   final List<dynamic> recordsJson = jsonDecode(jsonString);
                   final List<Record> records = [];
