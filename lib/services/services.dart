@@ -1,3 +1,4 @@
+export 'ai_context_service.dart';
 export 'api_exception.dart';
 export 'api_service.dart';
 export 'chat_api_service.dart';
