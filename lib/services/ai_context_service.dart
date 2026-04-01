@@ -30,7 +30,6 @@ class AiContextService {
     return parts.last;
   }
 
-
   /// Transforms a [Record] into a concise map for AI context.
   /// Combines amount and currency to save tokens (e.g. "20USD").
   Map<String, dynamic> _recordToMap(Record record) {
@@ -38,7 +37,6 @@ class AiContextService {
     return {
       'description': record.description,
       'amount': '${record.amount}${record.currency}',
-      'type': record.type,
       'category': _extractCategoryName(record.categoryName),
       'money_source': record.sourceName ?? 'Unknown',
       'datetime': DateFormat('HH:mm d MMM yyyy').format(dt),
@@ -64,67 +62,46 @@ class AiContextService {
       }
     }
 
-    return {
-      'period_days': periodDays,
-      'total_income': totalIncome,
-      'total_expense': totalExpense,
-      'by_category': byCategory,
-      'by_money_source': byMoneySource,
-    };
+    return {'period_days': periodDays, 'total_income': totalIncome, 'total_expense': totalExpense, 'by_category': byCategory, 'by_money_source': byMoneySource};
   }
 
   /// Fetches and packages data into a context map for the AI to analyze.
-  /// [start] and [end] can define an exact sync window. 
+  /// [start] and [end] can define an exact sync window.
   /// If not provided, [isInitial] determines the default window (90d for initial, 1d for daily).
-  Future<Map<String, dynamic>> getAiContext({
-    DateTime? start,
-    DateTime? end,
-    bool isInitial = false,
-  }) async {
+  Future<Map<String, dynamic>> getAiContext({DateTime? start, DateTime? end, bool isInitial = false}) async {
     final now = DateTime.now();
 
     // 1. Determine the record boundaries
     DateTime recordStartDate;
     DateTime recordEndDate = end ?? now;
-    
+
     if (start != null) {
       recordStartDate = start;
     } else {
-      recordStartDate = isInitial 
-          ? now.subtract(const Duration(days: 90)) 
-          : now.subtract(const Duration(hours: 24));
+      recordStartDate = isInitial ? now.subtract(const Duration(days: 90)) : now.subtract(const Duration(hours: 24));
     }
 
     // 2. Summary window is the larger of the record window or 30 days trailing from end
     final int recordWindowDays = recordEndDate.difference(recordStartDate).inDays;
     // Always summarize at least 30 days for context, unless Initial sync which matches its window exactly
-    final int summaryDays = isInitial 
-        ? recordWindowDays 
-        : (recordWindowDays > 30 ? recordWindowDays : 30);
-        
+    final int summaryDays = isInitial ? recordWindowDays : (recordWindowDays > 30 ? recordWindowDays : 30);
+
     final DateTime summaryStartDate = recordEndDate.subtract(Duration(days: summaryDays));
 
     final allRecords = await RecordRepository().getAllRecords();
 
     final windowRecords = allRecords.where((r) {
-      return r.lastUpdated >= recordStartDate.millisecondsSinceEpoch &&
-             r.lastUpdated <= recordEndDate.millisecondsSinceEpoch;
+      return r.lastUpdated >= recordStartDate.millisecondsSinceEpoch && r.lastUpdated <= recordEndDate.millisecondsSinceEpoch;
     }).toList();
-    
+
     final summaryRecords = allRecords.where((r) {
-      return r.lastUpdated >= summaryStartDate.millisecondsSinceEpoch &&
-             r.lastUpdated <= recordEndDate.millisecondsSinceEpoch;
+      return r.lastUpdated >= summaryStartDate.millisecondsSinceEpoch && r.lastUpdated <= recordEndDate.millisecondsSinceEpoch;
     }).toList();
 
     final records = windowRecords.map(_recordToMap).toList();
     final summary = _buildSummary(summaryRecords, summaryDays);
 
-    final clientMetadata = {
-      'current_time': DateFormat('HH:mm d MMM yyyy').format(now),
-      'timezone': now.timeZoneName,
-      'language': StorageService().getString('user_language') ?? 'en',
-      'currency': StorageService().getString(StorageService.keyCurrency) ?? 'USD',
-    };
+    final clientMetadata = {'current_time': DateFormat('HH:mm d MMM yyyy').format(now), 'currency': StorageService().getString(StorageService.keyCurrency) ?? 'USD'};
 
     return {'client_metadata': clientMetadata, 'records': records, 'summary': summary};
   }
@@ -148,45 +125,39 @@ class AiContextService {
       // Delta sync -> from last sync to yesterday
       final lastSyncDate = DateTime.fromMillisecondsSinceEpoch(lastSyncTime);
       final yesterday = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
-      
+
       // If we've already synced up to yesterday or today, nothing to do.
       if (lastSyncDate.isAfter(yesterday) || lastSyncDate.isAtSameMomentAs(yesterday)) {
         debugPrint('AiContextService: Context already up to date.');
         return;
       }
-      
+
       // Start is the day AFTER the last sync
       startDate = DateTime(lastSyncDate.year, lastSyncDate.month, lastSyncDate.day).add(const Duration(days: 1));
       endDate = yesterday;
     }
 
     try {
-      final contextPayload = await getAiContext(
-        start: startDate, 
-        end: endDate, 
-        isInitial: isInitial,
-      );
+      final contextPayload = await getAiContext(start: startDate, end: endDate, isInitial: isInitial);
 
       final token = AppConfig().patternSyncApiKey;
-      final headers = {
-        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-      };
+      final headers = {if (token.isNotEmpty) 'Authorization': 'Bearer $token'};
 
       debugPrint('AiContextService: Syncing pattern from $startDate to $endDate');
 
-      // POST to server pattern endpoint
-      final responseStr = await ApiService().post(
-        '/api/patterns/sync', 
-        data: contextPayload,
-        headers: headers,
-      );
+      // Wrap in 'inputs' field like ChatApiService style
+      final payload = {'inputs': contextPayload};
+
+      // POST to the new single-question endpoint
+      final responseStr = await ApiService().post('/api/single-question/walletai-analyze-pattern', data: payload, headers: headers);
 
       if (responseStr != null && responseStr.isNotEmpty) {
         String patternData = responseStr;
         try {
           final decoded = jsonDecode(responseStr);
-          if (decoded is Map<String, dynamic> && decoded.containsKey('pattern')) {
-            patternData = decoded['pattern'];
+          // Match standard Dify/API response style: checking both 'answer' and 'pattern'
+          if (decoded is Map<String, dynamic>) {
+            patternData = decoded['message'] ?? decoded['pattern'] ?? responseStr;
           }
         } catch (e) {
           debugPrint('AiContextService: Response is not JSON, treating as raw string.');
@@ -195,7 +166,7 @@ class AiContextService {
         // Save pattern and update sync time
         await storage.setString(StorageService.keyLongTermUserPattern, patternData);
         await storage.setInt(StorageService.keyLastContextSyncTime, endDate.millisecondsSinceEpoch);
-        
+
         debugPrint('AiContextService: Sync complete.');
       } else {
         debugPrint('AiContextService: Sync empty response from server.');
