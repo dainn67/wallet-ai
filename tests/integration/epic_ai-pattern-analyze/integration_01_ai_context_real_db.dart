@@ -77,7 +77,7 @@ void main() {
     RecordRepository.setMockInstance(null);
   });
 
-  group('Integration: Real DB → buildSnapshot() (FR-2, FR-6)', () {
+  group('Integration: Real DB → getAiContext() (FR-2, FR-6)', () {
     test('sub-category name extracted correctly from JOIN', () async {
       // Insert record with sub-category "Dining Out" (parent: Food)
       final repo = RecordRepository();
@@ -91,7 +91,7 @@ void main() {
         'last_updated': DateTime.now().millisecondsSinceEpoch,
       });
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final records = snapshot['records'] as List;
 
       expect(records, hasLength(1));
@@ -114,7 +114,7 @@ void main() {
         'last_updated': DateTime.now().millisecondsSinceEpoch,
       });
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final records = snapshot['records'] as List;
 
       expect(records.first['category'], equals('Transport'),
@@ -135,7 +135,7 @@ void main() {
         'currency': 'VND', 'description': 'Salary', 'type': 'income', 'last_updated': now,
       });
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final summary = snapshot['summary'] as Map<String, dynamic>;
 
       expect(summary['total_expense'], equals(50000));
@@ -155,7 +155,7 @@ void main() {
         'last_updated': DateTime.now().millisecondsSinceEpoch,
       });
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       expect(() => jsonEncode(snapshot), returnsNormally,
           reason: 'Snapshot with real DB data must be JSON-serializable');
     });
@@ -179,7 +179,7 @@ void main() {
         'last_updated': outsideWindow,
       });
 
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       final records = snapshot['records'] as List;
 
       expect(records, hasLength(1));
@@ -204,7 +204,7 @@ void main() {
         'last_updated': beyond24h,
       });
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final records = snapshot['records'] as List;
 
       expect(records, hasLength(1));
@@ -219,7 +219,7 @@ void main() {
 
   group('Integration: Client metadata (FR-7)', () {
     test('language and currency come from StorageService', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final meta = snapshot['client_metadata'] as Map<String, dynamic>;
 
       expect(meta['language'], equals('vi'));

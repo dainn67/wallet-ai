@@ -46,6 +46,7 @@ class AppConfig {
 
   // API Tokens and Secrets
   String get mainChatApiKey => dotenv.env['MAIN_CHAT_API_KEY'] ?? '';
+  String get patternSyncApiKey => dotenv.env['PATTERN_SYNC_API_KEY'] ?? '';
   String get otherSecretKey => dotenv.env['OTHER_SECRET_KEY'] ?? '';
 
   String getEnv(String key, {String defaultValue = ''}) => dotenv.env[key] ?? defaultValue;

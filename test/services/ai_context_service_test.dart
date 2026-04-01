@@ -79,7 +79,7 @@ void main() {
             makeRecord(recordId: 3, categoryName: null),
           ]);
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final records = snapshot['records'] as List;
 
       expect(records[0]['category'], 'Dining Out');
@@ -112,7 +112,7 @@ void main() {
 
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => records);
 
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       final snapshotRecords = snapshot['records'] as List;
 
       for (int i = 0; i < boundaries.length; i++) {
@@ -147,7 +147,7 @@ void main() {
 
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => [r89, r90, r91]);
 
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       final records = snapshot['records'] as List;
       final descriptions = records.map((r) => r['description'] as String).toSet();
 
@@ -182,7 +182,7 @@ void main() {
 
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => [r12h, r25h, r5d]);
 
-      final snapshot = await AiContextService().buildSnapshot(isInitial: false);
+      final snapshot = await AiContextService().getAiContext(isInitial: false);
       final records = snapshot['records'] as List;
       final summary = snapshot['summary'] as Map;
 
@@ -200,7 +200,7 @@ void main() {
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => []);
 
       for (final isInitial in [false, true]) {
-        final snapshot = await AiContextService().buildSnapshot(isInitial: isInitial);
+        final snapshot = await AiContextService().getAiContext(isInitial: isInitial);
         final records = snapshot['records'] as List;
         final summary = snapshot['summary'] as Map;
 
@@ -215,7 +215,7 @@ void main() {
     test('no records in window — records is empty, totals = 0', () async {
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => []);
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final records = snapshot['records'] as List;
       final summary = snapshot['summary'] as Map;
 
@@ -272,7 +272,7 @@ void main() {
 
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => records);
 
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       final summary = snapshot['summary'] as Map;
 
       expect(summary['total_income'], 500000.0);
@@ -297,8 +297,8 @@ void main() {
     test('sync_type is "daily" for default and "initial" for isInitial=true', () async {
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => []);
 
-      final daily = await AiContextService().buildSnapshot(isInitial: false);
-      final initial = await AiContextService().buildSnapshot(isInitial: true);
+      final daily = await AiContextService().getAiContext(isInitial: false);
+      final initial = await AiContextService().getAiContext(isInitial: true);
 
       expect((daily['client_metadata'] as Map)['sync_type'], 'daily');
       expect((initial['client_metadata'] as Map)['sync_type'], 'initial');
@@ -307,7 +307,7 @@ void main() {
     test('metadata contains current_time, timezone, language, currency', () async {
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => []);
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final meta = snapshot['client_metadata'] as Map;
 
       expect(meta['current_time'], isA<String>());
@@ -319,20 +319,20 @@ void main() {
   });
 
   group('Group 9: jsonEncode validation', () {
-    test('buildSnapshot output passes jsonEncode without error', () async {
+    test('getAiContext output passes jsonEncode without error', () async {
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => [
             makeRecord(),
             makeRecord(recordId: 2, type: 'income', sourceName: null),
           ]);
 
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       expect(() => jsonEncode(snapshot), returnsNormally);
     });
 
-    test('buildSnapshot(isInitial: true) output passes jsonEncode without error', () async {
+    test('getAiContext(isInitial: true) output passes jsonEncode without error', () async {
       when(() => mockRepo.getAllRecords()).thenAnswer((_) async => [makeRecord()]);
 
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       expect(() => jsonEncode(snapshot), returnsNormally);
     });
   });

@@ -60,26 +60,26 @@ void main() {
     });
 
     test('daily snapshot has required top-level keys', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       expect(snapshot.containsKey('client_metadata'), isTrue);
       expect(snapshot.containsKey('records'), isTrue);
       expect(snapshot.containsKey('summary'), isTrue);
     });
 
     test('initial snapshot has required top-level keys', () async {
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       expect(snapshot.containsKey('client_metadata'), isTrue);
       expect(snapshot.containsKey('records'), isTrue);
       expect(snapshot.containsKey('summary'), isTrue);
     });
 
     test('records is a List', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       expect(snapshot['records'], isA<List>());
     });
 
     test('summary has all required keys (FR-6)', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final summary = snapshot['summary'] as Map<String, dynamic>;
       for (final key in ['period_days', 'total_income', 'total_expense', 'by_category', 'by_time_of_day', 'by_money_source']) {
         expect(summary.containsKey(key), isTrue,
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('client_metadata has all required keys (FR-7)', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       final meta = snapshot['client_metadata'] as Map<String, dynamic>;
       for (final key in ['sync_type', 'current_time', 'timezone', 'language', 'currency']) {
         expect(meta.containsKey(key), isTrue,
@@ -97,12 +97,12 @@ void main() {
     });
 
     test('daily sync_type is "daily" (FR-7)', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       expect((snapshot['client_metadata'] as Map)['sync_type'], equals('daily'));
     });
 
     test('initial sync_type is "initial" (FR-7)', () async {
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       expect((snapshot['client_metadata'] as Map)['sync_type'], equals('initial'));
     });
   });
@@ -113,12 +113,12 @@ void main() {
     });
 
     test('daily snapshot can be jsonEncoded without error', () async {
-      final snapshot = await AiContextService().buildSnapshot();
+      final snapshot = await AiContextService().getAiContext();
       expect(() => jsonEncode(snapshot), returnsNormally);
     });
 
     test('initial snapshot can be jsonEncoded without error', () async {
-      final snapshot = await AiContextService().buildSnapshot(isInitial: true);
+      final snapshot = await AiContextService().getAiContext(isInitial: true);
       expect(() => jsonEncode(snapshot), returnsNormally);
     });
   });

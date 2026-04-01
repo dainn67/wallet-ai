@@ -1,5 +1,5 @@
 ---
-name: Create AiContextService with buildSnapshot()
+name: Create AiContextService with getAiContext()
 status: closed
 created: 2026-04-01T07:02:07Z
 updated: 2026-04-01T07:15:04Z
@@ -24,7 +24,7 @@ prd_requirements:
   - FR-7
 ---
 
-# T1: Create AiContextService with buildSnapshot()
+# T1: Create AiContextService with getAiContext()
 
 ## Context
 
@@ -39,8 +39,9 @@ Create `AiContextService` as a singleton service in `lib/services/` following th
 - [ ] **FR-1 / Singleton:** `AiContextService()` returns same instance; `setMockInstance()` available for testing
 - [ ] **FR-2 / Names only:** Records in snapshot use `description`, `category` (sub-category name), `money_source` (source name) — no database IDs
 - [ ] **FR-2 / Sub-category extraction:** Record with `categoryName = "Food - Dining Out"` → `"category": "Dining Out"`; record with `categoryName = "Transport"` → `"category": "Transport"`; null categoryName → `"Uncategorized"`
-- [ ] **FR-4 / Initial 90d:** `buildSnapshot(isInitial: true)` returns records from last 90 days only; `summary.period_days = 90`
-- [ ] **FR-5 / Daily 24h+30d:** `buildSnapshot()` returns records from last 24h; summary covers 30 days; `summary.period_days = 30`
+- [ ] **FR-4 / Initial 90d:** `getAiContext(isInitial: true)` returns records from last 90 days by default; `summary.period_days = 90`
+- [ ] **FR-5 / Daily 24h+30d:** `getAiContext()` returns records from last 24h (1 day) by default; summary covers 30 days; `summary.period_days = 30`
+- [ ] **FR-5 / On-demand window:** `getAiContext(days: 7)` returns records from last 7 days; `summary` covers at least the record window or 30 days
 - [ ] **FR-5 / Empty window:** If no records in window → `records: []`, `summary.total_income: 0`, `summary.total_expense: 0`
 - [ ] **FR-6 / Summary:** `by_category`, `by_money_source` aggregate expense records only; `total_income` and `total_expense` computed correctly
 - [ ] **FR-7 / Metadata:** `client_metadata` includes `sync_type`, `current_time` (UTC ISO 8601), `timezone`, `language`, `currency`
@@ -119,7 +120,7 @@ Tests are covered in T2 (002-unit-tests-ai-context-service.md). This task focuse
 - [ ] `lib/services/ai_context_service.dart` compiles without errors: `cd /Users/nguyendai/StudioProjects/wallet-ai && flutter analyze lib/services/ai_context_service.dart`
 - [ ] No Flutter UI imports in the file (no `package:flutter/material.dart`, no `BuildContext`)
 - [ ] `lib/services/services.dart` exports the new file
-- [ ] Manual: calling `AiContextService().buildSnapshot()` in debug returns a valid Map
+- [ ] Manual: calling `AiContextService().getAiContext()` in debug returns a valid Map
 
 ## Dependencies
 
