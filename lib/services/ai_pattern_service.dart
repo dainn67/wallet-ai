@@ -41,62 +41,46 @@ class AiPatternService {
     };
   }
 
-  /// Builds a summary of income/expenses aggregated by category and source.
-  Map<String, dynamic> _buildSummary(List<Record> records, int periodDays) {
-    double totalIncome = 0;
-    double totalExpense = 0;
-    final byCategory = <String, double>{};
-    final byMoneySource = <String, double>{};
-
-    for (final record in records) {
-      if (record.type == 'income') {
-        totalIncome += record.amount;
-      } else {
-        totalExpense += record.amount;
-        final category = _extractCategoryName(record.categoryName);
-        byCategory[category] = (byCategory[category] ?? 0) + record.amount;
-        final source = record.sourceName ?? 'Unknown';
-        byMoneySource[source] = (byMoneySource[source] ?? 0) + record.amount;
-      }
-    }
-
-    return {'period_days': periodDays, 'total_income': totalIncome, 'total_expense': totalExpense, 'by_category': byCategory, 'by_money_source': byMoneySource};
-  }
-
   /// Fetches and packages data into a context snapshot for the AI to analyze.
-  /// [start] and [end] can define an exact window.
-  Future<Map<String, dynamic>> _generateContextSnapshot({DateTime? start, DateTime? end, bool isInitial = false}) async {
+  Future<Map<String, dynamic>> _generateContextSnapshot(DateTime latestStart, DateTime latestEnd) async {
     final now = DateTime.now();
+    final currency = StorageService().getString(StorageService.keyCurrency) ?? 'USD';
 
-    DateTime recordStartDate;
-    DateTime recordEndDate = end ?? now;
+    // 1. Calculate Timeframes
+    // Momentum: 3 days before the start of the latest window
+    final momentumEndDate = latestStart.subtract(const Duration(milliseconds: 1));
+    final momentumStartDate = DateTime(latestStart.year, latestStart.month, latestStart.day).subtract(const Duration(days: 3));
 
-    if (start != null) {
-      recordStartDate = start;
-    } else {
-      recordStartDate = isInitial ? now.subtract(const Duration(days: 90)) : now.subtract(const Duration(hours: 24));
-    }
+    // 2. Fetch Data
+    final recordRepo = RecordRepository();
+    final allRecords = await recordRepo.getAllRecords();
+    final allSources = await recordRepo.getAllMoneySources();
 
-    final int recordWindowDays = recordEndDate.difference(recordStartDate).inDays;
-    final int summaryDays = isInitial ? recordWindowDays : (recordWindowDays > 30 ? recordWindowDays : 30);
-    final DateTime summaryStartDate = recordEndDate.subtract(Duration(days: summaryDays));
+    final budgetRemaining = allSources.map((s) => '${s.amount}$currency from ${s.sourceName}').toList();
 
-    final allRecords = await RecordRepository().getAllRecords();
+    // 3. Filter Records
+    final latestRecords = allRecords.where((r) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+      return dt.isAfter(latestStart.subtract(const Duration(milliseconds: 1))) && 
+             dt.isBefore(latestEnd.add(const Duration(milliseconds: 1)));
+    }).map(_recordToMap).toList();
 
-    final windowRecords = allRecords.where((r) {
-      return r.lastUpdated >= recordStartDate.millisecondsSinceEpoch && r.lastUpdated <= recordEndDate.millisecondsSinceEpoch;
-    }).toList();
+    final momentumRecords = allRecords.where((r) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+      return dt.isAfter(momentumStartDate.subtract(const Duration(milliseconds: 1))) && 
+             dt.isBefore(momentumEndDate.add(const Duration(milliseconds: 1)));
+    }).map(_recordToMap).toList();
 
-    final summaryRecords = allRecords.where((r) {
-      return r.lastUpdated >= summaryStartDate.millisecondsSinceEpoch && r.lastUpdated <= recordEndDate.millisecondsSinceEpoch;
-    }).toList();
-
-    final records = windowRecords.map(_recordToMap).toList();
-    final summary = _buildSummary(summaryRecords, summaryDays);
-
-    final clientMetadata = {'current_time': DateFormat('HH:mm d MMM yyyy').format(now), 'currency': StorageService().getString(StorageService.keyCurrency) ?? 'USD'};
-
-    return {'client_metadata': clientMetadata, 'records': records, 'summary': summary};
+    // 4. Build Structure
+    return {
+      'current_context': {
+        'current_time': DateFormat('HH:mm').format(now),
+        'day_of_week': DateFormat('E').format(now),
+        'budget_remaining': budgetRemaining,
+      },
+      'latest_records': latestRecords,
+      'recent_momentum': momentumRecords,
+    };
   }
 
   /// Updates the user pattern in storage by sending data to the AI server.
@@ -107,38 +91,36 @@ class AiPatternService {
     final int lastUpdateTime = storage.getInt(StorageService.keyLastPatternUpdateTime) ?? -1;
     final now = DateTime.now();
 
-    DateTime? startDate;
-    DateTime? endDate;
-    bool isInitial = false;
+    // We effectively sync up to the very end of yesterday's data.
+    final endOfYesterday = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
+
+    DateTime latestStart;
+    DateTime latestEnd = endOfYesterday;
 
     if (lastUpdateTime == -1) {
       // First time -> 90 days.
-      isInitial = true;
-      endDate = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
+      latestStart = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 90));
     } else {
       final lastUpdateDate = DateTime.fromMillisecondsSinceEpoch(lastUpdateTime);
-      final yesterday = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
-
-      if (!force && (lastUpdateDate.isAfter(yesterday) || lastUpdateDate.isAtSameMomentAs(yesterday))) {
-        debugPrint('AiPatternService: Pattern already updated today.');
+      
+      if (!force && (lastUpdateDate.isAfter(endOfYesterday) || lastUpdateDate.isAtSameMomentAs(endOfYesterday))) {
+        debugPrint('AiPatternService: Pattern already updated for yesterday.');
         return;
       }
-
-      startDate = DateTime(lastUpdateDate.year, lastUpdateDate.month, lastUpdateDate.day).add(const Duration(days: 1));
-      endDate = yesterday;
+      latestStart = DateTime(lastUpdateDate.year, lastUpdateDate.month, lastUpdateDate.day).add(const Duration(days: 1));
     }
 
     try {
-      final contextPayload = await _generateContextSnapshot(start: startDate, end: endDate, isInitial: isInitial);
+      final contextPayload = await _generateContextSnapshot(latestStart, latestEnd);
       final token = ApiConfig().patternSyncApiKey;
       final headers = {if (token.isNotEmpty) 'Authorization': 'Bearer $token'};
 
-      debugPrint('AiPatternService: Requesting pattern update from $startDate to $endDate');
+      debugPrint('AiPatternService: Requesting pattern update...');
+
+      final currentPattern = storage.getString(StorageService.keyUserPattern) ?? '';
 
       final payload = {
-        'user': 'system_sync',
-        'query': 'Analyze my spending pattern from ${startDate ?? "beginning"} to ${endDate ?? "yesterday"}',
-        'inputs': contextPayload,
+        'inputs': {'recent_context': contextPayload, 'current_pattern': currentPattern},
       };
 
       final responseStr = await ApiService().post(ApiConfig.updateUserPatternPath, data: payload, headers: headers);
@@ -153,7 +135,8 @@ class AiPatternService {
         } catch (_) {}
 
         await storage.setString(StorageService.keyUserPattern, patternData);
-        await storage.setInt(StorageService.keyLastPatternUpdateTime, endDate.millisecondsSinceEpoch);
+        // Save the end of yesterday as the new sync watermark
+        await storage.setInt(StorageService.keyLastPatternUpdateTime, endOfYesterday.millisecondsSinceEpoch);
         debugPrint('AiPatternService: User pattern updated.');
       }
     } catch (e) {
@@ -161,3 +144,4 @@ class AiPatternService {
     }
   }
 }
+
