@@ -6,18 +6,18 @@ import 'package:wallet_ai/models/record.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:wallet_ai/services/services.dart';
 
-class AiContextService {
-  /// Singleton instance of [AiContextService].
-  static final AiContextService _instance = AiContextService._internal();
-  static AiContextService? _mockInstance;
+class AiPatternService {
+  /// Singleton instance of [AiPatternService].
+  static final AiPatternService _instance = AiPatternService._internal();
+  static AiPatternService? _mockInstance;
 
-  /// Returns the singleton instance of [AiContextService].
-  factory AiContextService() => _mockInstance ?? _instance;
-  AiContextService._internal();
+  /// Returns the singleton instance of [AiPatternService].
+  factory AiPatternService() => _mockInstance ?? _instance;
+  AiPatternService._internal();
 
   /// Sets a mock instance for testing purposes.
   @visibleForTesting
-  static void setMockInstance(AiContextService? instance) {
+  static void setMockInstance(AiPatternService? instance) {
     _mockInstance = instance;
   }
 
@@ -30,7 +30,6 @@ class AiContextService {
   }
 
   /// Transforms a [Record] into a concise map for AI context.
-  /// Combines amount and currency to save tokens (e.g. "20USD").
   Map<String, dynamic> _recordToMap(Record record) {
     final dt = DateTime.fromMillisecondsSinceEpoch(record.lastUpdated);
     return {
@@ -64,13 +63,11 @@ class AiContextService {
     return {'period_days': periodDays, 'total_income': totalIncome, 'total_expense': totalExpense, 'by_category': byCategory, 'by_money_source': byMoneySource};
   }
 
-  /// Fetches and packages data into a context map for the AI to analyze.
-  /// [start] and [end] can define an exact sync window.
-  /// If not provided, [isInitial] determines the default window (90d for initial, 1d for daily).
-  Future<Map<String, dynamic>> getAiContext({DateTime? start, DateTime? end, bool isInitial = false}) async {
+  /// Fetches and packages data into a context snapshot for the AI to analyze.
+  /// [start] and [end] can define an exact window.
+  Future<Map<String, dynamic>> _generateContextSnapshot({DateTime? start, DateTime? end, bool isInitial = false}) async {
     final now = DateTime.now();
 
-    // 1. Determine the record boundaries
     DateTime recordStartDate;
     DateTime recordEndDate = end ?? now;
 
@@ -80,11 +77,8 @@ class AiContextService {
       recordStartDate = isInitial ? now.subtract(const Duration(days: 90)) : now.subtract(const Duration(hours: 24));
     }
 
-    // 2. Summary window is the larger of the record window or 30 days trailing from end
     final int recordWindowDays = recordEndDate.difference(recordStartDate).inDays;
-    // Always summarize at least 30 days for context, unless Initial sync which matches its window exactly
     final int summaryDays = isInitial ? recordWindowDays : (recordWindowDays > 30 ? recordWindowDays : 30);
-
     final DateTime summaryStartDate = recordEndDate.subtract(Duration(days: summaryDays));
 
     final allRecords = await RecordRepository().getAllRecords();
@@ -105,74 +99,65 @@ class AiContextService {
     return {'client_metadata': clientMetadata, 'records': records, 'summary': summary};
   }
 
-  /// Triggers a background sync of AI patterns based on the last sync time.
-  /// Should be called on app startup (e.g. from main.dart).
-  /// Use [force] to bypass the daily check for testing purposes.
-  Future<void> syncPendingContexts({bool force = false}) async {
+  /// Updates the user pattern in storage by sending data to the AI server.
+  /// Triggered on app startup or manually from test UI.
+  /// Use [force] to bypass the daily update check during testing.
+  Future<void> updateUserPattern({bool force = false}) async {
     final storage = StorageService();
-    final int lastSyncTime = storage.getInt(StorageService.keyLastContextSyncTime) ?? -1;
+    final int lastUpdateTime = storage.getInt(StorageService.keyLastPatternUpdateTime) ?? -1;
     final now = DateTime.now();
 
     DateTime? startDate;
     DateTime? endDate;
     bool isInitial = false;
 
-    if (lastSyncTime == -1) {
-      // First time sync -> 90 days. Leave start/end null but set isInitial.
+    if (lastUpdateTime == -1) {
+      // First time -> 90 days.
       isInitial = true;
       endDate = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
     } else {
-      // Delta sync -> from last sync to yesterday
-      final lastSyncDate = DateTime.fromMillisecondsSinceEpoch(lastSyncTime);
+      final lastUpdateDate = DateTime.fromMillisecondsSinceEpoch(lastUpdateTime);
       final yesterday = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
 
-      // If we've already synced up to yesterday or today, nothing to do (unless forced).
-      if (!force && (lastSyncDate.isAfter(yesterday) || lastSyncDate.isAtSameMomentAs(yesterday))) {
-        debugPrint('AiContextService: Context already up to date. (lastSyncDate: $lastSyncDate, yesterday: $yesterday). Use force: true to re-sync.');
+      if (!force && (lastUpdateDate.isAfter(yesterday) || lastUpdateDate.isAtSameMomentAs(yesterday))) {
+        debugPrint('AiPatternService: Pattern already updated today.');
         return;
       }
 
-      // Start is the day AFTER the last sync
-      startDate = DateTime(lastSyncDate.year, lastSyncDate.month, lastSyncDate.day).add(const Duration(days: 1));
+      startDate = DateTime(lastUpdateDate.year, lastUpdateDate.month, lastUpdateDate.day).add(const Duration(days: 1));
       endDate = yesterday;
     }
 
     try {
-      final contextPayload = await getAiContext(start: startDate, end: endDate, isInitial: isInitial);
-
+      final contextPayload = await _generateContextSnapshot(start: startDate, end: endDate, isInitial: isInitial);
       final token = ApiConfig().patternSyncApiKey;
       final headers = {if (token.isNotEmpty) 'Authorization': 'Bearer $token'};
 
-      debugPrint('AiContextService: Syncing pattern from $startDate to $endDate');
+      debugPrint('AiPatternService: Requesting pattern update from $startDate to $endDate');
 
-      // Wrap in 'inputs' field like ChatApiService style
-      final payload = {'inputs': contextPayload};
+      final payload = {
+        'user': 'system_sync',
+        'query': 'Analyze my spending pattern from ${startDate ?? "beginning"} to ${endDate ?? "yesterday"}',
+        'inputs': contextPayload,
+      };
 
-      // POST to the single-question endpoint defined in ApiConfig
-      final responseStr = await ApiService().post(ApiConfig.patternSyncPath, data: payload, headers: headers);
+      final responseStr = await ApiService().post(ApiConfig.updateUserPatternPath, data: payload, headers: headers);
 
       if (responseStr != null && responseStr.isNotEmpty) {
         String patternData = responseStr;
         try {
           final decoded = jsonDecode(responseStr);
-          // Match standard Dify/API response style: checking both 'answer' and 'pattern'
           if (decoded is Map<String, dynamic>) {
             patternData = decoded['message'] ?? decoded['pattern'] ?? responseStr;
           }
-        } catch (e) {
-          debugPrint('AiContextService: Response is not JSON, treating as raw string.');
-        }
+        } catch (_) {}
 
-        // Save pattern and update sync time
-        await storage.setString(StorageService.keyLongTermUserPattern, patternData);
-        await storage.setInt(StorageService.keyLastContextSyncTime, endDate.millisecondsSinceEpoch);
-
-        debugPrint('AiContextService: Sync complete.');
-      } else {
-        debugPrint('AiContextService: Sync empty response from server.');
+        await storage.setString(StorageService.keyUserPattern, patternData);
+        await storage.setInt(StorageService.keyLastPatternUpdateTime, endDate.millisecondsSinceEpoch);
+        debugPrint('AiPatternService: User pattern updated.');
       }
     } catch (e) {
-      debugPrint('AiContextService: Error syncing context: $e');
+      debugPrint('AiPatternService: Error updating pattern: $e');
     }
   }
 }

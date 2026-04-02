@@ -1,4 +1,4 @@
-export 'ai_context_service.dart';
+export 'ai_pattern_service.dart';
 
 export 'api_exception.dart';
 export 'api_service.dart';

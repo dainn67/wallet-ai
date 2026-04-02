@@ -12,7 +12,7 @@ class ApiConfig {
   ApiConfig._internal();
 
   // Endpoints
-  static const String patternSyncPath = '/api/single-question/walletai-analyze-pattern';
+  static const String updateUserPatternPath = '/api/single-question/walletai-analyze-pattern';
   static const String chatFlowPath = '/api/chat-flow/wallet-ai-chatbot';
 
   String get baseUrl {

@@ -7,8 +7,8 @@ class StorageService {
 
   // Keys
   static const String keyCurrency = 'user_currency';
-  static const String keyLastContextSyncTime = 'last_context_sync_time';
-  static const String keyLongTermUserPattern = 'long_term_user_pattern';
+  static const String keyLastPatternUpdateTime = 'last_pattern_update_time';
+  static const String keyUserPattern = 'user_pattern';
 
   factory StorageService() => _instance;
 

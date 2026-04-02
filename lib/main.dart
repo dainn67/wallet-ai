@@ -23,8 +23,8 @@ void main() async {
   // Initialize HomeWidget
   await HomeWidget.setAppGroupId('com.leslie.wallyai');
 
-  // Trigger background sync for AI patterns (fire-and-forget)
-  AiContextService().syncPendingContexts();
+  // Update the user pattern from AI based on record history (fire-and-forget)
+  AiPatternService().updateUserPattern();
 
   runApp(const MyApp());
 }

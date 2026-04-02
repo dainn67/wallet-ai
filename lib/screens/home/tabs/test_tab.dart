@@ -53,8 +53,8 @@ class _TestTabState extends State<TestTab> {
     });
 
     try {
-      await AiContextService().syncPendingContexts(force: true);
-      final result = StorageService().getString(StorageService.keyLongTermUserPattern);
+      await AiPatternService().updateUserPattern(force: true);
+      final result = StorageService().getString(StorageService.keyUserPattern);
       setState(() {
         _apiResult = result ?? 'Sync completed but no pattern returned.';
       });
