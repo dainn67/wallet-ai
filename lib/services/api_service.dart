@@ -4,9 +4,9 @@ import 'package:wallet_ai/helpers/helpers.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
-  static AppConfig _config = AppConfig();
+  static ApiConfig _config = ApiConfig();
 
-  factory ApiService({http.Client? client, AppConfig? config}) {
+  factory ApiService({http.Client? client, ApiConfig? config}) {
     if (config != null) _config = config;
     return _instance;
   }

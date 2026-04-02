@@ -11,10 +11,8 @@ import 'api_service.dart';
 class ChatApiService {
   static final ChatApiService _instance = ChatApiService._internal();
   static ChatApiService? _mockInstance;
-  static AppConfig _config = AppConfig();
 
-  factory ChatApiService({AppConfig? config}) {
-    if (config != null) _config = config;
+  factory ChatApiService() {
     return _mockInstance ?? _instance;
   }
 
@@ -55,7 +53,7 @@ class ChatApiService {
           if (moneySourceList != null && moneySourceList.isNotEmpty) 'money_source_list': moneySourceList,
         },
       };
-      final stream = await ApiService().postStream('/api/chat-flow/wallet-ai-chatbot', data: inputs, token: _config.mainChatApiKey);
+      final stream = await ApiService().postStream(ApiConfig.chatFlowPath, data: inputs, token: ApiConfig().mainChatApiKey);
 
       if (stream == null) {
         throw ApiException(message: 'Error: stream in streamChat = null');

@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
-
-import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/services/services.dart';
 
-class TestTab extends StatelessWidget {
+class TestTab extends StatefulWidget {
   const TestTab({super.key});
 
+  @override
+  State<TestTab> createState() => _TestTabState();
+}
+
+class _TestTabState extends State<TestTab> {
   static const int _demoSourceId = 1; // Wallet (default from DB)
+  String? _apiResult;
+  bool _isLoading = false;
 
   Future<void> _addDemoRecords(BuildContext context) async {
     final provider = context.read<RecordProvider>();
@@ -24,8 +30,8 @@ class TestTab extends StatelessWidget {
     for (final r in demoRecords) {
       await provider.addRecord(r);
     }
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${demoRecords.length} demo records'), behavior: SnackBarBehavior.floating));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added 6 demo records'), behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -35,8 +41,31 @@ class TestTab extends StatelessWidget {
     for (final s in demoSources) {
       await provider.addMoneySource(s);
     }
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${demoSources.length} demo money sources'), behavior: SnackBarBehavior.floating));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added 2 demo money sources'), behavior: SnackBarBehavior.floating));
+    }
+  }
+
+  Future<void> _testAiSync() async {
+    setState(() {
+      _isLoading = true;
+      _apiResult = null;
+    });
+
+    try {
+      await AiContextService().syncPendingContexts(force: true);
+      final result = StorageService().getString(StorageService.keyLongTermUserPattern);
+      setState(() {
+        _apiResult = result ?? 'Sync completed but no pattern returned.';
+      });
+    } catch (e) {
+      setState(() {
+        _apiResult = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -71,24 +100,56 @@ class TestTab extends StatelessWidget {
             textStyle: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
+        const SizedBox(height: 32),
+        const Text(
+          'AI Pattern Sync',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+        ),
+        const SizedBox(height: 8),
+        const Text('Test syncing your records with the server.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+        const SizedBox(height: 24),
         FilledButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.account_balance_wallet),
-          label: const Text('Add demo money sources'),
+          onPressed: _isLoading ? null : _testAiSync,
+          icon: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.sync),
+          label: Text(_isLoading ? 'Syncing...' : 'Test AI Sync'),
           style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF6366F1),
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
+        if (_apiResult != null) ...[
+          const SizedBox(height: 24),
+          const Text(
+            'Result:',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Text(
+              _apiResult!,
+              style: const TextStyle(fontSize: 13, fontFamily: 'monospace', color: Color(0xFF334155)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: () {
+              setState(() {
+                _apiResult = null;
+              });
+            },
+            icon: const Icon(Icons.clear, size: 18),
+            label: const Text('Clear result'),
+          ),
+        ],
       ],
-    );
-  }
-
-  Future<void> updateAndroidWidget() async {
-    await HomeWidget.saveWidgetData<String>('title', 'Hello from Flutter!');
-
-    await HomeWidget.updateWidget(
-      androidName: 'MyWidgetReceiver', // Name of your Receiver class
     );
   }
 }

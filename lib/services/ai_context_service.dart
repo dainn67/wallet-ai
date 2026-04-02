@@ -5,7 +5,6 @@ import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/models/record.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 import 'package:wallet_ai/services/services.dart';
-import 'package:wallet_ai/services/storage_service.dart';
 
 class AiContextService {
   /// Singleton instance of [AiContextService].
@@ -108,7 +107,8 @@ class AiContextService {
 
   /// Triggers a background sync of AI patterns based on the last sync time.
   /// Should be called on app startup (e.g. from main.dart).
-  Future<void> syncPendingContexts() async {
+  /// Use [force] to bypass the daily check for testing purposes.
+  Future<void> syncPendingContexts({bool force = false}) async {
     final storage = StorageService();
     final int lastSyncTime = storage.getInt(StorageService.keyLastContextSyncTime) ?? -1;
     final now = DateTime.now();
@@ -126,9 +126,9 @@ class AiContextService {
       final lastSyncDate = DateTime.fromMillisecondsSinceEpoch(lastSyncTime);
       final yesterday = DateTime(now.year, now.month, now.day, 23, 59, 59).subtract(const Duration(days: 1));
 
-      // If we've already synced up to yesterday or today, nothing to do.
-      if (lastSyncDate.isAfter(yesterday) || lastSyncDate.isAtSameMomentAs(yesterday)) {
-        debugPrint('AiContextService: Context already up to date.');
+      // If we've already synced up to yesterday or today, nothing to do (unless forced).
+      if (!force && (lastSyncDate.isAfter(yesterday) || lastSyncDate.isAtSameMomentAs(yesterday))) {
+        debugPrint('AiContextService: Context already up to date. (lastSyncDate: $lastSyncDate, yesterday: $yesterday). Use force: true to re-sync.');
         return;
       }
 
@@ -140,7 +140,7 @@ class AiContextService {
     try {
       final contextPayload = await getAiContext(start: startDate, end: endDate, isInitial: isInitial);
 
-      final token = AppConfig().patternSyncApiKey;
+      final token = ApiConfig().patternSyncApiKey;
       final headers = {if (token.isNotEmpty) 'Authorization': 'Bearer $token'};
 
       debugPrint('AiContextService: Syncing pattern from $startDate to $endDate');
@@ -148,8 +148,8 @@ class AiContextService {
       // Wrap in 'inputs' field like ChatApiService style
       final payload = {'inputs': contextPayload};
 
-      // POST to the new single-question endpoint
-      final responseStr = await ApiService().post('/api/single-question/walletai-analyze-pattern', data: payload, headers: headers);
+      // POST to the single-question endpoint defined in ApiConfig
+      final responseStr = await ApiService().post(ApiConfig.patternSyncPath, data: payload, headers: headers);
 
       if (responseStr != null && responseStr.isNotEmpty) {
         String patternData = responseStr;

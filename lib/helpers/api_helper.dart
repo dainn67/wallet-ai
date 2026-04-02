@@ -11,12 +11,11 @@ class APIHelper {
     Completer<String?> completer = Completer();
     try {
       await http
-          .post(Uri.parse(url), body: body, headers: {"Content-Type": "application/json", ...(headers ?? {})})
+          .post(Uri.parse(url), body: body != null ? jsonEncode(body) : null, headers: {"Content-Type": "application/json", ...(headers ?? {})})
           .then((value) {
             if (value.statusCode == 200 && value.body.isNotEmpty && value.body != "null" && value.body != "nothing!") {
               completer.complete(value.body);
             } else {
-              debugPrint('body: $body');
               if (callback != null) {
                 callback("value null: ${value.statusCode} - ${value.body}");
               }
