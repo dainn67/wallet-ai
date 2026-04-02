@@ -10,13 +10,13 @@ The **AI Pattern Analysis** feature automatically identifies long-term spending 
 
 ## Architecture
 
-### 1. AI Pattern Service
-Located in `lib/services/ai_pattern_service.dart`, this singleton handles:
-- Generating the context snapshot from `RecordRepository`.
-- Managing the daily schedule for pattern updates.
-- Orchestrating the API request to the server.
+### 2. Data Structure
+The analysis payload consists of three primary data blocks:
+- **Current Context**: Real-time metadata including `current_time`, `day_of_week`, `current_date`, and `budget_remaining` (aggregated across all sources).
+- **Latest Records**: All new financial activity documented between the last sync date and the end of yesterday.
+- **Recent Momentum**: Exactly the 3-day window of transactional behavior immediately preceding the `Latest Records` window, used by the AI for habit-shift detection.
 
-### 2. Configuration (`ApiConfig`)
+### 3. Configuration (`ApiConfig`)
 Endpoints and API keys are managed in `lib/configs/api_config.dart`:
 - `updateUserPatternPath`: The URL used for pattern analysis.
 - `patternSyncApiKey`: The token used for authentication.

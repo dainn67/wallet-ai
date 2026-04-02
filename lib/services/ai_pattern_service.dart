@@ -76,6 +76,7 @@ class AiPatternService {
       'current_context': {
         'current_time': DateFormat('HH:mm').format(now),
         'day_of_week': DateFormat('E').format(now),
+        'current_date': DateFormat('d MMM yyyy').format(now),
         'budget_remaining': budgetRemaining,
       },
       'latest_records': latestRecords,

@@ -11,14 +11,8 @@ import 'locale_provider.dart';
 import 'record_provider.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final List<ChatMessage> _messages = [
-    ChatMessage(
-      id: 'welcome',
-      role: ChatRole.assistant,
-      content: 'Hello! I am ${AppConfig().appName}, your personal AI financial assistant. How can I help you today?',
-      timestamp: DateTime.now(),
-    ),
-  ];
+  final List<ChatMessage> _messages = [];
+  bool _greetingSent = false;
   bool _isStreaming = false;
   String? _error;
   String? _conversationId;
@@ -27,7 +21,9 @@ class ChatProvider extends ChangeNotifier {
   RecordProvider? _recordProvider;
   LocaleProvider? _localeProvider;
 
-  ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider}) : _recordProvider = recordProvider, _localeProvider = localeProvider;
+  ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider}) : _recordProvider = recordProvider, _localeProvider = localeProvider {
+    _checkAndSendGreeting();
+  }
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isStreaming => _isStreaming;
@@ -37,16 +33,30 @@ class ChatProvider extends ChangeNotifier {
 
   set recordProvider(RecordProvider? value) {
     _recordProvider = value;
+    _checkAndSendGreeting();
   }
 
   set localeProvider(LocaleProvider? value) {
     _localeProvider = value;
+    _checkAndSendGreeting();
+  }
+
+  void _checkAndSendGreeting() {
+    if (!_greetingSent && _recordProvider != null && _localeProvider != null) {
+      _greetingSent = true;
+      Future.microtask(() => sendAdaptiveGreeting());
+    }
   }
 
   @visibleForTesting
   void incrementDbUpdateVersionForTest() {
     _dbUpdateVersion++;
     notifyListeners();
+  }
+
+  Future<void> sendAdaptiveGreeting() async {
+    _error = null;
+    return _handleStream('INIT_GREETING', isGreeting: true);
   }
 
   Future<void> sendMessage(String content) async {
@@ -56,6 +66,10 @@ class ChatProvider extends ChangeNotifier {
     final userMessage = ChatMessage(id: DateTime.now().millisecondsSinceEpoch.toString(), role: ChatRole.user, content: content, timestamp: DateTime.now());
 
     _messages.add(userMessage);
+    return _handleStream(content, isGreeting: false);
+  }
+
+  Future<void> _handleStream(String query, {bool isGreeting = false}) async {
     _isStreaming = true;
     notifyListeners();
 
@@ -78,12 +92,14 @@ class ChatProvider extends ChangeNotifier {
     final moneySourceList = ChatApiService.formatMoneySources(_recordProvider?.moneySources);
     final language = _localeProvider?.language == AppLanguage.vietnamese ? 'Vietnamese' : 'English';
     final currency = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
+    
+    final pattern = isGreeting ? StorageService().getString(StorageService.keyUserPattern) : null;
 
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(content, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency)
+          .streamChat(query, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency, pattern: pattern)
           .listen(
             (response) {
               if (response.conversationId != null) {
@@ -127,7 +143,6 @@ class ChatProvider extends ChangeNotifier {
               final parts = fullText.split(ChatConfig.delimiter);
               if (parts.length >= 2) {
                 final jsonString = parts[1].trim();
-                print('jsonString: $jsonString');
                 try {
                   final List<dynamic> recordsJson = jsonDecode(jsonString);
                   final List<Record> records = [];
@@ -182,7 +197,11 @@ class ChatProvider extends ChangeNotifier {
               _error = error.toString();
               final index = _messages.indexWhere((m) => m.id == currentAssistantId);
               if (index != -1) {
-                _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error');
+                if (isGreeting) {
+                   _messages[index] = assistantMessage.copyWith(content: _localeProvider?.translate('Greeting failed, please say hello.') ?? 'Hello! I am your AI assistant.');
+                } else {
+                   _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error');
+                }
               }
               notifyListeners();
               completer.completeError(error);
