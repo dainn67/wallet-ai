@@ -74,15 +74,16 @@ graph TD
    - Parallel init: `StorageService.init()`, `RecordRepository.init()`, `dotenv.load()`.
    - `AppConfig().init()`.
    - `HomeWidget.setAppGroupId()`.
-   - Background update: `AiPatternService().updateUserPattern()` (fire-and-forget).
-2. **runApp(MyApp)**: Providers initialized and data loaded (e.g., `RecordProvider()..loadAll()`).
+7. Background update: `AiPatternService().updateUserPattern()` (fire-and-forget).
+78. **runApp(MyApp)**: Providers initialized and data loaded (e.g., `RecordProvider()..loadAll()`).
+79. **Adaptive Greeting**: `ChatProvider` automatically triggers `sendAdaptiveGreeting()` (using `INIT_GREETING` query and `user_pattern` context) once both `RecordProvider` and `LocaleProvider` are initialized.
 
 ## Networking
 - **APIHelper**: Low-level HTTP implementation with JSON encoding and stream support.
 - **ApiConfig**: Centralized management of base URLs, endpoint paths, and authentication tokens.
 - **ApiService**: Higher-level wrapper for standardized requests.
-- **ChatApiService**: Handles Dify-based streaming chat interactions.
-- **AiPatternService**: Orchestrates context collection and requests for AI User Pattern analysis.
+- **ChatApiService**: Handles Dify-based streaming chat interactions. Supports optional `pattern` input for personalized initialization/greetings.
+- **AiPatternService**: Orchestrates context collection (Latest vs. Momentum) and requests for AI User Pattern analysis.
 
 ## Testing
 - **Unit/Widget Tests**: Mirror the `lib/` directory in `test/`. Use `mocktail` for dependencies.

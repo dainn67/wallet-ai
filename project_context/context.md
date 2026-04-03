@@ -29,8 +29,14 @@ A navigation drawer provides secondary access to these tabs and global settings 
 5. **ChatProvider** parses the JSON and saves records via **RecordRepository** using atomic transactions.
 6. **RecordProvider** reloads from disk and recalculates in-memory totals.
 
+### AI Pattern Analysis & Adaptive Greeting
+1. **Background Pattern Sync**: On app launch, `AiPatternService` checks the last update time. If an update is due, it collects recent transaction context (Latest vs. Momentum) and sends it to the AI for high-level behavior analysis.
+2. **Adaptive Greeting**: On app load, `ChatProvider` automatically sends a hidden `INIT_GREETING` request to the server, including the locally stored `user_pattern` string. This allows the AI to generate a highly personalized greeting based on established user habits.
+
 ## Logic Locations
 - **Parsing**: `ChatProvider.onDone` handler.
 - **Aggregation Logic**: `RecordProvider._calculateCategoryTotals` (calculates flat and hierarchical totals from cached records).
+- **AI Pattern Logic**: `AiPatternService.updateUserPattern` (orchestrates date range windows and context snapshot collection).
+- **Adaptive Greeting Logic**: `ChatProvider.sendAdaptiveGreeting` (triggers the INIT_GREETING flow).
 - **DB Transactions**: `RecordRepository.createRecord`.
 - **State Synchronization**: `ChangeNotifierProxyProvider` links `RecordProvider` to `ChatProvider`.
