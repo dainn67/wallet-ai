@@ -81,28 +81,31 @@ class _PromptChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: 8.0, bottom: 4.0), // Add bottom padding for shadow
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(20.0),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 6.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             decoration: BoxDecoration(
-              color: isAction ? colorScheme.primary.withValues(alpha: 0.05) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(
-                color: isAction ? colorScheme.primary.withValues(alpha: 0.2) : const Color(0xFFE2E8F0),
-                width: 1.0,
-              ),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isAction ? FontWeight.w600 : FontWeight.w500,
-                color: isAction ? colorScheme.primary : const Color(0xFF475569),
+                color: const Color(0xFF1E293B),
               ),
             ),
           ),
