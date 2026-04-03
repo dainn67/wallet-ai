@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:wallet_ai/components/suggested_prompts_bar.dart';
 import 'package:wallet_ai/models/chat_message.dart';
+import 'package:wallet_ai/models/suggested_prompt.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/services/storage_service.dart';
@@ -82,5 +84,24 @@ void main() {
 
     final sendButton = tester.widget<GestureDetector>(find.ancestor(of: find.byIcon(Icons.send_rounded), matching: find.byType(GestureDetector)));
     expect(sendButton.onTap, isNull);
+  });
+
+  testWidgets('shows SuggestedPromptsBar when prompts non-empty', (tester) async {
+    when(() => mockChatProvider.suggestedPrompts).thenReturn([
+      SuggestedPrompt(prompt: 'Bánh mì', actions: ['15k', '20k']),
+      SuggestedPrompt(prompt: 'Cà phê', actions: []),
+    ]);
+
+    await tester.pumpWidget(createChatTab());
+
+    expect(find.byType(SuggestedPromptsBar), findsOneWidget);
+  });
+
+  testWidgets('hides SuggestedPromptsBar when prompts empty', (tester) async {
+    when(() => mockChatProvider.suggestedPrompts).thenReturn([]);
+
+    await tester.pumpWidget(createChatTab());
+
+    expect(find.byType(SuggestedPromptsBar), findsNothing);
   });
 }
