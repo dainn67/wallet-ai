@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/suggested_prompts_bar.dart';
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/models/record.dart';
 import 'package:wallet_ai/models/suggested_prompt.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
@@ -28,6 +30,14 @@ void main() {
     mockLocaleProvider = MockLocaleProvider();
 
     ChatApiService.setMockInstance(mockChatApiService);
+
+    registerFallbackValue(Record(
+      moneySourceId: 1,
+      amount: 0,
+      currency: 'VND',
+      description: '',
+      type: 'expense',
+    ));
 
     when(() => mockRecordProvider.createRecord(any())).thenAnswer((_) async => 1);
     when(() => mockRecordProvider.loadAll()).thenAnswer((_) async {});
