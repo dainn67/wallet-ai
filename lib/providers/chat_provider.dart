@@ -21,6 +21,8 @@ class ChatProvider extends ChangeNotifier {
   RecordProvider? _recordProvider;
   LocaleProvider? _localeProvider;
   List<SuggestedPrompt> _suggestedPrompts = [];
+  int? _activePromptIndex;
+  bool _showingActions = false;
 
   ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider}) : _recordProvider = recordProvider, _localeProvider = localeProvider {
     _checkAndSendGreeting();
@@ -32,6 +34,8 @@ class ChatProvider extends ChangeNotifier {
   String? get conversationId => _conversationId;
   int get dbUpdateVersion => _dbUpdateVersion;
   List<SuggestedPrompt> get suggestedPrompts => _suggestedPrompts;
+  int? get activePromptIndex => _activePromptIndex;
+  bool get showingActions => _showingActions;
 
   set recordProvider(RecordProvider? value) {
     _recordProvider = value;
@@ -51,6 +55,11 @@ class ChatProvider extends ChangeNotifier {
   }
 
   @visibleForTesting
+  void setTestSuggestedPrompts(List<SuggestedPrompt> prompts) {
+    _suggestedPrompts = prompts;
+  }
+
+  @visibleForTesting
   void incrementDbUpdateVersionForTest() {
     _dbUpdateVersion++;
     notifyListeners();
@@ -61,7 +70,31 @@ class ChatProvider extends ChangeNotifier {
     return _handleStream('INIT_GREETING', isGreeting: true);
   }
 
+  void selectPrompt(int index) {
+    _activePromptIndex = index;
+    _showingActions = _suggestedPrompts[index].actions.isNotEmpty;
+    notifyListeners();
+  }
+
+  void selectAction() {
+    _showingActions = false;
+    notifyListeners();
+  }
+
+  void _removeActivePrompt() {
+    if (_activePromptIndex == null) return;
+    _suggestedPrompts.removeAt(_activePromptIndex!);
+    _activePromptIndex = null;
+    _showingActions = false;
+  }
+
   Future<void> sendMessage(String content) async {
+    final hadActivePrompt = _activePromptIndex != null;
+    if (hadActivePrompt) {
+      _removeActivePrompt();
+      notifyListeners();
+    }
+
     if (content.trim().isEmpty) return;
 
     _error = null;

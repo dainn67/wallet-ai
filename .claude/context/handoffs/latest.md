@@ -1,33 +1,34 @@
 ---
 epic: suggested-prompts
-task: 001-model-and-parsing
+task: 002-provider-state
 status: completed
-created: 2026-04-03T04:21:10Z
-updated: 2026-04-03T04:21:10Z
+created: 2026-04-03T04:28:47Z
+updated: 2026-04-03T04:28:47Z
 ---
 
-# Handoff: T1 SuggestedPrompt model + greeting JSON parsing branch
+# Handoff: T2 ChatProvider prompt interaction state management
 
 ## Status
-COMPLETE — all 6 tests pass, no analyze issues.
+COMPLETE — all 13 tests pass, no analyze issues.
 
 ## What Was Done
 
-- Created `lib/models/suggested_prompt.dart` with `prompt` (String) and `actions` (List<String>) fields, `fromJson` factory, and `toString()` override.
-- Exported from `lib/models/models.dart`.
-- Added `_suggestedPrompts` field and `suggestedPrompts` getter to `ChatProvider`.
-- Refactored `_handleStream()` onDone JSON parsing: decode first, branch on type — Map with `suggestedPrompts` key parses prompts; List runs existing record logic (unchanged). Wrapped in try-catch (NFR-3).
-- Changed `parts[1]` to `parts.sublist(1).join(ChatConfig.delimiter)` to handle multiple delimiters correctly.
-- Added 5 new unit tests to `test/providers/chat_provider_test.dart`; all 6 tests pass.
+- Added `_activePromptIndex` (int?) and `_showingActions` (bool) fields to `ChatProvider` with public getters.
+- Added `@visibleForTesting` helper `setTestSuggestedPrompts()` for test setup.
+- Added `selectPrompt(int index)` method: sets `_activePromptIndex`, sets `_showingActions` based on whether prompt has actions, calls `notifyListeners()`.
+- Added `selectAction()` method: sets `_showingActions = false`, calls `notifyListeners()`.
+- Added `_removeActivePrompt()` private method: guards on null `_activePromptIndex`, removes prompt from list, resets both fields.
+- Modified `sendMessage()`: calls `_removeActivePrompt()` + `notifyListeners()` BEFORE the empty-content guard, so empty sends still clear the active prompt (FR-5).
+- Added 7 new unit tests covering all acceptance criteria; all 13 tests pass.
 
 ## Files Changed
 
-- `lib/models/suggested_prompt.dart` (new)
-- `lib/models/models.dart` (export added)
-- `lib/providers/chat_provider.dart` (field + getter + onDone refactor)
-- `test/providers/chat_provider_test.dart` (5 new tests added)
+- `lib/providers/chat_provider.dart` (fields, getters, methods, sendMessage modified)
+- `test/providers/chat_provider_test.dart` (7 new tests added)
 
-## Warnings for T2
+## Warnings for T3
 
-- `_suggestedPrompts` is not reset at the start of each `_handleStream` call. T2 should add a reset if stale prompts need clearing between conversations.
-- `suggestedPrompts` getter returns the list reference directly — T2 may want to wrap with `List.unmodifiable()` for safety.
+- `selectPrompt(index)` does not bounds-check — UI must only pass valid indices.
+- `_suggestedPrompts` is a mutable list reference; T3 should use the `suggestedPrompts` getter (returns the list directly, not unmodifiable — treat as read-only).
+- After `sendMessage()` removes the active prompt, `suggestedPrompts` list shrinks by 1. T3 chip bar should check `suggestedPrompts.isEmpty` to decide visibility.
+- `showingActions` is independent of `activePromptIndex` — T3 must check both as needed.
