@@ -21,6 +21,9 @@ void main() {
     
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
+    when(() => mockChatProvider.suggestedPrompts).thenReturn([]);
+    when(() => mockChatProvider.activePromptIndex).thenReturn(null);
+    when(() => mockChatProvider.showingActions).thenReturn(false);
     when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) => invocation.positionalArguments[0]);
   });
 

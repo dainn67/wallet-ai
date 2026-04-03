@@ -1,34 +1,37 @@
 ---
 epic: suggested-prompts
-task: 002-provider-state
+task: 003-ui-widget
 status: completed
-created: 2026-04-03T04:28:47Z
-updated: 2026-04-03T04:28:47Z
+created: 2026-04-03T05:00:00Z
+updated: 2026-04-03T05:00:00Z
 ---
 
-# Handoff: T2 ChatProvider prompt interaction state management
+# Handoff: T3 SuggestedPromptsBar widget + ChatTab integration
 
 ## Status
-COMPLETE — all 13 tests pass, no analyze issues.
+COMPLETE — analyze clean, test failures match pre-existing baseline (4 failures, all unrelated to this epic).
 
 ## What Was Done
 
-- Added `_activePromptIndex` (int?) and `_showingActions` (bool) fields to `ChatProvider` with public getters.
-- Added `@visibleForTesting` helper `setTestSuggestedPrompts()` for test setup.
-- Added `selectPrompt(int index)` method: sets `_activePromptIndex`, sets `_showingActions` based on whether prompt has actions, calls `notifyListeners()`.
-- Added `selectAction()` method: sets `_showingActions = false`, calls `notifyListeners()`.
-- Added `_removeActivePrompt()` private method: guards on null `_activePromptIndex`, removes prompt from list, resets both fields.
-- Modified `sendMessage()`: calls `_removeActivePrompt()` + `notifyListeners()` BEFORE the empty-content guard, so empty sends still clear the active prompt (FR-5).
-- Added 7 new unit tests covering all acceptance criteria; all 13 tests pass.
+- Created `lib/components/suggested_prompts_bar.dart`: stateless widget with two modes — prompt chips (when `!showingActions`) and action chips (when `showingActions && activePromptIndex != null`). Uses `SizedBox(height: 48)` + `SingleChildScrollView` + `Row` of `ActionChip` widgets. Guards on bounds check before accessing actions.
+- Added export to `lib/components/components.dart`.
+- Modified `lib/screens/home/tabs/chat_tab.dart`: inserted `Consumer<ChatProvider>` block between `_StreamingIndicator` and `_buildInputArea()` rendering `SuggestedPromptsBar` when `suggestedPrompts.isNotEmpty`. Added `_onPromptTap()` and `_onActionTap()` callbacks using `FocusScope.of(context).requestFocus(widget.focusNode)`.
+- Fixed 5 test files (`chat_tab_test.dart`, `chat_tab_polish_test.dart`, `home_screen_test.dart`, `home/home_screen_test.dart`, `home/home_localization_test.dart`) — added stubs for `suggestedPrompts`, `activePromptIndex`, `showingActions` on `MockChatProvider`.
 
 ## Files Changed
 
-- `lib/providers/chat_provider.dart` (fields, getters, methods, sendMessage modified)
-- `test/providers/chat_provider_test.dart` (7 new tests added)
+- `lib/components/suggested_prompts_bar.dart` (created)
+- `lib/components/components.dart` (export added)
+- `lib/screens/home/tabs/chat_tab.dart` (Consumer block + 2 callback methods)
+- `test/screens/chat_tab_test.dart` (mock stubs)
+- `test/screens/chat_tab_polish_test.dart` (mock stubs)
+- `test/screens/home_screen_test.dart` (mock stubs)
+- `test/screens/home/home_screen_test.dart` (mock stubs)
+- `test/screens/home/home_localization_test.dart` (mock stubs)
 
-## Warnings for T3
+## Notes for T4
 
-- `selectPrompt(index)` does not bounds-check — UI must only pass valid indices.
-- `_suggestedPrompts` is a mutable list reference; T3 should use the `suggestedPrompts` getter (returns the list directly, not unmodifiable — treat as read-only).
-- After `sendMessage()` removes the active prompt, `suggestedPrompts` list shrinks by 1. T3 chip bar should check `suggestedPrompts.isEmpty` to decide visibility.
-- `showingActions` is independent of `activePromptIndex` — T3 must check both as needed.
+- `_focusNode` does not exist in ChatTab — it uses `widget.focusNode` (nullable, passed from parent). `_onPromptTap` uses `FocusScope.of(context).requestFocus(widget.focusNode)`.
+- No `_handleSend()` changes were made.
+- Pre-existing failures (4): `l10n_integration_test.dart` SC-1/SC-3 (ApiException), `ai_context_service_test.dart` (missing file). All unrelated to this epic.
+- T4 should add widget tests for `SuggestedPromptsBar` in `test/components/` and integration tests in `test/screens/chat_tab_test.dart`.
