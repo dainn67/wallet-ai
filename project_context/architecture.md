@@ -14,7 +14,7 @@
 - **RecordProvider**: Central state for Records, MoneySources, and Categories.
   - **In-Memory Aggregation**: Calculations for category totals (flat and hierarchical) are performed in-memory using cached data to ensure immediate UI responsiveness during filtering.
   - **Shared Filter State**: `RecordProvider` manages the global `selectedDateRange` (initialized to current month) which filters all transaction data across all tabs.
-- **ChatProvider**: Manages streaming chat state, conversation history, and AI response parsing. Refers to `RecordProvider` for contextual data.
+- **ChatProvider**: Manages streaming chat state, conversation history, and AI response parsing. Also manages suggested prompt state (`_suggestedPrompts`, `_activePromptIndex`, `_showingActions`) for the chip bar feature. Refers to `RecordProvider` for contextual data.
 - **Consumption**: Use `context.read<T>()` for actions and `Consumer<T>` or `context.watch<T>()` for reactive UI updates.
 
 ## Services & Singletons
@@ -87,5 +87,6 @@ graph TD
 
 ## Testing
 - **Unit/Widget Tests**: Mirror the `lib/` directory in `test/`. Use `mocktail` for dependencies.
+- **Epic Integration Tests**: Smoke and integration tests for epic features live in `tests/e2e/epic_{name}/` and `tests/integration/epic_{name}/`. Run via `fvm flutter test tests/`.
 - **Mocking**: Services support dependency injection or mock setters (e.g., `RecordRepository.setMockDatabase`).
 - **Execution**: Run `fvm flutter test`.
