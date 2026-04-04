@@ -1,8 +1,10 @@
 ---
 name: suggested-prompts
-status: backlog
+status: completed
 created: 2026-04-03T04:11:37Z
-progress: 0%
+updated: 2026-04-04T12:41:45Z
+completed: 2026-04-04T12:41:45Z
+progress: 100%
 priority: P1
 prd: .claude/prds/suggested-prompts.md
 task_count: 4
