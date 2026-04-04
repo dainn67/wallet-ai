@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/foundation.dart' hide Category;
 
@@ -52,12 +53,17 @@ class ChatApiService {
     String? pattern,
   }) async* {
     try {
+      final now = DateTime.now();
+      final formatter = DateFormat('h:mm a EEE d/M/yyyy');
+      final currentDatetime = formatter.format(now);
+
       final inputs = {
         'user': '123',
         'query': message,
         'inputs': {
           'language': language,
           'currency': currency,
+          'current_datetime': currentDatetime,
           if (conversationId != null) 'conversation_id': conversationId,
           if (categoryList != null && categoryList.isNotEmpty) 'category_list': categoryList,
           if (moneySourceList != null && moneySourceList.isNotEmpty) 'money_source_list': moneySourceList,
