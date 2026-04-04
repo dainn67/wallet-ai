@@ -20,6 +20,9 @@ class ChatProvider extends ChangeNotifier {
   StreamSubscription<ChatStreamResponse>? _streamSubscription;
   RecordProvider? _recordProvider;
   LocaleProvider? _localeProvider;
+  List<SuggestedPrompt> _suggestedPrompts = [];
+  int? _activePromptIndex;
+  bool _showingActions = false;
 
   ChatProvider({RecordProvider? recordProvider, LocaleProvider? localeProvider}) : _recordProvider = recordProvider, _localeProvider = localeProvider {
     _checkAndSendGreeting();
@@ -30,6 +33,9 @@ class ChatProvider extends ChangeNotifier {
   String? get error => _error;
   String? get conversationId => _conversationId;
   int get dbUpdateVersion => _dbUpdateVersion;
+  List<SuggestedPrompt> get suggestedPrompts => _suggestedPrompts;
+  int? get activePromptIndex => _activePromptIndex;
+  bool get showingActions => _showingActions;
 
   set recordProvider(RecordProvider? value) {
     _recordProvider = value;
@@ -49,6 +55,11 @@ class ChatProvider extends ChangeNotifier {
   }
 
   @visibleForTesting
+  void setTestSuggestedPrompts(List<SuggestedPrompt> prompts) {
+    _suggestedPrompts = prompts;
+  }
+
+  @visibleForTesting
   void incrementDbUpdateVersionForTest() {
     _dbUpdateVersion++;
     notifyListeners();
@@ -59,7 +70,31 @@ class ChatProvider extends ChangeNotifier {
     return _handleStream('INIT_GREETING', isGreeting: true);
   }
 
+  void selectPrompt(int index) {
+    _activePromptIndex = index;
+    _showingActions = _suggestedPrompts[index].actions.isNotEmpty;
+    notifyListeners();
+  }
+
+  void selectAction() {
+    _showingActions = false;
+    notifyListeners();
+  }
+
+  void _removeActivePrompt() {
+    if (_activePromptIndex == null) return;
+    _suggestedPrompts.removeAt(_activePromptIndex!);
+    _activePromptIndex = null;
+    _showingActions = false;
+  }
+
   Future<void> sendMessage(String content) async {
+    final hadActivePrompt = _activePromptIndex != null;
+    if (hadActivePrompt) {
+      _removeActivePrompt();
+      notifyListeners();
+    }
+
     if (content.trim().isEmpty) return;
 
     _error = null;
@@ -142,50 +177,59 @@ class ChatProvider extends ChangeNotifier {
 
               final parts = fullText.split(ChatConfig.delimiter);
               if (parts.length >= 2) {
-                final jsonString = parts[1].trim();
+                final jsonString = parts.sublist(1).join(ChatConfig.delimiter).trim();
                 try {
-                  final List<dynamic> recordsJson = jsonDecode(jsonString);
-                  final List<Record> records = [];
+                  final decoded = jsonDecode(jsonString);
+                  if (decoded is Map<String, dynamic> && decoded.containsKey('suggestedPrompts')) {
+                    final promptsList = decoded['suggestedPrompts'] as List<dynamic>;
+                    _suggestedPrompts = promptsList
+                        .map((p) => SuggestedPrompt.fromJson(p as Map<String, dynamic>))
+                        .toList();
+                    notifyListeners();
+                  } else if (decoded is List) {
+                    final List<dynamic> recordsJson = decoded;
+                    final List<Record> records = [];
 
-                  for (var item in recordsJson) {
-                    final sourceIdRaw = item['source_id'];
-                    final categoryIdRaw = item['category_id'];
-                    final amountStr = item['amount']?.toString().trim() ?? '0';
-                    final categoryName = item['category']?.toString().trim() ?? '';
-                    final description = item['description']?.toString().trim() ?? '';
-                    final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
+                    for (var item in recordsJson) {
+                      final sourceIdRaw = item['source_id'];
+                      final categoryIdRaw = item['category_id'];
+                      final amountStr = item['amount']?.toString().trim() ?? '0';
+                      final categoryName = item['category']?.toString().trim() ?? '';
+                      final description = item['description']?.toString().trim() ?? '';
+                      final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
 
-                    final amount = double.tryParse(amountStr) ?? 0.0;
-                    final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
+                      final amount = double.tryParse(amountStr) ?? 0.0;
+                      final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
 
-                    final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
-                    final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
+                      final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
+                      final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
 
-                    final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
-                    final record = Record(
-                      moneySourceId: sourceId,
-                      categoryId: categoryId,
-                      amount: amount,
-                      currency: currencyString,
-                      description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
-                      type: type,
-                    );
+                      final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
+                      final record = Record(
+                        moneySourceId: sourceId,
+                        categoryId: categoryId,
+                        amount: amount,
+                        currency: currencyString,
+                        description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
+                        type: type,
+                      );
 
-                    // Save via RecordProvider (AD-1: provider-only repository access)
-                    final recordId = await _recordProvider!.createRecord(record);
-                    records.add(record.copyWith(recordId: recordId));
-                  }
-
-                  if (records.isNotEmpty) {
-                    final index = _messages.indexWhere((m) => m.id == currentAssistantId);
-                    if (index != -1) {
-                      _messages[index] = _messages[index].copyWith(records: records);
+                      // Save via RecordProvider (AD-1: provider-only repository access)
+                      final recordId = await _recordProvider!.createRecord(record);
+                      records.add(record.copyWith(recordId: recordId));
                     }
-                    _dbUpdateVersion++;
-                    await _recordProvider?.loadAll();
+
+                    if (records.isNotEmpty) {
+                      final index = _messages.indexWhere((m) => m.id == currentAssistantId);
+                      if (index != -1) {
+                        _messages[index] = _messages[index].copyWith(records: records);
+                      }
+                      _dbUpdateVersion++;
+                      await _recordProvider?.loadAll();
+                    }
                   }
                 } catch (e) {
-                  debugPrint('Error parsing records JSON: $e');
+                  debugPrint('Error parsing JSON: $e');
                 }
               }
 

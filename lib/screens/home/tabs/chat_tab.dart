@@ -57,6 +57,20 @@ class _ChatTabState extends State<ChatTab> {
     }
   }
 
+  void _onPromptTap(ChatProvider provider, int index) {
+    _controller.text = provider.suggestedPrompts[index].prompt;
+    _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
+    provider.selectPrompt(index);
+    FocusScope.of(context).requestFocus(widget.focusNode);
+  }
+
+  void _onActionTap(ChatProvider provider, int index) {
+    final action = provider.suggestedPrompts[provider.activePromptIndex!].actions[index];
+    _controller.text = '${_controller.text} $action';
+    _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
+    provider.selectAction();
+  }
+
   Future<void> _handleSend() async {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
@@ -96,6 +110,18 @@ class _ChatTabState extends State<ChatTab> {
           ),
         ),
         if (context.watch<ChatProvider>().isStreaming) const _StreamingIndicator(),
+        Consumer<ChatProvider>(
+          builder: (context, provider, _) {
+            if (provider.suggestedPrompts.isEmpty) return const SizedBox.shrink();
+            return SuggestedPromptsBar(
+              prompts: provider.suggestedPrompts,
+              activePromptIndex: provider.activePromptIndex,
+              showingActions: provider.showingActions,
+              onPromptTap: (index) => _onPromptTap(provider, index),
+              onActionTap: (index) => _onActionTap(provider, index),
+            );
+          },
+        ),
         _buildInputArea(),
       ],
     );

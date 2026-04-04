@@ -31,6 +31,9 @@ void main() {
     
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
+    when(() => mockChatProvider.suggestedPrompts).thenReturn([]);
+    when(() => mockChatProvider.activePromptIndex).thenReturn(null);
+    when(() => mockChatProvider.showingActions).thenReturn(false);
 
     when(() => mockLocaleProvider.language).thenReturn(AppLanguage.english);
     when(() => mockLocaleProvider.currency).thenReturn(AppCurrency.usd);

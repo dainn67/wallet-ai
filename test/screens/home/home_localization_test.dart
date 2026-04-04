@@ -37,6 +37,9 @@ void main() {
     when(() => mockRecordProvider.totalBalance).thenReturn(0.0);
     when(() => mockChatProvider.messages).thenReturn([]);
     when(() => mockChatProvider.isStreaming).thenReturn(false);
+    when(() => mockChatProvider.suggestedPrompts).thenReturn([]);
+    when(() => mockChatProvider.activePromptIndex).thenReturn(null);
+    when(() => mockChatProvider.showingActions).thenReturn(false);
   });
 
   Widget createTestApp() {

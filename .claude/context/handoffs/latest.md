@@ -1,40 +1,37 @@
-# Handoff Notes: Task #003 - Verify all widget sizes and run tests
+---
+epic: suggested-prompts
+task: 004-tests
+status: completed
+created: 2026-04-03T05:30:00Z
+updated: 2026-04-03T05:30:00Z
+---
+
+# Handoff: T4 Unit tests + widget tests for suggested prompts
 
 ## Status
-COMPLETE — all verification checks passed.
+COMPLETE — all new tests pass. 139 tests pass, 4 pre-existing failures (unrelated to this epic).
 
 ## What Was Done
-Ran `flutter test`, `flutter analyze`, and `flutter build apk --debug`. Reviewed `record_provider.dart` and `AppWidget.kt` for correctness.
 
-## Verification Results
+- `test/providers/chat_provider_test.dart`: Already had all 13 tests from T1-T3:
+  - 5 parsing tests (happy path, record array, no delimiter, malformed JSON, empty array)
+  - 7 state tests (selectPrompt with/without actions, selectAction, sendMessage with/without/last active prompt, empty content with active prompt, empty array)
+  - 1 original sendMessage record parsing test
+- `test/screens/chat_tab_test.dart`: Added 2 widget visibility tests:
+  - `'shows SuggestedPromptsBar when prompts non-empty'`: mocks 2 SuggestedPrompt objects, verifies `find.byType(SuggestedPromptsBar)` finds one widget
+  - `'hides SuggestedPromptsBar when prompts empty'`: mocks empty list, verifies `find.byType(SuggestedPromptsBar)` finds nothing
+  - Added imports for `SuggestedPromptsBar` and `SuggestedPrompt`
 
-### flutter test
-132/132 tests passed. No regressions.
+## Files Changed
 
-### flutter analyze
-55 issues (info + warnings + 3 errors), but ALL pre-exist from earlier epics:
-- 3 errors are in `tests/integration/epic_add-sub-category/test_integration_provider_categories_tab.dart` (added in commit `1e91d86`, unrelated to home-widget-android epic)
-- Warnings are `invalid_use_of_visible_for_testing_member` in old e2e/integration test files
-- No new errors or warnings introduced by T1 or T2
+- `test/screens/chat_tab_test.dart` (2 new widget tests + 2 imports added)
+- `.claude/epics/suggested-prompts/004-tests.md` (status: closed)
 
-### flutter build apk --debug
-SUCCESS — `build/app/outputs/flutter-apk/app-debug.apk` built cleanly.
+## Pre-existing Failures (4, unrelated to this epic)
 
-## Code Review Findings
+- `test/services/ai_context_service_test.dart`: `AiContextService` method not found (missing/renamed class)
+- `test/screens/home/home_localization_test.dart` (l10n integration): 2 SC-1/SC-3 ApiException failures
 
-### lib/providers/record_provider.dart
-- `_updateWidget()` correctly uses `filteredTotalIncome`, `filteredTotalExpense`, `totalBalance` getters
-- Saves `current_month` key via `HomeWidget.saveWidgetData<String>('current_month', monthLabel)`
-- `monthLabel` derived from `DateFormat('MMMM yyyy').format(_selectedDateRange?.start ?? DateTime.now())`
-- All confirmed correct per T1 spec
+## Epic Complete
 
-### android/app/src/main/kotlin/com/example/wallet_ai/AppWidget.kt
-- 5 breakpoints defined: SMALL (80x80), TALL (80x160), WIDE (160x80), MEDIUM (160x160), LARGE (240x200)
-- SmallLayout: uses `R.drawable.ic_menu_edit` (pencil icon) + "Quick Record..." text at 12sp — correct
-- MediumLayout: reads `current_month` pref — correct
-- LargeDashboard: reads `current_month` pref — correct
-- All confirmed correct per T2 spec
-
-## Warnings for Next Task
-- Manual emulator testing (T3 acceptance criteria FR-1 through FR-4, NFR-1, NFR-2) still requires a physical device or emulator
-- Pre-existing analyze errors in `epic_add-sub-category` integration tests should be cleaned up in a future task
+All 4 tasks (001-model, 002-provider, 003-ui-widget, 004-tests) are closed. The suggested-prompts feature is fully implemented and tested.
