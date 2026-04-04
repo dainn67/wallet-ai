@@ -102,10 +102,10 @@ class _PromptChip extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
-                fontWeight: isAction ? FontWeight.w600 : FontWeight.w500,
-                color: const Color(0xFF1E293B),
+                fontWeight: FontWeight.normal,
+                color: Color(0xFF1E293B),
               ),
             ),
           ),
