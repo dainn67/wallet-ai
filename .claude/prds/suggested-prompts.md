@@ -1,11 +1,11 @@
 ---
 name: suggested-prompts
 description: Parse suggestedPrompts from greeting JSON and display as interactive 3-step chip flow above chat input for returning users
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-04-03T03:55:18Z
-updated: 2026-04-03T04:04:14Z
+updated: 2026-04-04T12:41:45Z
 ---
 
 # PRD: suggested-prompts
