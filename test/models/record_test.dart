@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wallet_ai/models/record.dart';
+import 'package:wallet_ai/models/suggested_category.dart';
 
 void main() {
   group('Record Model Tests', () {
@@ -66,6 +67,69 @@ void main() {
       expect(map['currency'], 'USD');
       expect(map['description'], 'Salary');
       expect(map['type'], 'income');
+    });
+  });
+
+  group('Record suggestedCategory (transient field)', () {
+    final sc = SuggestedCategory(
+      name: 'Streaming',
+      type: 'expense',
+      parentId: -1,
+      message: 'Create it?',
+    );
+
+    Record makeRecord({SuggestedCategory? suggestedCategory}) => Record(
+          moneySourceId: 1,
+          amount: 100.0,
+          currency: 'USD',
+          description: 'Test',
+          type: 'expense',
+          suggestedCategory: suggestedCategory,
+        );
+
+    test('toMap does not include suggested_category key', () {
+      final record = makeRecord(suggestedCategory: sc);
+      final map = record.toMap();
+      expect(map.containsKey('suggested_category'), isFalse);
+    });
+
+    test('fromMap always has suggestedCategory == null', () {
+      final map = {
+        'record_id': 1,
+        'last_updated': 1711000000000,
+        'money_source_id': 1,
+        'category_id': 1,
+        'amount': 100.0,
+        'currency': 'USD',
+        'description': 'Test',
+        'type': 'expense',
+      };
+      final record = Record.fromMap(map);
+      expect(record.suggestedCategory, isNull);
+    });
+
+    test('copyWith(clearSuggestedCategory: true) sets field to null', () {
+      final record = makeRecord(suggestedCategory: sc);
+      final cleared = record.copyWith(clearSuggestedCategory: true);
+      expect(cleared.suggestedCategory, isNull);
+    });
+
+    test('copyWith() with no args passes through suggestedCategory reference', () {
+      final record = makeRecord(suggestedCategory: sc);
+      final copy = record.copyWith();
+      expect(identical(copy.suggestedCategory, sc), isTrue);
+    });
+
+    test('copyWith(suggestedCategory: newSc) updates field', () {
+      final newSc = SuggestedCategory(
+        name: 'Food',
+        type: 'expense',
+        parentId: -1,
+        message: 'New',
+      );
+      final record = makeRecord(suggestedCategory: sc);
+      final updated = record.copyWith(suggestedCategory: newSc);
+      expect(updated.suggestedCategory, equals(newSc));
     });
   });
 }
