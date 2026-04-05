@@ -207,6 +207,7 @@ class ChatProvider extends ChangeNotifier {
                       final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
 
                       final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
+                      final suggestion = categoryId == -1 ? SuggestedCategory.fromJson(item['suggested_category']) : null;
                       final record = Record(
                         moneySourceId: sourceId,
                         categoryId: categoryId,
@@ -214,6 +215,7 @@ class ChatProvider extends ChangeNotifier {
                         currency: currencyString,
                         description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
                         type: type,
+                        suggestedCategory: suggestion,
                       );
 
                       // Save via RecordProvider (AD-1: provider-only repository access)
