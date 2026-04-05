@@ -5,6 +5,7 @@ import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
 import 'package:wallet_ai/providers/record_provider.dart';
 
+import 'popups/edit_record_popup.dart';
 import 'record_widget.dart';
 import 'suggestion_banner.dart';
 
@@ -30,6 +31,21 @@ class ChatBubble extends StatelessWidget {
     final updatedRecord = record.copyWith(categoryId: newId, clearSuggestedCategory: true);
     await recordProvider.updateRecord(updatedRecord);
     chatProvider.updateMessageRecord(messageId, updatedRecord);
+  }
+
+  Future<void> _handleEdit(BuildContext context, Record record, String messageId) async {
+    final recordProvider = context.read<RecordProvider>();
+    final chatProvider = context.read<ChatProvider>();
+
+    final updatedRecord = await showDialog<Record>(
+      context: context,
+      builder: (context) => EditRecordPopup(record: record),
+    );
+
+    if (updatedRecord != null && context.mounted) {
+      await recordProvider.updateRecord(updatedRecord);
+      chatProvider.updateMessageRecord(messageId, updatedRecord);
+    }
   }
 
   void _handleCancel(BuildContext context, Record record, String messageId) {
@@ -111,7 +127,13 @@ class ChatBubble extends StatelessWidget {
                     final record = entry.value;
                     final isLast = index == message.records!.length - 1;
 
-                    final List<Widget> groupWidgets = [RecordWidget(record: record)];
+                    final List<Widget> groupWidgets = [
+                      RecordWidget(
+                        record: record,
+                        isEditable: true,
+                        onEdit: () => _handleEdit(context, record, message.id),
+                      ),
+                    ];
 
                     if (record.suggestedCategory != null && record.categoryId == -1) {
                       groupWidgets.add(const SizedBox(height: 8));
