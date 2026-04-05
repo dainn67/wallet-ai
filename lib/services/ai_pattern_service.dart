@@ -59,17 +59,21 @@ class AiPatternService {
     final budgetRemaining = allSources.map((s) => '${s.amount}$currency from ${s.sourceName}').toList();
 
     // 3. Filter Records
-    final latestRecords = allRecords.where((r) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
-      return dt.isAfter(latestStart.subtract(const Duration(milliseconds: 1))) && 
-             dt.isBefore(latestEnd.add(const Duration(milliseconds: 1)));
-    }).map(_recordToMap).toList();
+    final latestRecords = allRecords
+        .where((r) {
+          final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+          return dt.isAfter(latestStart.subtract(const Duration(milliseconds: 1))) && dt.isBefore(latestEnd.add(const Duration(milliseconds: 1)));
+        })
+        .map(_recordToMap)
+        .toList();
 
-    final momentumRecords = allRecords.where((r) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
-      return dt.isAfter(momentumStartDate.subtract(const Duration(milliseconds: 1))) && 
-             dt.isBefore(momentumEndDate.add(const Duration(milliseconds: 1)));
-    }).map(_recordToMap).toList();
+    final momentumRecords = allRecords
+        .where((r) {
+          final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+          return dt.isAfter(momentumStartDate.subtract(const Duration(milliseconds: 1))) && dt.isBefore(momentumEndDate.add(const Duration(milliseconds: 1)));
+        })
+        .map(_recordToMap)
+        .toList();
 
     // 4. Build Structure
     return {
@@ -103,7 +107,7 @@ class AiPatternService {
       latestStart = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 90));
     } else {
       final lastUpdateDate = DateTime.fromMillisecondsSinceEpoch(lastUpdateTime);
-      
+
       if (!force && (lastUpdateDate.isAfter(endOfYesterday) || lastUpdateDate.isAtSameMomentAs(endOfYesterday))) {
         debugPrint('AiPatternService: Pattern already updated for yesterday.');
         return;
@@ -145,4 +149,3 @@ class AiPatternService {
     }
   }
 }
-

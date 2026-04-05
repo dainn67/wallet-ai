@@ -27,14 +27,11 @@ class StorageService {
   List<String>? getStringList(String key) => _prefs?.getStringList(key);
 
   // Generic Setters
-  Future<bool> setString(String key, String value) =>
-      _prefs?.setString(key, value) ?? Future.value(false);
+  Future<bool> setString(String key, String value) => _prefs?.setString(key, value) ?? Future.value(false);
   Future<bool> setBool(String key, bool value) => _prefs?.setBool(key, value) ?? Future.value(false);
   Future<bool> setInt(String key, int value) => _prefs?.setInt(key, value) ?? Future.value(false);
-  Future<bool> setDouble(String key, double value) =>
-      _prefs?.setDouble(key, value) ?? Future.value(false);
-  Future<bool> setStringList(String key, List<String> value) =>
-      _prefs?.setStringList(key, value) ?? Future.value(false);
+  Future<bool> setDouble(String key, double value) => _prefs?.setDouble(key, value) ?? Future.value(false);
+  Future<bool> setStringList(String key, List<String> value) => _prefs?.setStringList(key, value) ?? Future.value(false);
 
   // Helper Methods
   bool containsKey(String key) => _prefs?.containsKey(key) ?? false;

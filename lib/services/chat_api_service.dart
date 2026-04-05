@@ -31,16 +31,21 @@ class ChatApiService {
 
   static String formatCategories(List<Category>? categories) {
     if (categories == null || categories.isEmpty) return 'No categories available';
-    final categoryMap = {for (var c in categories) c.categoryId: c.name};
-    return categories
-        .map((c) {
-          if (c.parentId != -1) {
-            final parentName = categoryMap[c.parentId] ?? 'Unknown';
-            return '${c.categoryId}-${c.name} (Parent: $parentName)';
-          }
-          return '${c.categoryId}-${c.name}';
-        })
-        .join(', ');
+
+    final parents = categories.where((c) => c.parentId == -1).toList();
+    final childrenByParent = <int, List<Category>>{};
+    for (final c in categories) {
+      if (c.parentId != -1) {
+        childrenByParent.putIfAbsent(c.parentId!, () => []).add(c);
+      }
+    }
+
+    return parents.map((p) {
+      final children = childrenByParent[p.categoryId];
+      if (children == null || children.isEmpty) return '${p.categoryId}-${p.name}';
+      final childStr = children.map((c) => '${c.categoryId}-${c.name}').join(', ');
+      return '${p.categoryId}-${p.name} [subcategories: ${childStr}]';
+    }).join('; ');
   }
 
   Stream<ChatStreamResponse> streamChat(
