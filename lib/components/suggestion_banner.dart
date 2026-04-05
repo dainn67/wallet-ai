@@ -52,7 +52,6 @@ class _SuggestionBannerState extends State<SuggestionBanner> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),

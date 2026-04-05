@@ -1,9 +1,1 @@
-{
-  "active_epic": "suggest-category",
-  "started": "2026-04-05T17:03:06Z",
-  "phase_b_result": "EPIC_VERIFY_PARTIAL",
-  "total_iterations": 1,
-  "iterations": [
-    {"iteration": 1, "result": "EPIC_VERIFY_PARTIAL", "changes": "Wrote smoke + integration tests; fixed compilation errors (constructor params, SuggestionBanner signature). Tier 1: 10/10 pass. Tier 2: 8/8 pass. Tier 3: 178 pass, 6 fail (all pre-existing)."}
-  ]
-}
+{"active_epic": null}

@@ -105,11 +105,17 @@ class ChatBubble extends StatelessWidget {
                         ),
                 ),
                 if (message.records != null && message.records!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ...message.records!.expand((record) {
-                    final widgets = <Widget>[RecordWidget(record: record)];
+                  const SizedBox(height: 12),
+                  ...message.records!.asMap().entries.expand((entry) {
+                    final index = entry.key;
+                    final record = entry.value;
+                    final isLast = index == message.records!.length - 1;
+
+                    final List<Widget> groupWidgets = [RecordWidget(record: record)];
+
                     if (record.suggestedCategory != null && record.categoryId == -1) {
-                      widgets.add(
+                      groupWidgets.add(const SizedBox(height: 8));
+                      groupWidgets.add(
                         SuggestionBanner(
                           record: record,
                           messageId: message.id,
@@ -119,7 +125,12 @@ class ChatBubble extends StatelessWidget {
                         ),
                       );
                     }
-                    return widgets;
+
+                    if (!isLast) {
+                      groupWidgets.add(const SizedBox(height: 16));
+                    }
+
+                    return groupWidgets;
                   }),
                 ],
               ],
