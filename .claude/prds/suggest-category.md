@@ -1,11 +1,11 @@
 ---
 name: suggest-category
 description: Show AI-suggested new category inline in chat when a record can't be classified; let user confirm to create it and re-assign the record.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-04-05T15:45:12Z
-updated: 2026-04-05T16:07:08Z
+updated: 2026-04-05T17:43:09Z
 ---
 
 # PRD: suggest-category
