@@ -26,7 +26,7 @@
 - **RecordRepository**: Singleton managing the SQLite `data.db`.
 - **Transactions**: All balance-affecting operations (creating/updating/deleting records) are executed as atomic database transactions.
 - **Schema**:
-  - `Record`: Transaction data with foreign keys to `Category` and `MoneySource`.
+  - `Record`: Transaction data with foreign keys to `Category` and `MoneySource`. The `Record` model also carries a transient `suggestedCategory` (`SuggestedCategory?`) field — it is NOT included in `toMap()`/`fromMap()` and is never written to or read from SQLite. It carries the AI's category suggestion from chat stream parsing to the UI banner (cleared on confirm/cancel or app restart).
   - `Category`: User-defined or default classification. Supports `parent_id` for grouping.
   - `MoneySource`: Named sources with tracked balances.
 
