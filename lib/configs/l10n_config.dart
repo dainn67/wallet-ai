@@ -1,4 +1,5 @@
 enum AppLanguage { english, vietnamese }
+
 enum AppCurrency { usd, vnd }
 
 class L10nConfig {
@@ -23,7 +24,6 @@ class L10nConfig {
       'reset_data_confirm_content': 'Are you sure you want to delete all records and reset all balances to zero? This action cannot be undone.',
       'reset_button': 'Reset',
       'chat_hint': 'Ask me anything...',
-      'ai_typing': 'AI is typing',
       'no_records': 'No records yet',
       'no_records_subtitle': 'Your income and expense records will appear here.',
       'no_categories': 'No categories yet',
@@ -42,7 +42,8 @@ class L10nConfig {
       'name_required_error': 'Name is required',
       'description_required_error': 'Description is required',
       'delete_source_confirm_title': 'Delete Source',
-      'delete_source_confirm_content': 'Are you sure you want to delete this source? This will also delete all transaction records associated with this source. This cannot be undone.',
+      'delete_source_confirm_content':
+          'Are you sure you want to delete this source? This will also delete all transaction records associated with this source. This cannot be undone.',
       'delete_button': 'Delete',
       'dev_mode_enabled': 'Developer mode enabled',
       'dev_mode_disabled': 'Developer mode disabled',
@@ -87,7 +88,6 @@ class L10nConfig {
       'reset_data_confirm_content': 'Bạn có chắc chắn muốn xóa tất cả hồ sơ và đặt lại tất cả số dư về không? Hành động này không thể hoàn tác.',
       'reset_button': 'Đặt lại',
       'chat_hint': 'Hỏi tôi bất cứ điều gì...',
-      'ai_typing': 'AI đang gõ',
       'no_records': 'Chưa có hồ sơ nào',
       'no_records_subtitle': 'Hồ sơ thu nhập và chi tiêu của bạn sẽ xuất hiện ở đây.',
       'no_categories': 'Chưa có danh mục nào',
@@ -133,13 +133,7 @@ class L10nConfig {
     },
   };
 
-  static const Map<AppCurrency, String> currencySymbols = {
-    AppCurrency.usd: r'$',
-    AppCurrency.vnd: '₫',
-  };
+  static const Map<AppCurrency, String> currencySymbols = {AppCurrency.usd: r'$', AppCurrency.vnd: '₫'};
 
-  static const Map<AppCurrency, String> currencyCodes = {
-    AppCurrency.usd: 'USD',
-    AppCurrency.vnd: 'VND',
-  };
+  static const Map<AppCurrency, String> currencyCodes = {AppCurrency.usd: 'USD', AppCurrency.vnd: 'VND'};
 }

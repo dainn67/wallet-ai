@@ -301,6 +301,9 @@ class RecordProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _repository.resetAllData();
+      final storage = StorageService();
+      await storage.remove(StorageService.keyUserPattern);
+      await storage.remove(StorageService.keyLastPatternUpdateTime);
     } catch (e) {
       debugPrint('Error resetting all data in RecordProvider: $e');
     } finally {

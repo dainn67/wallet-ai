@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
@@ -16,6 +17,26 @@ class _TestTabState extends State<TestTab> {
   static const int _demoSourceId = 1; // Wallet (default from DB)
   String? _apiResult;
   bool _isLoading = false;
+  String? _storedPattern;
+  DateTime? _lastUpdateTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoredData();
+  }
+
+  void _loadStoredData() {
+    setState(() {
+      _storedPattern = StorageService().getString(StorageService.keyUserPattern);
+      final lastUpdateMs = StorageService().getInt(StorageService.keyLastPatternUpdateTime);
+      if (lastUpdateMs != null && lastUpdateMs != -1) {
+        _lastUpdateTime = DateTime.fromMillisecondsSinceEpoch(lastUpdateMs);
+      } else {
+        _lastUpdateTime = null;
+      }
+    });
+  }
 
   Future<void> _addDemoRecords(BuildContext context) async {
     final provider = context.read<RecordProvider>();
@@ -66,6 +87,7 @@ class _TestTabState extends State<TestTab> {
       setState(() {
         _isLoading = false;
       });
+      _loadStoredData();
     }
   }
 
@@ -146,10 +168,45 @@ class _TestTabState extends State<TestTab> {
               });
             },
             icon: const Icon(Icons.clear, size: 18),
-            label: const Text('Clear result'),
-          ),
-        ],
+          label: const Text('Clear result'),
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFF64748B)),
+        ),
       ],
+      const SizedBox(height: 32),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Stored AI Pattern',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+          ),
+          IconButton(onPressed: _loadStoredData, icon: const Icon(Icons.refresh, size: 20, color: Color(0xFF6366F1))),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Text(
+        _lastUpdateTime != null ? 'Last updated: ${DateFormat('HH:mm d MMM yyyy').format(_lastUpdateTime!)}' : 'Never updated',
+        style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+      ),
+      const SizedBox(height: 16),
+      Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxHeight: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: SingleChildScrollView(
+          child: Text(
+            _storedPattern?.isNotEmpty == true ? _storedPattern! : 'No pattern stored yet.',
+            style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: Color(0xFF334155), height: 1.4),
+          ),
+        ),
+      ),
+      const SizedBox(height: 32),
+    ],
     );
   }
 }

@@ -11,7 +11,7 @@ class AppConfig {
 
   final String appName = 'Wally AI';
   String _version = '1.0.0';
-  String _buildNumber = '1';
+  String _buildNumber = '15';
 
   String get fullVersion => 'v$_version($_buildNumber)';
 

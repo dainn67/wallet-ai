@@ -109,7 +109,6 @@ class _ChatTabState extends State<ChatTab> {
             },
           ),
         ),
-        if (context.watch<ChatProvider>().isStreaming) const _StreamingIndicator(),
         Consumer<ChatProvider>(
           builder: (context, provider, _) {
             if (provider.suggestedPrompts.isEmpty) return const SizedBox.shrink();
@@ -168,28 +167,6 @@ class _ChatTabState extends State<ChatTab> {
               child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StreamingIndicator extends StatelessWidget {
-  const _StreamingIndicator();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.watch<LocaleProvider>();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        children: [
-          Text(
-            l10n.translate('ai_typing'),
-            style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(width: 8),
-          const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.grey))),
         ],
       ),
     );
