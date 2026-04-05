@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
@@ -120,6 +121,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: Scaffold(
         backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
         appBar: AppBar(
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark, // For Android
+            statusBarBrightness: Brightness.light,    // For iOS (dark icons)
+          ),
           title: _buildAppBarTitle(),
           // actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
           bottom: TabBar(

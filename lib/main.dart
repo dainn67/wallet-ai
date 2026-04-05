@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:home_widget/home_widget.dart';
@@ -25,6 +26,9 @@ void main() async {
 
   // Update the user pattern from AI based on record history (fire-and-forget)
   AiPatternService().updateUserPattern();
+  
+  // Ensure the system status bar and navigation bar are visible
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
 
   runApp(const MyApp());
 }
@@ -74,6 +78,11 @@ class MyApp extends StatelessWidget {
             centerTitle: true,
             titleTextStyle: TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
             iconTheme: IconThemeData(color: Color(0xFF1E293B)),
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark, // For Android
+              statusBarBrightness: Brightness.light,    // For iOS
+            ),
           ),
         ),
         home: const HomeScreen(),
