@@ -364,4 +364,182 @@ void main() {
 
     expect(chatProvider.suggestedPrompts, isEmpty);
   });
+
+  group('suggested_category stream parsing', () {
+    test('record with category_id=-1 and valid suggested_category gets non-null suggestedCategory', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+        any(),
+        conversationId: any(named: 'conversationId'),
+        categoryList: any(named: 'categoryList'),
+        moneySourceList: any(named: 'moneySourceList'),
+      )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Recorded.\n--//--\n'
+          '['
+          '  {'
+          '    "source_id": 1,'
+          '    "category_id": "-1",'
+          '    "amount": 50000,'
+          '    "description": "Netflix",'
+          '    "type": "expense",'
+          '    "suggested_category": {'
+          '      "name": "Streaming",'
+          '      "type": "expense",'
+          '      "parent_id": -1,'
+          '      "message": "Want to create Streaming?"'
+          '    }'
+          '  }'
+          ']';
+
+      final future = chatProvider.sendMessage('Netflix 50k');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_sc1'));
+      await streamController.close();
+      await future;
+
+      final records = chatProvider.messages.last.records;
+      expect(records, isNotNull);
+      expect(records!.length, 1);
+      expect(records.first.categoryId, -1);
+      expect(records.first.suggestedCategory, isNotNull);
+      expect(records.first.suggestedCategory!.name, 'Streaming');
+    });
+
+    test('record with valid category_id has null suggestedCategory', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+        any(),
+        conversationId: any(named: 'conversationId'),
+        categoryList: any(named: 'categoryList'),
+        moneySourceList: any(named: 'moneySourceList'),
+      )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Recorded.\n--//--\n'
+          '['
+          '  {'
+          '    "source_id": 1,'
+          '    "category_id": 2,'
+          '    "amount": 30000,'
+          '    "description": "Lunch",'
+          '    "type": "expense"'
+          '  }'
+          ']';
+
+      final future = chatProvider.sendMessage('Lunch 30k');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_sc2'));
+      await streamController.close();
+      await future;
+
+      final records = chatProvider.messages.last.records;
+      expect(records, isNotNull);
+      expect(records!.first.suggestedCategory, isNull);
+    });
+
+    test('malformed suggested_category (missing name) produces null suggestedCategory without crash', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+        any(),
+        conversationId: any(named: 'conversationId'),
+        categoryList: any(named: 'categoryList'),
+        moneySourceList: any(named: 'moneySourceList'),
+      )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Recorded.\n--//--\n'
+          '['
+          '  {'
+          '    "source_id": 1,'
+          '    "category_id": "-1",'
+          '    "amount": 20000,'
+          '    "description": "Grab",'
+          '    "type": "expense",'
+          '    "suggested_category": {"type": "expense", "message": "Missing name"}'
+          '  }'
+          ']';
+
+      final future = chatProvider.sendMessage('Grab 20k');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_sc3'));
+      await streamController.close();
+      await future;
+
+      final records = chatProvider.messages.last.records;
+      expect(records, isNotNull);
+      expect(records!.first.suggestedCategory, isNull);
+    });
+
+    test('suggested_category as a string produces null suggestedCategory without crash', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+        any(),
+        conversationId: any(named: 'conversationId'),
+        categoryList: any(named: 'categoryList'),
+        moneySourceList: any(named: 'moneySourceList'),
+      )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Recorded.\n--//--\n'
+          '['
+          '  {'
+          '    "source_id": 1,'
+          '    "category_id": "-1",'
+          '    "amount": 15000,'
+          '    "description": "Bus",'
+          '    "type": "expense",'
+          '    "suggested_category": "bad string value"'
+          '  }'
+          ']';
+
+      final future = chatProvider.sendMessage('Bus 15k');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_sc4'));
+      await streamController.close();
+      await future;
+
+      final records = chatProvider.messages.last.records;
+      expect(records, isNotNull);
+      expect(records!.first.suggestedCategory, isNull);
+    });
+
+    test('mixed batch: valid/null/malformed suggestions parsed correctly — all 3 records saved', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+        any(),
+        conversationId: any(named: 'conversationId'),
+        categoryList: any(named: 'categoryList'),
+        moneySourceList: any(named: 'moneySourceList'),
+      )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Recorded 3 items.\n--//--\n'
+          '['
+          '  {'
+          '    "source_id": 1, "category_id": "-1", "amount": 50000,'
+          '    "description": "Netflix", "type": "expense",'
+          '    "suggested_category": {"name": "Streaming", "type": "expense", "parent_id": -1, "message": "Create?"}'
+          '  },'
+          '  {'
+          '    "source_id": 1, "category_id": "3", "amount": 30000,'
+          '    "description": "Lunch", "type": "expense"'
+          '  },'
+          '  {'
+          '    "source_id": 1, "category_id": "-1", "amount": 20000,'
+          '    "description": "Grab", "type": "expense",'
+          '    "suggested_category": {"type": "expense"}'
+          '  }'
+          ']';
+
+      final future = chatProvider.sendMessage('3 items');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_sc5'));
+      await streamController.close();
+      await future;
+
+      final records = chatProvider.messages.last.records;
+      expect(records, isNotNull);
+      expect(records!.length, 3);
+      expect(records[0].suggestedCategory, isNotNull); // valid suggestion
+      expect(records[1].suggestedCategory, isNull);    // normal category_id
+      expect(records[2].suggestedCategory, isNull);    // malformed (missing name)
+    });
+  });
 }

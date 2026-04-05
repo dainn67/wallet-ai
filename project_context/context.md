@@ -32,15 +32,21 @@ A navigation drawer provides secondary access to these tabs and global settings 
 ### Suggested Prompts (Returning Users)
 For returning users, the adaptive greeting may include a `suggestedPrompts` JSON object (instead of a record array) after the `--//--` delimiter. ChatProvider detects the type after `jsonDecode` and populates `_suggestedPrompts`. These are displayed as interactive chips above the chat input via **SuggestedPromptsBar**. Tapping a chip pre-fills the input; tapping an action chip appends an amount; sending removes the active prompt from the list. See `docs/features/suggested-prompts.md`.
 
+### Suggest Category (Inline AI Banner)
+When a record has `category_id: -1` and the server returns a `suggested_category` object, `ChatProvider._handleStream` parses the suggestion into a transient `Record.suggestedCategory` field. The `ChatBubble` widget renders a `SuggestionBanner` beneath the unclassified record card. Confirming calls `RecordProvider.resolveCategoryByNameOrCreate`, updates the record in DB, and clears the banner. Cancelling clears the suggestion from in-memory state only. The suggestion is never persisted — app restart removes all banners. See `docs/features/suggest-category.md`.
+
 ### AI Pattern Analysis & Adaptive Greeting
 1. **Background Pattern Sync**: On app launch, `AiPatternService` checks the last update time. If an update is due, it collects recent transaction context (Latest vs. Momentum) and sends it to the AI for high-level behavior analysis.
 2. **Adaptive Greeting**: On app load, `ChatProvider` automatically sends a hidden `INIT_GREETING` request to the server, including the locally stored `user_pattern` string. This allows the AI to generate a highly personalized greeting based on established user habits.
 
 ## Logic Locations
-- **Parsing**: `ChatProvider._handleStream` onDone handler — type-checks decoded JSON: Map with `suggestedPrompts` key → prompts; List → records.
+- **Parsing**: `ChatProvider._handleStream` onDone handler — type-checks decoded JSON: Map with `suggestedPrompts` key → prompts; List → records. Also parses `suggested_category` per record when `categoryId == -1`.
 - **Aggregation Logic**: `RecordProvider._calculateCategoryTotals` (calculates flat and hierarchical totals from cached records).
 - **AI Pattern Logic**: `AiPatternService.updateUserPattern` (orchestrates date range windows and context snapshot collection).
 - **Adaptive Greeting Logic**: `ChatProvider.sendAdaptiveGreeting` (triggers the INIT_GREETING flow).
 - **Suggested Prompts State**: `ChatProvider.selectPrompt`, `selectAction`, `_removeActivePrompt` — manage chip bar state.
+- **Suggested Category Parsing**: `ChatProvider._handleStream` (~line 210) — `SuggestedCategory.fromJson(item['suggested_category'])` when `categoryId == -1`.
+- **Category Resolver**: `RecordProvider.resolveCategoryByNameOrCreate(name, type, parentId)` — finds or creates a category, refreshes cache, returns new id.
+- **Suggestion Banner UI**: `lib/components/suggestion_banner.dart` — inline widget with double-tap guard; wired in `lib/components/chat_bubble.dart`.
 - **DB Transactions**: `RecordRepository.createRecord`.
 - **State Synchronization**: `ChangeNotifierProxyProvider` links `RecordProvider` to `ChatProvider`.

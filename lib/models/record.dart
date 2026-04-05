@@ -1,3 +1,5 @@
+import 'suggested_category.dart';
+
 class Record {
   final int recordId;
   final int lastUpdated; // millisecondsSinceEpoch
@@ -9,6 +11,7 @@ class Record {
   final String currency;
   final String description;
   final String type; // 'income' or 'expense'
+  final SuggestedCategory? suggestedCategory; // transient — not persisted
 
   Record({
     this.recordId = 0,
@@ -21,6 +24,7 @@ class Record {
     required this.currency,
     required this.description,
     required this.type,
+    this.suggestedCategory,
   })  : assert(type == 'income' || type == 'expense', 'Type must be income or expense'),
         lastUpdated = lastUpdated ?? DateTime.now().millisecondsSinceEpoch;
 
@@ -66,6 +70,8 @@ class Record {
     String? currency,
     String? description,
     String? type,
+    SuggestedCategory? suggestedCategory,
+    bool clearSuggestedCategory = false,
   }) {
     return Record(
       recordId: recordId ?? this.recordId,
@@ -78,6 +84,7 @@ class Record {
       currency: currency ?? this.currency,
       description: description ?? this.description,
       type: type ?? this.type,
+      suggestedCategory: clearSuggestedCategory ? null : (suggestedCategory ?? this.suggestedCategory),
     );
   }
 
