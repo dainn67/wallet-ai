@@ -17,6 +17,7 @@ class ChatMessage {
   final String content;
   final DateTime timestamp;
   final List<Record>? records;
+  final bool isAnalyzing;
 
   ChatMessage({
     required this.id,
@@ -24,6 +25,7 @@ class ChatMessage {
     required this.content,
     required this.timestamp,
     this.records,
+    this.isAnalyzing = false,
   });
 
   ChatMessage copyWith({
@@ -32,6 +34,7 @@ class ChatMessage {
     String? content,
     DateTime? timestamp,
     List<Record>? records,
+    bool? isAnalyzing,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -39,6 +42,7 @@ class ChatMessage {
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
       records: records ?? this.records,
+      isAnalyzing: isAnalyzing ?? this.isAnalyzing,
     );
   }
 
@@ -49,6 +53,7 @@ class ChatMessage {
       'content': content,
       'timestamp': timestamp.toIso8601String(),
       'records': records?.map((r) => r.toMap()).toList(),
+      'is_analyzing': isAnalyzing,
     };
   }
 
@@ -61,6 +66,7 @@ class ChatMessage {
       records: (json['records'] as List?)
           ?.map((r) => Record.fromMap(r as Map<String, dynamic>))
           .toList(),
+      isAnalyzing: json['is_analyzing'] as bool? ?? false,
     );
   }
 

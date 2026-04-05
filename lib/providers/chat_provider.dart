@@ -113,8 +113,9 @@ class ChatProvider extends ChangeNotifier {
     var assistantMessage = ChatMessage(
       id: localAssistantId,
       role: ChatRole.assistant,
-      content: _localeProvider?.translate('chat_analyzing') ?? 'Analyzing...',
+      content: _localeProvider?.translate('chat_thinking') ?? 'Thinking...',
       timestamp: DateTime.now(),
+      isAnalyzing: true,
     );
     _messages.add(assistantMessage);
     notifyListeners();
@@ -154,6 +155,7 @@ class ChatProvider extends ChangeNotifier {
                 if (!hasStartedStreaming && response.answer.isNotEmpty) {
                   displayText = '';
                   hasStartedStreaming = true;
+                  assistantMessage = assistantMessage.copyWith(isAnalyzing: false);
                 }
 
                 if (!displayTextCompleted) {
@@ -242,9 +244,9 @@ class ChatProvider extends ChangeNotifier {
               final index = _messages.indexWhere((m) => m.id == currentAssistantId);
               if (index != -1) {
                 if (isGreeting) {
-                   _messages[index] = assistantMessage.copyWith(content: _localeProvider?.translate('Greeting failed, please say hello.') ?? 'Hello! I am your AI assistant.');
+                   _messages[index] = assistantMessage.copyWith(content: _localeProvider?.translate('Greeting failed, please say hello.') ?? 'Hello! I am your AI assistant.', isAnalyzing: false);
                 } else {
-                   _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error');
+                   _messages[index] = assistantMessage.copyWith(content: '${assistantMessage.content}\nError: $error', isAnalyzing: false);
                 }
               }
               notifyListeners();

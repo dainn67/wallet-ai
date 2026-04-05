@@ -43,7 +43,37 @@ class ChatBubble extends StatelessWidget {
                     ),
                     boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))],
                   ),
-                  child: Text(message.content.trim(), style: TextStyle(color: isUser ? Colors.white : const Color(0xFF1E293B), fontSize: 14, height: 1.5)),
+                  child: message.isAnalyzing
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              message.content.trim(),
+                              style: TextStyle(
+                                color: isUser ? Colors.white : const Color(0xFF1E293B),
+                                fontSize: 14,
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF64748B)),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          message.content.trim(),
+                          style: TextStyle(
+                            color: isUser ? Colors.white : const Color(0xFF1E293B),
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        ),
                 ),
                 if (message.records != null && message.records!.isNotEmpty) ...[const SizedBox(height: 8), ...message.records!.map((record) => RecordWidget(record: record))],
               ],
