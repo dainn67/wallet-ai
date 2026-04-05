@@ -7,6 +7,17 @@ import 'package:wallet_ai/models/suggested_category.dart';
 import 'package:wallet_ai/models/record.dart';
 import 'package:wallet_ai/components/suggestion_banner.dart';
 
+Record _makeRecord({int categoryId = -1, SuggestedCategory? sc}) => Record(
+      recordId: 1,
+      amount: 50000,
+      description: 'Netflix',
+      categoryId: categoryId,
+      type: 'expense',
+      moneySourceId: 1,
+      currency: 'VND',
+      suggestedCategory: sc,
+    );
+
 void main() {
   group('[Smoke] SuggestedCategory model — happy path', () {
     test('SC-01: fromJson returns populated instance for valid input', () {
@@ -49,16 +60,7 @@ void main() {
         'message': 'Create Streaming?',
       })!;
 
-      final record = Record(
-        recordId: 1,
-        amount: 50000,
-        description: '50k Netflix',
-        categoryId: -1,
-        type: 'expense',
-        date: DateTime.now(),
-        sourceId: 'src1',
-        suggestedCategory: sc,
-      );
+      final record = _makeRecord(categoryId: -1, sc: sc);
 
       expect(record.suggestedCategory, isNotNull);
       expect(record.suggestedCategory!.name, 'Streaming');
@@ -73,32 +75,15 @@ void main() {
         message: 'Create?',
       );
 
-      final record = Record(
-        recordId: 1,
-        amount: 50000,
-        description: 'test',
-        categoryId: -1,
-        type: 'expense',
-        date: DateTime.now(),
-        sourceId: 'src1',
-        suggestedCategory: sc,
-      );
-
+      final record = _makeRecord(categoryId: -1, sc: sc);
       final cleared = record.copyWith(clearSuggestedCategory: true);
+
       expect(cleared.suggestedCategory, isNull);
       expect(record.suggestedCategory, isNotNull); // original unchanged
     });
 
-    test('SC-07: Record without suggestedCategory works normally (no banner state)', () {
-      final record = Record(
-        recordId: 2,
-        amount: 10000,
-        description: 'lunch',
-        categoryId: 3,
-        type: 'expense',
-        date: DateTime.now(),
-        sourceId: 'src2',
-      );
+    test('SC-07: Record without suggestedCategory works normally', () {
+      final record = _makeRecord(categoryId: 3);
 
       expect(record.suggestedCategory, isNull);
       expect(record.categoryId, 3);
@@ -106,18 +91,22 @@ void main() {
   });
 
   group('[Smoke] SuggestionBanner widget rendering', () {
+    final sc = SuggestedCategory(
+      name: 'Streaming',
+      type: 'expense',
+      parentId: -1,
+      message: 'Want to create a Streaming category?',
+    );
+
     testWidgets('SC-08: Banner renders message and category name', (tester) async {
-      final sc = SuggestedCategory(
-        name: 'Streaming',
-        type: 'expense',
-        parentId: -1,
-        message: 'Want to create a Streaming category?',
-      );
+      final record = _makeRecord(sc: sc);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SuggestionBanner(
+              record: record,
+              messageId: 'msg-1',
               suggestion: sc,
               onConfirm: () async {},
               onCancel: () {},
@@ -131,17 +120,14 @@ void main() {
     });
 
     testWidgets('SC-09: Banner shows Confirm and Cancel buttons', (tester) async {
-      final sc = SuggestedCategory(
-        name: 'Streaming',
-        type: 'expense',
-        parentId: -1,
-        message: 'Create Streaming?',
-      );
+      final record = _makeRecord(sc: sc);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SuggestionBanner(
+              record: record,
+              messageId: 'msg-1',
               suggestion: sc,
               onConfirm: () async {},
               onCancel: () {},
@@ -156,18 +142,14 @@ void main() {
 
     testWidgets('SC-10: Cancel callback fires on tap', (tester) async {
       bool cancelFired = false;
-
-      final sc = SuggestedCategory(
-        name: 'Streaming',
-        type: 'expense',
-        parentId: -1,
-        message: 'Create?',
-      );
+      final record = _makeRecord(sc: sc);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SuggestionBanner(
+              record: record,
+              messageId: 'msg-1',
               suggestion: sc,
               onConfirm: () async {},
               onCancel: () => cancelFired = true,
