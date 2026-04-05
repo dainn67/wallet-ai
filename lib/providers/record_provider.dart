@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import 'package:home_widget/home_widget.dart';
@@ -281,6 +282,49 @@ class RecordProvider extends ChangeNotifier {
 
   // Category CRUD
   Future<void> addCategory(Category category) => _performOperation(() => _repository.createCategory(category), showToastOnError: true, updateWidget: false);
+
+  /// Finds an existing category by name (case-insensitive) + parentId, or creates it.
+  /// Returns the categoryId in both cases, or null if creation fails.
+  Future<int?> resolveCategoryByNameOrCreate(String name, String type, int parentId) async {
+    final trimmedName = name.trim();
+
+    // 1. Search in-memory cache (case-insensitive)
+    final existing = _categories.firstWhereOrNull(
+      (c) =>
+          c.name.toLowerCase().trim() == trimmedName.toLowerCase() &&
+          c.parentId == parentId,
+    );
+    if (existing != null) return existing.categoryId;
+
+    // 2. Validate parentId — fall back to top-level if not found
+    int resolvedParentId = parentId;
+    if (parentId != -1) {
+      final parentExists = _categories.any((c) => c.categoryId == parentId);
+      if (!parentExists) {
+        debugPrint('[SuggestCategory] parent_id $parentId not found locally — falling back to top-level');
+        resolvedParentId = -1;
+      }
+    }
+
+    // 3. Create and return new id
+    try {
+      final newId = await _repository.createCategory(
+        Category(name: trimmedName, type: type, parentId: resolvedParentId),
+      );
+      // Refresh categories cache
+      _categories = await _repository.getAllCategories();
+      _subCategories = {};
+      final subs = _categories.where((c) => c.parentId != -1).toList();
+      for (var sub in subs) {
+        _subCategories.putIfAbsent(sub.parentId, () => []).add(sub);
+      }
+      notifyListeners();
+      return newId;
+    } catch (e) {
+      ToastService().showError('Failed to create category');
+      return null;
+    }
+  }
 
   Future<void> updateCategory(Category category) => _performOperation(() => _repository.updateCategory(category), showToastOnError: true, updateWidget: false);
 

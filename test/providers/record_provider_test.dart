@@ -9,6 +9,7 @@ class MockRecordRepository extends Mock implements RecordRepository {}
 
 class RecordFake extends Fake implements Record {}
 class MoneySourceFake extends Fake implements MoneySource {}
+class CategoryFake extends Fake implements Category {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() {
     });
     registerFallbackValue(RecordFake());
     registerFallbackValue(MoneySourceFake());
+    registerFallbackValue(CategoryFake());
   });
 
   late RecordProvider recordProvider;
@@ -334,6 +336,109 @@ void main() {
         expect(recordProvider.getCategoryName(3), 'Food - Pizza');
         expect(recordProvider.getCategoryName(5), 'Transport - Bus');
         expect(recordProvider.getCategoryName(99), 'Unknown');
+      });
+    });
+
+    group('resolveCategoryByNameOrCreate', () {
+      final baseCategories = [
+        Category(categoryId: 1, name: 'Food', type: 'expense', parentId: -1),
+        Category(categoryId: 2, name: 'Transport', type: 'expense', parentId: -1),
+        Category(categoryId: 3, name: 'Pizza', type: 'expense', parentId: 1),
+      ];
+
+      setUp(() async {
+        when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => baseCategories);
+        await recordProvider.loadAll();
+      });
+
+      test('creates new category when name not in cache, returns positive id', () async {
+        final newCategory = Category(categoryId: 10, name: 'Streaming', type: 'expense', parentId: -1);
+        when(() => mockRepository.createCategory(any())).thenAnswer((_) async => 10);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [...baseCategories, newCategory]);
+
+        final result = await recordProvider.resolveCategoryByNameOrCreate('Streaming', 'expense', -1);
+
+        expect(result, 10);
+        verify(() => mockRepository.createCategory(any())).called(1);
+      });
+
+      test('returns existing categoryId without calling createCategory (exact match)', () async {
+        final result = await recordProvider.resolveCategoryByNameOrCreate('Food', 'expense', -1);
+
+        expect(result, 1);
+        verifyNever(() => mockRepository.createCategory(any()));
+      });
+
+      test('case-insensitive match returns existing categoryId without creating', () async {
+        final result = await recordProvider.resolveCategoryByNameOrCreate('food', 'expense', -1);
+
+        expect(result, 1);
+        verifyNever(() => mockRepository.createCategory(any()));
+      });
+
+      test('creates sub-category under valid parentId', () async {
+        when(() => mockRepository.createCategory(any())).thenAnswer((_) async => 20);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
+          ...baseCategories,
+          Category(categoryId: 20, name: 'Burger', type: 'expense', parentId: 1),
+        ]);
+
+        final result = await recordProvider.resolveCategoryByNameOrCreate('Burger', 'expense', 1);
+
+        expect(result, 20);
+        final captured = verify(() => mockRepository.createCategory(captureAny())).captured;
+        final createdCategory = captured.first as Category;
+        expect(createdCategory.parentId, 1);
+      });
+
+      test('falls back to parentId=-1 when parentId not found in cache', () async {
+        when(() => mockRepository.createCategory(any())).thenAnswer((_) async => 30);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
+          ...baseCategories,
+          Category(categoryId: 30, name: 'NewCat', type: 'expense', parentId: -1),
+        ]);
+
+        final result = await recordProvider.resolveCategoryByNameOrCreate('NewCat', 'expense', 999);
+
+        expect(result, 30);
+        final captured = verify(() => mockRepository.createCategory(captureAny())).captured;
+        final createdCategory = captured.first as Category;
+        expect(createdCategory.parentId, -1);
+      });
+
+      test('second call with same name returns same id (reuse, no duplicate create)', () async {
+        // First call: not in cache, creates
+        final afterCreate = [...baseCategories, Category(categoryId: 40, name: 'Streaming', type: 'expense', parentId: -1)];
+        when(() => mockRepository.createCategory(any())).thenAnswer((_) async => 40);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => afterCreate);
+
+        final first = await recordProvider.resolveCategoryByNameOrCreate('Streaming', 'expense', -1);
+        // Second call: now in cache (categories refreshed after first call)
+        final second = await recordProvider.resolveCategoryByNameOrCreate('Streaming', 'expense', -1);
+
+        expect(first, 40);
+        expect(second, 40);
+        verify(() => mockRepository.createCategory(any())).called(1); // only once
+      });
+
+      test('returns null and does not rethrow when createCategory throws', () async {
+        when(() => mockRepository.createCategory(any())).thenThrow(Exception('DB error'));
+
+        final result = await recordProvider.resolveCategoryByNameOrCreate('Broken', 'expense', -1);
+
+        expect(result, isNull);
+      });
+
+      test('cache is refreshed after creating a new category', () async {
+        final newCat = Category(categoryId: 50, name: 'Streaming', type: 'expense', parentId: -1);
+        when(() => mockRepository.createCategory(any())).thenAnswer((_) async => 50);
+        when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [...baseCategories, newCat]);
+
+        await recordProvider.resolveCategoryByNameOrCreate('Streaming', 'expense', -1);
+
+        expect(recordProvider.categories.any((c) => c.name == 'Streaming'), isTrue);
       });
     });
   });
