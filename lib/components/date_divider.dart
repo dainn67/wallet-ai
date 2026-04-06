@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// A component that displays a month/year label to divide records in a list.
-class MonthDivider extends StatelessWidget {
-  /// The text to display as the divider label (e.g., "March 2026").
+/// A component that displays a date label to divide records in a list.
+class DateDivider extends StatelessWidget {
+  /// The text to display as the divider label (e.g., "6 April 2026").
   final String label;
 
-  const MonthDivider({super.key, required this.label});
+  const DateDivider({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
