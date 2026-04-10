@@ -252,7 +252,8 @@ class ChatProvider extends ChangeNotifier {
                 }
               }
               notifyListeners();
-              completer.completeError(error);
+              // Do not complete with error: callers often don't await sendMessage; an error would surface as an unhandled async exception.
+              completer.complete();
             },
             cancelOnError: true,
           );

@@ -16,9 +16,7 @@ class ApiConfig {
   static const String chatFlowPath = '/api/chat-flow/wallet-ai-chatbot';
 
   String get baseUrl {
-    if (!AppConfig().devMode) {
-      return 'https://4138-2405-4802-1d39-c3e0-a8b6-cb7d-92a5-977f.ngrok-free.app';
-    }
+    if (!AppConfig().devMode) return 'https://chatbot-flow-server.onrender.com';
     return '${Platform.isIOS ? 'http://localhost' : 'http://192.168.88.93'}:8000';
   }
 

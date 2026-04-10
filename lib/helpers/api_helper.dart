@@ -95,8 +95,15 @@ class APIHelper {
     return query.entries.map((e) => "${e.key}=${e.value}").join("&");
   }
 
-  static Future<Stream<String>?> postStream(String url, {Object? body, int? timeout, String? token, void Function(Object? error)? callback, Map<String, String>? headers}) async {
-    Completer<Stream<String>?> completer = Completer();
+  /// [stream] is non-null only when the HTTP status is 200.
+  static Future<({Stream<String>? stream, int? statusCode, String? detail})> postStream(
+    String url, {
+    Object? body,
+    int? timeout,
+    String? token,
+    void Function(Object? error)? callback,
+    Map<String, String>? headers,
+  }) async {
     try {
       final client = HttpClient();
       final request = await client.postUrl(Uri.parse(url));
@@ -113,52 +120,46 @@ class APIHelper {
         request.write(jsonEncode(body));
       }
 
-      await request
-          .close()
-          .then((response) {
-            if (response.statusCode == 200) {
-              final stream = response
-                  .transform(utf8.decoder)
-                  .transform(const LineSplitter())
-                  .where((line) => line.startsWith('data: '))
-                  .map((line) => line.substring(6)); // Remove 'data: ' prefix
-              completer.complete(stream);
-            } else {
-              if (callback != null) {
-                callback("status error");
-              }
-              log('postStream status error: ${response.statusCode} - ${response.reasonPhrase}');
-              completer.complete(null);
-            }
-          })
-          .catchError((err) {
-            if (callback != null) {
-              callback(err);
-            }
-            log('postStream catch error: $err - $url');
-            completer.complete(null);
-          })
-          .timeout(Duration(milliseconds: timeout ?? 20000))
-          .onError((error, stackTrace) {
-            if (callback != null) {
-              callback(error);
-            }
-            debugPrint('postStream onError: $error - $url');
-            completer.complete(null);
-          });
+      final response = await request.close().timeout(Duration(milliseconds: timeout ?? 20000));
+
+      if (response.statusCode == 200) {
+        final stream = response
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .where((line) => line.startsWith('data: '))
+            .map((line) => line.substring(6)); // Remove 'data: ' prefix
+        return (stream: stream, statusCode: 200, detail: null);
+      }
+
+      String detail;
+      try {
+        detail = await response.transform(utf8.decoder).join();
+        if (detail.length > 2000) {
+          detail = '${detail.substring(0, 2000)}...';
+        }
+        if (detail.isEmpty) {
+          detail = 'HTTP ${response.statusCode}';
+        }
+      } catch (_) {
+        detail = 'HTTP ${response.statusCode}';
+      }
+      if (callback != null) {
+        callback('status error: ${response.statusCode}');
+      }
+      log('postStream status error: ${response.statusCode} - $detail');
+      return (stream: null, statusCode: response.statusCode, detail: detail);
     } on SocketException catch (e) {
       if (callback != null) {
         callback(e);
       }
       debugPrint('postStream socket error: $e - $url');
-      completer.complete(null);
+      return (stream: null, statusCode: null, detail: e.message);
     } catch (e) {
       if (callback != null) {
         callback(e);
       }
       debugPrint('postStream error: $e - $url');
-      completer.complete(null);
+      return (stream: null, statusCode: null, detail: e.toString());
     }
-    return completer.future;
   }
 }

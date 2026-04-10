@@ -26,7 +26,12 @@ class ApiService {
     return APIHelper.post(_getFullUrl(path), body: data, headers: headers);
   }
 
-  Future<Stream<String>?> postStream(String path, {Object? data, String? token, Map<String, String>? headers}) async {
+  Future<({Stream<String>? stream, int? statusCode, String? detail})> postStream(
+    String path, {
+    Object? data,
+    String? token,
+    Map<String, String>? headers,
+  }) async {
     return APIHelper.postStream(_getFullUrl(path), body: data, token: token, headers: headers);
   }
 }

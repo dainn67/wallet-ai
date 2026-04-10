@@ -36,7 +36,7 @@ class ChatApiService {
     final childrenByParent = <int, List<Category>>{};
     for (final c in categories) {
       if (c.parentId != -1) {
-        childrenByParent.putIfAbsent(c.parentId!, () => []).add(c);
+        childrenByParent.putIfAbsent(c.parentId, () => []).add(c);
       }
     }
 
@@ -75,10 +75,15 @@ class ChatApiService {
           if (pattern != null && pattern.isNotEmpty) 'pattern': pattern,
         },
       };
-      final stream = await ApiService().postStream(ApiConfig.chatFlowPath, data: inputs, token: ApiConfig().mainChatApiKey);
+      final result = await ApiService().postStream(ApiConfig.chatFlowPath, data: inputs, token: ApiConfig().mainChatApiKey);
 
+      final stream = result.stream;
       if (stream == null) {
-        throw ApiException(message: 'Error: stream in streamChat = null');
+        final detail = result.detail ?? 'No response body';
+        throw ApiException(
+          message: 'Chat stream failed: $detail',
+          statusCode: result.statusCode,
+        );
       }
 
       yield* stream.map((data) {
