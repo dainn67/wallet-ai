@@ -39,7 +39,10 @@ class ChatBubble extends StatelessWidget {
 
     final updatedRecord = await showDialog<Record>(
       context: context,
-      builder: (context) => EditRecordPopup(record: record),
+      builder: (context) => EditRecordPopup(
+        record: record,
+        onDeleted: () => chatProvider.removeMessageRecord(messageId, record.recordId),
+      ),
     );
 
     if (updatedRecord != null && context.mounted) {

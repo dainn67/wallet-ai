@@ -7,7 +7,7 @@ The Financial Tracking system handles the persistence and management of transact
 
 ### UI Layer
 - **RecordsTab**: Displays a high-level overview (Total Balance, Income, Spent) and a list of recent transactions.
-- **AddRecordPopup / EditRecordPopup**: Modal interfaces for creating and modifying transactions, including category selection and source selection.
+- **AddRecordPopup / EditRecordPopup**: Modal interfaces for creating and modifying transactions, including category selection and source selection. `EditRecordPopup` also exposes a destructive delete action at the bottom of the form that opens a `ConfirmationDialog` and removes the record via `RecordProvider.deleteRecord`. An optional `onDeleted` callback lets callers (e.g., `ChatBubble`) clean up associated UI state after deletion.
 - **AddSourcePopup**: Interface for creating new money sources (e.g., Bank, Cash).
 
 ### Provider Layer

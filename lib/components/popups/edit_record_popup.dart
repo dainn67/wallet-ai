@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
+import 'confirmation_dialog.dart';
+
 /// A popup dialog for editing an existing [Record].
 ///
 /// This dialog allows users to modify the amount, type, money source,
@@ -12,8 +14,9 @@ import 'package:wallet_ai/providers/providers.dart';
 /// It uses a dark theme style with specific border radiuses.
 class EditRecordPopup extends StatefulWidget {
   final Record record;
+  final VoidCallback? onDeleted;
 
-  const EditRecordPopup({super.key, required this.record});
+  const EditRecordPopup({super.key, required this.record, this.onDeleted});
 
   @override
   State<EditRecordPopup> createState() => _EditRecordPopupState();
@@ -254,6 +257,24 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  TextButton.icon(
+                    onPressed: () => _handleDelete(l10n),
+                    icon: Icon(Icons.delete_outline, color: Colors.red.shade600, size: 20),
+                    label: Text(
+                      l10n.translate('delete_button'),
+                      style: TextStyle(
+                        color: Colors.red.shade600,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -374,5 +395,25 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
 
       Navigator.of(context).pop(updatedRecord);
     }
+  }
+
+  void _handleDelete(LocaleProvider l10n) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => ConfirmationDialog(
+        title: l10n.translate('delete_record_confirm_title'),
+        content: l10n.translate('delete_record_confirm_content'),
+        confirmLabel: l10n.translate('delete_button'),
+        cancelLabel: l10n.translate('popup_cancel'),
+        isDestructive: true,
+        onConfirm: () async {
+          await context.read<RecordProvider>().deleteRecord(widget.record.recordId);
+          widget.onDeleted?.call();
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        },
+      ),
+    );
   }
 }

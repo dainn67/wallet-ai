@@ -281,6 +281,17 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  void removeMessageRecord(String messageId, int recordId) {
+    final msgIndex = _messages.indexWhere((m) => m.id == messageId);
+    if (msgIndex == -1) return;
+    final records = _messages[msgIndex].records;
+    if (records == null) return;
+    final newRecords = records.where((r) => r.recordId != recordId).toList();
+    if (newRecords.length == records.length) return;
+    _messages[msgIndex] = _messages[msgIndex].copyWith(records: newRecords);
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _streamSubscription?.cancel();

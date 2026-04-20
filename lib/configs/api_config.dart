@@ -1,7 +1,5 @@
 import 'dart:io';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 import 'package:wallet_ai/configs/configs.dart';
 
 class ApiConfig {

@@ -44,6 +44,8 @@ class L10nConfig {
       'delete_source_confirm_title': 'Delete Source',
       'delete_source_confirm_content':
           'Are you sure you want to delete this source? This will also delete all transaction records associated with this source. This cannot be undone.',
+      'delete_record_confirm_title': 'Delete Record',
+      'delete_record_confirm_content': 'Are you sure you want to delete this record? This action cannot be undone.',
       'delete_button': 'Delete',
       'dev_mode_enabled': 'Developer mode enabled',
       'dev_mode_disabled': 'Developer mode disabled',
@@ -109,6 +111,8 @@ class L10nConfig {
       'description_required_error': 'Vui lòng nhập mô tả',
       'delete_source_confirm_title': 'Xóa nguồn tiền',
       'delete_source_confirm_content': 'Bạn có chắc chắn muốn xóa nguồn này không? Hành động này cũng sẽ xóa tất cả hồ sơ giao dịch liên quan. Không thể hoàn tác.',
+      'delete_record_confirm_title': 'Xóa hồ sơ',
+      'delete_record_confirm_content': 'Bạn có chắc chắn muốn xóa hồ sơ này không? Hành động này không thể hoàn tác.',
       'delete_button': 'Xóa',
       'dev_mode_enabled': 'Đã bật chế độ nhà phát triển',
       'dev_mode_disabled': 'Đã tắt chế độ nhà phát triển',
