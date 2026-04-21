@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:intl/intl.dart';
 
 import 'package:flutter/foundation.dart' hide Category;
 
@@ -58,9 +57,11 @@ class ChatApiService {
     String? pattern,
   }) async* {
     try {
+      // ISO-8601 local time without fractional seconds or timezone suffix,
+      // e.g. "2026-04-21T22:00:00". Easy for the LLM to template against
+      // when producing `occurred_at` (same shape expected back).
       final now = DateTime.now();
-      final formatter = DateFormat('h:mm a EEE d/M/yyyy');
-      final currentDatetime = formatter.format(now);
+      final currentDatetime = now.toIso8601String().split('.').first;
 
       final inputs = {
         'user': '123',

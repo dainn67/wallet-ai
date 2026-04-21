@@ -13,10 +13,38 @@ void main() {
         description: 'Test record',
         type: 'expense',
       );
-      
+
       // recordId should be 0 by default, and lastUpdated should be >= now
       expect(record.recordId, equals(0));
       expect(record.lastUpdated, greaterThanOrEqualTo(now));
+    });
+
+    test('occurredAt defaults to lastUpdated (identical millis) when both omitted', () {
+      // The AI omits `occurred_at` when the user's chat message has no time
+      // cue; the client must then save the record with occurredAt == lastUpdated
+      // exactly, not off-by-1-ms.
+      final record = Record(
+        moneySourceId: 1,
+        amount: 10.0,
+        currency: 'USD',
+        description: 'Coffee',
+        type: 'expense',
+      );
+      expect(record.occurredAt, record.lastUpdated);
+    });
+
+    test('occurredAt defaults to explicit lastUpdated when only lastUpdated is passed', () {
+      const ts = 1711000000000;
+      final record = Record(
+        lastUpdated: ts,
+        moneySourceId: 1,
+        amount: 10.0,
+        currency: 'USD',
+        description: 'x',
+        type: 'expense',
+      );
+      expect(record.occurredAt, ts);
+      expect(record.lastUpdated, ts);
     });
 
     test('Record.fromMap with timestamp correctly retrieved', () {

@@ -208,6 +208,7 @@ class ChatProvider extends ChangeNotifier {
 
                       final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
                       final suggestion = categoryId == -1 ? SuggestedCategory.fromJson(item['suggested_category']) : null;
+                      final occurredAt = _parseOccurredAt(item['occurred_at']);
                       final record = Record(
                         moneySourceId: sourceId,
                         categoryId: categoryId,
@@ -215,6 +216,7 @@ class ChatProvider extends ChangeNotifier {
                         currency: currencyString,
                         description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
                         type: type,
+                        occurredAt: occurredAt,
                         suggestedCategory: suggestion,
                       );
 
@@ -279,6 +281,14 @@ class ChatProvider extends ChangeNotifier {
         }
       }
     }
+  }
+
+  /// Parses the server-provided `occurred_at` ISO-8601 string (e.g.
+  /// `"2026-04-21T09:00:00"`) into millisecondsSinceEpoch. Returns null when
+  /// absent or unparseable — caller falls back to `Record`'s default of now.
+  int? _parseOccurredAt(dynamic raw) {
+    if (raw is! String) return null;
+    return DateTime.tryParse(raw)?.millisecondsSinceEpoch;
   }
 
   void removeMessageRecord(String messageId, int recordId) {

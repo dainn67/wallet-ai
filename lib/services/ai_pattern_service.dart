@@ -31,7 +31,7 @@ class AiPatternService {
 
   /// Transforms a [Record] into a concise map for AI context.
   Map<String, dynamic> _recordToMap(Record record) {
-    final dt = DateTime.fromMillisecondsSinceEpoch(record.lastUpdated);
+    final dt = DateTime.fromMillisecondsSinceEpoch(record.occurredAt);
     return {
       'description': record.description,
       'amount': '${record.amount}${record.currency}',
@@ -61,7 +61,7 @@ class AiPatternService {
     // 3. Filter Records
     final latestRecords = allRecords
         .where((r) {
-          final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+          final dt = DateTime.fromMillisecondsSinceEpoch(r.occurredAt);
           return dt.isAfter(latestStart.subtract(const Duration(milliseconds: 1))) && dt.isBefore(latestEnd.add(const Duration(milliseconds: 1)));
         })
         .map(_recordToMap)
@@ -69,7 +69,7 @@ class AiPatternService {
 
     final momentumRecords = allRecords
         .where((r) {
-          final dt = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
+          final dt = DateTime.fromMillisecondsSinceEpoch(r.occurredAt);
           return dt.isAfter(momentumStartDate.subtract(const Duration(milliseconds: 1))) && dt.isBefore(momentumEndDate.add(const Duration(milliseconds: 1)));
         })
         .map(_recordToMap)

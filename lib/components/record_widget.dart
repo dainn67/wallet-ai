@@ -31,7 +31,7 @@ class RecordWidget extends StatelessWidget {
     // Use established colors for income/expense
     final recordColor = isExpense ? Colors.red : Colors.green;
     final backgroundColor = recordColor.withValues(alpha: 0.1);
-    final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(record.lastUpdated));
+    final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(record.occurredAt));
 
     return InkWell(
       onTap: onTap,

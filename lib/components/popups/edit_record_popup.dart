@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:provider/provider.dart';
 
@@ -28,6 +29,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
   late String _type;
   late int _selectedSourceId;
   late int _selectedCategoryId;
+  late DateTime _occurredAt;
 
   String? _amountError;
   String? _descriptionError;
@@ -40,6 +42,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
     _type = widget.record.type;
     _selectedSourceId = widget.record.moneySourceId;
     _selectedCategoryId = widget.record.categoryId;
+    _occurredAt = DateTime.fromMillisecondsSinceEpoch(widget.record.occurredAt);
   }
 
   @override
@@ -206,6 +209,39 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                       }
                     },
                     textCapitalization: TextCapitalization.sentences,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Event time
+                  _buildLabel(l10n.translate('occurred_at_label')),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: _pickOccurredAt,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.schedule, color: Color(0xFF64748B), size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              DateFormat('dd/MM/yyyy  HH:mm').format(_occurredAt),
+                              style: const TextStyle(
+                                color: Color(0xFF1E293B),
+                                fontSize: 15,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -391,10 +427,37 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
         categoryId: _selectedCategoryId,
         sourceName: source.sourceName,
         categoryName: provider.getCategoryName(_selectedCategoryId),
+        occurredAt: _occurredAt.millisecondsSinceEpoch,
       );
 
       Navigator.of(context).pop(updatedRecord);
     }
+  }
+
+  Future<void> _pickOccurredAt() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _occurredAt,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (pickedDate == null || !mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_occurredAt),
+    );
+    if (pickedTime == null || !mounted) return;
+
+    setState(() {
+      _occurredAt = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
   }
 
   void _handleDelete(LocaleProvider l10n) {

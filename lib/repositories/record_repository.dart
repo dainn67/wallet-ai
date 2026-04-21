@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/services/record_migration_service.dart';
 import 'package:wallet_ai/services/storage_service.dart';
 
 class RecordRepository {
@@ -65,7 +66,7 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 7;
+  static const int _dbVersion = 8;
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
@@ -95,6 +96,7 @@ class RecordRepository {
         description TEXT,
         type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
         last_updated INTEGER NOT NULL,
+        occurred_at INTEGER NOT NULL,
         FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
         FOREIGN KEY (category_id) REFERENCES Category (category_id)
       )
@@ -104,6 +106,7 @@ class RecordRepository {
     await db.execute('CREATE INDEX idx_record_category_id ON Record(category_id)');
     await db.execute('CREATE INDEX idx_record_type ON Record(type)');
     await db.execute('CREATE INDEX idx_record_last_updated ON Record(last_updated)');
+    await db.execute('CREATE INDEX idx_record_occurred_at ON Record(occurred_at)');
 
     // Initial Data
     await _seedDatabase(db);
@@ -170,6 +173,9 @@ class RecordRepository {
     } else if (oldVersion < 7) {
       await db.execute('ALTER TABLE Category ADD COLUMN parent_id INTEGER NOT NULL DEFAULT -1');
     }
+    if (oldVersion < 8) {
+      await RecordMigrationService.addOccurredAtColumn(db);
+    }
   }
 
   Future<void> _adjustMoneySourceAmount(DatabaseExecutor txn, {required int sourceId, required double delta}) async {
@@ -207,7 +213,7 @@ class RecordRepository {
         LEFT JOIN Category c ON r.category_id = c.category_id
         LEFT JOIN Category p ON c.parent_id = p.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
-        ORDER BY r.last_updated DESC
+        ORDER BY r.occurred_at DESC
       ''');
       return List.generate(maps.length, (i) => Record.fromMap(maps[i]));
     } catch (e) {
@@ -490,7 +496,7 @@ class RecordRepository {
       List<dynamic> args = [];
       
       if (start != null && end != null) {
-        query += ' WHERE last_updated >= ? AND last_updated <= ?';
+        query += ' WHERE occurred_at >= ? AND occurred_at <= ?';
         args = [start.millisecondsSinceEpoch, end.millisecondsSinceEpoch];
       }
       

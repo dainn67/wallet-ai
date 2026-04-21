@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
+import 'package:wallet_ai/services/record_migration_service.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -97,6 +98,7 @@ void main() {
             description TEXT,
             type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
             last_updated INTEGER NOT NULL,
+            occurred_at INTEGER NOT NULL,
             FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
             FOREIGN KEY (category_id) REFERENCES Category (category_id)
           )
@@ -141,6 +143,117 @@ void main() {
 
       expect(groceriesRecord.categoryName, 'Food - Groceries');
       expect(foodRecord.categoryName, 'Food');
+
+      await db.close();
+    });
+  });
+
+  group('RecordMigrationService.addOccurredAtColumn', () {
+    Future<Database> openV7DbWithSeedRows(String path, List<int> lastUpdatedSeed) async {
+      if (await databaseFactory.databaseExists(path)) {
+        await databaseFactory.deleteDatabase(path);
+      }
+      final db = await openDatabase(path, version: 7, onCreate: (db, _) async {
+        await db.execute('''
+          CREATE TABLE MoneySource (
+            source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_name TEXT NOT NULL,
+            amount REAL NOT NULL DEFAULT 0
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE Record (
+            record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            money_source_id INTEGER NOT NULL,
+            category_id INTEGER NOT NULL DEFAULT 1,
+            amount REAL NOT NULL,
+            currency TEXT NOT NULL,
+            description TEXT,
+            type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+            last_updated INTEGER NOT NULL
+          )
+        ''');
+        await db.insert('MoneySource', {'source_id': 1, 'source_name': 'Wallet', 'amount': 0});
+        for (final ts in lastUpdatedSeed) {
+          await db.insert('Record', {
+            'money_source_id': 1,
+            'category_id': 1,
+            'amount': 10.0,
+            'currency': 'USD',
+            'description': 'seed $ts',
+            'type': 'expense',
+            'last_updated': ts,
+          });
+        }
+      });
+      return db;
+    }
+
+    test('adds occurred_at column as NOT NULL and backfills with last_updated', () async {
+      final seeded = [1700000000000, 1710000000000, 1720000000000];
+      final db = await openV7DbWithSeedRows('test_migration_occurred_at_backfill.db', seeded);
+
+      await RecordMigrationService.addOccurredAtColumn(db);
+
+      final columns = await db.rawQuery('PRAGMA table_info(Record)');
+      final occurredAt = columns.firstWhere((c) => c['name'] == 'occurred_at');
+      expect(occurredAt['notnull'], 1, reason: 'Migrated schema must match fresh-install NOT NULL');
+
+      final rows = await db.query('Record', orderBy: 'last_updated ASC');
+      expect(rows.map((r) => r['occurred_at']).toList(), seeded);
+      for (final row in rows) {
+        expect(row['occurred_at'], row['last_updated']);
+        expect(row['occurred_at'], isNot(0));
+        expect(row['occurred_at'], isNot(-1));
+        expect(row['occurred_at'], isNotNull);
+      }
+
+      await db.close();
+    });
+
+    test('migrated Record table rejects NULL occurred_at inserts', () async {
+      final db = await openV7DbWithSeedRows('test_migration_occurred_at_not_null.db', [1700000000000]);
+
+      await RecordMigrationService.addOccurredAtColumn(db);
+
+      expect(
+        () => db.rawInsert(
+          'INSERT INTO Record (money_source_id, category_id, amount, currency, description, type, last_updated, occurred_at) '
+          'VALUES (1, 1, 1.0, ?, ?, ?, ?, NULL)',
+          ['USD', 'null-attempt', 'expense', 1721000000000],
+        ),
+        throwsA(isA<DatabaseException>()),
+      );
+
+      await db.close();
+    });
+
+    test('is idempotent — re-run on an already-migrated table is a no-op', () async {
+      final db = await openV7DbWithSeedRows('test_migration_occurred_at_idempotent.db', [1700000000000]);
+
+      // First run — adds column, backfills, rebuilds with NOT NULL.
+      await RecordMigrationService.addOccurredAtColumn(db);
+
+      // User backdates the record after migration.
+      const backdated = 1699999999999;
+      await db.update('Record', {'occurred_at': backdated}, where: 'record_id = ?', whereArgs: [1]);
+
+      // Second run — short-circuits because occurred_at is already NOT NULL.
+      await RecordMigrationService.addOccurredAtColumn(db);
+
+      final row = (await db.query('Record', where: 'record_id = 1')).first;
+      expect(row['occurred_at'], backdated, reason: 'Re-run must not clobber user-edited event time');
+
+      await db.close();
+    });
+
+    test('creates idx_record_occurred_at index', () async {
+      final db = await openV7DbWithSeedRows('test_migration_occurred_at_index.db', [1700000000000]);
+
+      await RecordMigrationService.addOccurredAtColumn(db);
+
+      final indexes = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='Record'");
+      expect(indexes.any((i) => i['name'] == 'idx_record_occurred_at'), isTrue);
 
       await db.close();
     });
