@@ -1,5 +1,6 @@
 export 'category_widget.dart';
 export 'chat_bubble.dart';
+export 'image_preview_strip.dart';
 export 'suggested_prompts_bar.dart';
 export 'record_widget.dart';
 export 'records_overview.dart';

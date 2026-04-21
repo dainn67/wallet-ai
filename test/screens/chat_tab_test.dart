@@ -70,6 +70,7 @@ void main() {
     await tester.pumpWidget(createChatTab());
 
     await tester.enterText(find.byType(TextField), 'Test message');
+    await tester.pump(); // allow send-button enable state to react to text
     await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pump();
 
@@ -103,5 +104,18 @@ void main() {
     await tester.pumpWidget(createChatTab());
 
     expect(find.byType(SuggestedPromptsBar), findsNothing);
+  });
+
+  testWidgets('attachment icon opens bottom sheet with camera/gallery options', (tester) async {
+    await tester.pumpWidget(createChatTab());
+
+    // Attachment icon is visible inside the input pill at all times.
+    expect(find.byIcon(Icons.add_photo_alternate_outlined), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('take_photo'), findsOneWidget);
+    expect(find.text('choose_from_library'), findsOneWidget);
   });
 }

@@ -46,6 +46,7 @@ void main() {
     await tester.pumpWidget(createChatTabWidget());
 
     await tester.enterText(find.byType(TextField), 'Hello');
+    await tester.pump(); // allow send-button enable state to react to text
     await tester.tap(find.byIcon(Icons.send_rounded));
 
     // We need to pump multiple times because of the Snack bar animation and the async call

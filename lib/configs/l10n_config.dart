@@ -72,6 +72,8 @@ class L10nConfig {
       'chat_thinking': 'Thinking...',
       'today_label': 'Today',
       'yesterday_label': 'Yesterday',
+      'take_photo': 'Take photo',
+      'choose_from_library': 'Choose from library',
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -140,6 +142,8 @@ class L10nConfig {
       'chat_thinking': 'Đang suy nghĩ...',
       'today_label': 'Hôm nay',
       'yesterday_label': 'Hôm qua',
+      'take_photo': 'Chụp ảnh',
+      'choose_from_library': 'Chọn từ thư viện',
     },
   };
 

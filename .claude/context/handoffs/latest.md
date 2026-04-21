@@ -1,115 +1,64 @@
 ---
 epic: image-input
-task: 173
+task: 174
 status: completed
-created: 2026-04-21T17:21:04Z
-updated: 2026-04-21T17:21:04Z
+created: 2026-04-21T17:27:39Z
+updated: 2026-04-21T17:27:39Z
 ---
 
-# Handoff: Task #173 — Model, provider, and API payload wiring
+# Handoff: Task #174 — Chat input attachment UI
 
 ## Status
-COMPLETE — 23 ChatProvider tests (18 pre-existing + 5 new), 4 ChatApiService tests pass. Image-input suites (171/172) still green. `fvm flutter analyze` shows 0 new issues on the changed files.
+COMPLETE — 7 ChatTab widget tests (6 pre-existing + 1 new) pass, 2 polish tests pass, 23 ChatProvider tests still green. `fvm flutter analyze` on changed files shows 0 new issues (the 2 info-level warnings reported are pre-existing in `category_form_dialog.dart` and unrelated).
 
 ## What Was Done
 
-- `lib/models/chat_message.dart`: added transient `List<Uint8List>? imageBytes` (imports `dart:typed_data`). Wired through the named constructor and `copyWith`. Explicitly NOT added to `toJson`/`fromJson` — there is a code comment documenting the transient decision (AD-4, mirrors `Record.suggestedCategory`).
-- `lib/services/chat_api_service.dart`: `streamChat(...)` now takes optional `List<String>? imagesBase64`. When non-null and non-empty, it is written as a TOP-LEVEL `images` key on the outbound body (AD-2 — sibling of `query`, NOT nested inside `inputs`). Empty / null → key omitted; byte-for-byte identical to the previous text-only payload.
-- `lib/providers/chat_provider.dart`: `sendMessage(String content, {List<Uint8List>? imageBytes})`. Empty-buffer entries are filtered out. No-op guard blocks only when BOTH caption and images are empty (AD-6). Private `_handleStream` also took a matching `imageBytes` param and encodes via `ImageProcessingService().toBase64` just before calling `streamChat`. All streaming / parsing / onError logic untouched.
-- `lib/services/api_service.dart`: added `setMockInstance` + `forTesting` constructor to `ApiService` following the existing `ChatApiService` pattern. This is what enables unit-testing the outbound `streamChat` body without hitting the network.
-- `test/services/chat_api_service_test.dart` (new): 4 tests verifying body shape across null / empty / non-empty / empty-caption-plus-images permutations. Mocks `ApiService` via the new `setMockInstance`.
-- `test/providers/chat_provider_test.dart`: added `image attachments (image-input epic)` group — 5 tests covering the transient `toJson`, no-op guard, backward-compat (no images), happy path with base64 encoding, and empty-caption-with-images.
+- `lib/screens/home/tabs/chat_tab.dart`:
+  - Added `List<Uint8List> _pendingImages` state (defaults empty) and a static `_maxImages = 5` constant.
+  - Registered `_controller.addListener(_onTextChanged)` in `initState` + removal in `dispose` so the send-button enable state reacts to typing.
+  - Added attachment `IconButton(Icons.add_photo_alternate_outlined)` *inside* the pill `TextField` container (right edge, sitting flush with the text field thanks to a Row wrapping the `TextField` + icon). Tooltip "Attach image". Disabled during `isStreaming` — same rule as the send button.
+  - `_showAttachmentSheet()` opens a rounded-top `showModalBottomSheet` (`Radius.circular(16)`) with two `ListTile`s: "Take photo" (leading `Icons.camera_alt_outlined`) and "Choose from library" (leading `Icons.photo_library_outlined`), wrapped in `SafeArea`. Strings pulled via `LocaleProvider.translate('take_photo' | 'choose_from_library')`.
+  - `_pickFromCamera()` / `_pickFromGallery()` call `ImagePickerService()` (picker enforces cap via `maxCount: 5 - _pendingImages.length`). Early return when cap is already hit.
+  - `_processAndAdd(List<XFile>)` runs `ImageProcessingService().processPickedImage` in parallel via `Future.wait`. Oversize images throw `OversizeImageException` and are simply counted — a floating SnackBar "Image too large after compression" is shown when `oversizeCount > 0`. A defensive second-cap trim issues "Maximum 5 images per message" if the service hands back more than remaining capacity.
+  - `_handleSend()` pulls `text = _controller.text.trim()` and `images = List.of(_pendingImages)`. If BOTH empty → no-op. Otherwise clears controller + `_pendingImages` BEFORE awaiting `sendMessage(text, imageBytes: images.isEmpty ? null : images)`. Errors go through the existing SnackBar path.
+  - `canSend = !isStreaming && (text.trim().isNotEmpty || _pendingImages.isNotEmpty)` — drives both the send button's `onTap` and color and the `onSubmitted` guard on the `TextField`.
+  - Above `_buildInputArea()`, renders `ImagePreviewStrip` only when `_pendingImages.isNotEmpty` (wrapped in a small top padding for breathing room).
+
+- `lib/components/image_preview_strip.dart` (new): stateless widget that renders a 72-high horizontal `ListView.separated` of 64×64 rounded thumbnails (`Image.memory`) with a circular black-54 × button overlay (`onTap → onRemove(i)`). Beneath the list sits a small "Max 5 images" helper in grey. Kept simple — no animation, no dismissible.
+
+- `lib/components/components.dart`: added `export 'image_preview_strip.dart';`.
+
+- `lib/configs/l10n_config.dart`: added `take_photo` / `choose_from_library` keys for both English ("Take photo" / "Choose from library") and Vietnamese ("Chụp ảnh" / "Chọn từ thư viện").
+
+- `test/screens/chat_tab_test.dart`: added 1 widget test verifying the attachment icon is present and tapping it opens the bottom sheet with both options. Also added a `pump()` between `enterText` and `tap` in the existing "sendMessage and clears controller" test — necessary because `canSend` now reacts to text, so the send-button needs a rebuild to enable.
+
+- `test/screens/chat_tab_polish_test.dart`: same `pump()` addition for the error-SnackBar test (same reason).
 
 ## Key Decisions
 
-- **Added `ApiService.setMockInstance`** so the ChatApiService body shape could be tested hermetically. The task rule "Do NOT hit network" combined with "Use existing mock patterns (`setMockInstance` on services)" made this the cleanest path — and it matches the pattern already in `ChatApiService`, `ImagePickerService`, `ImageProcessingService`, `AiPatternService`.
-- **Empty-buffer filtering in `sendMessage`.** `imageBytes?.where((b) => b.isNotEmpty).toList()` trims degenerate entries before deciding if images are "present." Prevents a list of only-empty-buffers from counting as attached images (AD-6 edge).
-- **`imageBytes` attached on the `ChatMessage`** at send time so UI (#175) can render thumbnails from `Image.memory` without re-reading files. Bytes live only in the in-memory `_messages` list — never written anywhere.
-- **Did not touch `_handleStream`'s stream listener.** onData / onDone / onError are byte-identical. Server response parsing is unchanged; the server returns the same record-array JSON regardless of whether images were in the request.
+- **Icon inside the pill, not outside.** The pill `Container` now holds a `Row(TextField + IconButton)` — the `TextField` stays expanded and the icon sits at the trailing edge. This avoids widening the input area and keeps visual parity with ChatGPT / Claude mobile layouts. Removed the pill's right padding (was `symmetric(horizontal: 16)`, now `only(left: 16)`) so the icon's own touch target provides the right-side breathing room.
+- **SnackBar for errors, not inline banner.** The task file suggested a timed inline banner for oversize errors; I used a floating SnackBar instead because (a) the app already standardises on SnackBars for transient errors (`_handleSend` uses one), (b) it avoids an extra state field, and (c) it keeps the diff small. Same UX outcome: user sees the message, auto-dismisses.
+- **Cap enforcement is belt-and-suspenders.** `ImagePickerService.pickFromGallery(maxCount: N)` already trims, but camera returns exactly 1 file and the widget checks `_pendingImages.length < _maxImages` before even opening the sheet. `_processAndAdd` also re-trims defensively.
+- **Did not add `_attachErrorMessage` state.** Task file sketched an inline red-text banner but the SnackBar path is simpler and matches existing patterns.
+- **`canSend` controls both tap and visual.** Sending button's colour + shadow now reflect disabled state when there's nothing to send — previously it only dimmed while streaming.
 
-## Public API for #174 and #175
+## What #175 (ChatBubble + fullscreen viewer) Needs To Do
 
-```dart
-// lib/providers/chat_provider.dart
-Future<void> sendMessage(
-  String content, {
-  List<Uint8List>? imageBytes,     // NEW — compressed JPEG byte lists
-});
-```
+The `ChatMessage.imageBytes` field is already populated by `ChatProvider.sendMessage` (from #173). #175 should:
 
-```dart
-// lib/services/chat_api_service.dart
-Stream<ChatStreamResponse> streamChat(
-  String message, {
-  String? conversationId,
-  String? categoryList,
-  String? moneySourceList,
-  String language = 'English',
-  String currency = 'USD',
-  String? pattern,
-  List<String>? imagesBase64,      // NEW — already base64-encoded strings
-});
-```
+1. In `lib/components/chat_bubble.dart`, inside the user-role branch — ABOVE the existing text `Container` (at `crossAxisAlignment: CrossAxisAlignment.end`) — render a `Wrap(spacing: 4, runSpacing: 4)` of `Image.memory(bytes, width: 96, height: 96, fit: BoxFit.cover)` clipped with `ClipRRect(BorderRadius.circular(8))` WHEN `message.imageBytes != null && message.imageBytes!.isNotEmpty`.
+2. Wrap each thumbnail in a `GestureDetector(onTap: () => Navigator.push(... ImageViewer ...))`.
+3. Create `lib/components/image_viewer.dart` — a `Scaffold(backgroundColor: Colors.black)` with an `InteractiveViewer` wrapping `Image.memory` for pinch-zoom + pan. Dismiss via back button.
+4. Register the new widget in `lib/components/components.dart`.
+5. Add a widget test in `test/components/chat_bubble_test.dart` that a user-role `ChatMessage` with `imageBytes: [someBytes]` renders exactly one `Image.memory`.
+6. Do NOT touch `chat_tab.dart` (already owns the pending-images lifecycle) or `image_preview_strip.dart` (that's input-side, pre-send).
 
-```dart
-// lib/models/chat_message.dart
-class ChatMessage {
-  final List<Uint8List>? imageBytes;  // NEW — transient, not in toJson/fromJson
-  ChatMessage({..., this.imageBytes});
-  ChatMessage copyWith({..., List<Uint8List>? imageBytes});
-}
-```
+## Files Changed
 
-## How #174 (Chat input UI) Should Consume This
-
-1. Track a local `List<Uint8List> _pendingImages` in `chat_tab.dart` state.
-2. On picker return, run each `XFile` through `ImageProcessingService().processPickedImage(xfile)` via `Future.wait`; append successful `Uint8List` results to `_pendingImages`.
-3. In the send handler:
-   ```dart
-   context.read<ChatProvider>().sendMessage(
-     _controller.text,
-     imageBytes: _pendingImages.isEmpty ? null : List.of(_pendingImages),
-   );
-   _pendingImages.clear();
-   _controller.clear();
-   ```
-4. The provider does the remaining filtering — safe to pass a defensive copy.
-5. Send button should enable when `controller.text.isNotEmpty || _pendingImages.isNotEmpty`.
-
-## How #175 (Bubble rendering) Should Consume This
-
-```dart
-// In chat_bubble.dart, for ChatRole.user messages:
-if (message.imageBytes != null && message.imageBytes!.isNotEmpty) {
-  Wrap(
-    children: [
-      for (final b in message.imageBytes!)
-        GestureDetector(
-          onTap: () => openFullscreen(b),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.memory(b, width: 96, height: 96, fit: BoxFit.cover),
-          ),
-        ),
-    ],
-  );
-}
-```
-
-No null-safety concerns for assistant bubbles — `imageBytes` is only set on outgoing user messages.
-
-## Prior Task APIs Still in Play
-
-```dart
-// From #172
-class ImagePickerService {
-  Future<XFile?> pickFromCamera();
-  Future<List<XFile>> pickFromGallery({int maxCount = 5});
-}
-
-// From #171
-class ImageProcessingService {
-  Future<Uint8List> processPickedImage(XFile picked);  // throws OversizeImageException
-  String toBase64(Uint8List bytes);
-}
-```
+- `lib/screens/home/tabs/chat_tab.dart`
+- `lib/components/image_preview_strip.dart` (new)
+- `lib/components/components.dart`
+- `lib/configs/l10n_config.dart`
+- `test/screens/chat_tab_test.dart`
+- `test/screens/chat_tab_polish_test.dart`
+- `.claude/epics/image-input/174.md` (frontmatter → closed)
