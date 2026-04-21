@@ -189,14 +189,15 @@ void main() {
       return db;
     }
 
-    test('adds occurred_at column and backfills with last_updated', () async {
+    test('adds occurred_at column as NOT NULL and backfills with last_updated', () async {
       final seeded = [1700000000000, 1710000000000, 1720000000000];
       final db = await openV7DbWithSeedRows('test_migration_occurred_at_backfill.db', seeded);
 
       await RecordMigrationService.addOccurredAtColumn(db);
 
       final columns = await db.rawQuery('PRAGMA table_info(Record)');
-      expect(columns.any((c) => c['name'] == 'occurred_at'), isTrue);
+      final occurredAt = columns.firstWhere((c) => c['name'] == 'occurred_at');
+      expect(occurredAt['notnull'], 1, reason: 'Migrated schema must match fresh-install NOT NULL');
 
       final rows = await db.query('Record', orderBy: 'last_updated ASC');
       expect(rows.map((r) => r['occurred_at']).toList(), seeded);
@@ -210,21 +211,38 @@ void main() {
       await db.close();
     });
 
-    test('is idempotent — re-running only fills NULL rows', () async {
-      final db = await openV7DbWithSeedRows('test_migration_occurred_at_idempotent.db', [1700000000000]);
+    test('rebuilt Record table rejects NULL occurred_at inserts', () async {
+      final db = await openV7DbWithSeedRows('test_migration_occurred_at_not_null.db', [1700000000000]);
 
-      // First run — creates column, backfills.
       await RecordMigrationService.addOccurredAtColumn(db);
 
-      // User edits a record: set occurred_at to a backdated time.
+      expect(
+        () => db.rawInsert(
+          'INSERT INTO Record (money_source_id, category_id, amount, currency, description, type, last_updated, occurred_at) '
+          'VALUES (1, 1, 1.0, ?, ?, ?, ?, NULL)',
+          ['USD', 'null-attempt', 'expense', 1721000000000],
+        ),
+        throwsA(isA<DatabaseException>()),
+      );
+
+      await db.close();
+    });
+
+    test('is idempotent — re-run on an already-migrated table is a no-op', () async {
+      final db = await openV7DbWithSeedRows('test_migration_occurred_at_idempotent.db', [1700000000000]);
+
+      // First run — adds column, backfills, rebuilds with NOT NULL.
+      await RecordMigrationService.addOccurredAtColumn(db);
+
+      // User backdates the record after migration.
       const backdated = 1699999999999;
       await db.update('Record', {'occurred_at': backdated}, where: 'record_id = ?', whereArgs: [1]);
 
-      // Second run — must NOT overwrite the user's edit.
+      // Second run — short-circuits because occurred_at is already NOT NULL.
       await RecordMigrationService.addOccurredAtColumn(db);
 
       final row = (await db.query('Record', where: 'record_id = 1')).first;
-      expect(row['occurred_at'], backdated);
+      expect(row['occurred_at'], backdated, reason: 'Re-run must not clobber user-edited event time');
 
       await db.close();
     });
