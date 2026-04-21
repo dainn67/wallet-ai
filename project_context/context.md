@@ -38,6 +38,9 @@ The app uses a single-screen architecture (`HomeScreen`) with a `TabBarView` to 
 ### Record Deletion
 Users can delete a record from either the **RecordsTab** or the **ChatTab** by opening `EditRecordPopup` and tapping the red **Delete** button at the bottom of the form. Confirming the `ConfirmationDialog` calls `RecordProvider.deleteRecord`, which atomically removes the row and reverses the affected `MoneySource` balance. When invoked from a chat bubble, the optional `onDeleted` callback also calls `ChatProvider.removeMessageRecord` so the deleted record disappears from the conversation UI.
 
+### Balance Visibility Toggle
+The `RecordsOverview` card exposes a trailing eye/eye-off icon on the Total Balance row. Tapping it flips a local `_valuesHidden` flag that masks both **Total Balance** and **Income** as `*****` (Spent stays visible). State defaults to hidden and is not persisted — it resets on any tab/app rebuild.
+
 ### Suggested Prompts (Returning Users)
 
 For returning users, the adaptive greeting may include a `suggestedPrompts` JSON object (instead of a record array) after the `--//--` delimiter. ChatProvider detects the type after `jsonDecode` and populates `_suggestedPrompts`. These are displayed as interactive chips above the chat input via **SuggestedPromptsBar**. Tapping a chip pre-fills the input; tapping an action chip appends an amount; sending removes the active prompt from the list. See `docs/features/suggested-prompts.md`.
