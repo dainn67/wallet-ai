@@ -1,17 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/helpers/helpers.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
+  static ApiService? _mockInstance;
   static ApiConfig _config = ApiConfig();
 
   factory ApiService({http.Client? client, ApiConfig? config}) {
     if (config != null) _config = config;
-    return _instance;
+    return _mockInstance ?? _instance;
   }
 
   ApiService._internal();
+
+  @visibleForTesting
+  ApiService.forTesting();
+
+  @visibleForTesting
+  static void setMockInstance(ApiService? instance) {
+    _mockInstance = instance;
+  }
 
   String _getFullUrl(String path) {
     final baseUrl = _config.baseUrl;

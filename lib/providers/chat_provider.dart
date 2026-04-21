@@ -88,23 +88,34 @@ class ChatProvider extends ChangeNotifier {
     _showingActions = false;
   }
 
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, {List<Uint8List>? imageBytes}) async {
     final hadActivePrompt = _activePromptIndex != null;
     if (hadActivePrompt) {
       _removeActivePrompt();
       notifyListeners();
     }
 
-    if (content.trim().isEmpty) return;
+    // Drop empty byte buffers; treat a list of only-empties as no images.
+    final effectiveImages = imageBytes?.where((b) => b.isNotEmpty).toList();
+    final hasImages = effectiveImages != null && effectiveImages.isNotEmpty;
+
+    // AD-6: no-op only when both caption and images are empty.
+    if (content.trim().isEmpty && !hasImages) return;
 
     _error = null;
-    final userMessage = ChatMessage(id: DateTime.now().millisecondsSinceEpoch.toString(), role: ChatRole.user, content: content, timestamp: DateTime.now());
+    final userMessage = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      role: ChatRole.user,
+      content: content,
+      timestamp: DateTime.now(),
+      imageBytes: hasImages ? effectiveImages : null,
+    );
 
     _messages.add(userMessage);
-    return _handleStream(content, isGreeting: false);
+    return _handleStream(content, isGreeting: false, imageBytes: hasImages ? effectiveImages : null);
   }
 
-  Future<void> _handleStream(String query, {bool isGreeting = false}) async {
+  Future<void> _handleStream(String query, {bool isGreeting = false, List<Uint8List>? imageBytes}) async {
     _isStreaming = true;
     notifyListeners();
 
@@ -131,11 +142,15 @@ class ChatProvider extends ChangeNotifier {
     
     final pattern = isGreeting ? StorageService().getString(StorageService.keyUserPattern) : null;
 
+    // Base64-encode compressed JPEG bytes just before sending. Null / empty
+    // when no images were attached — streamChat omits the `images` key.
+    final imagesBase64 = imageBytes?.map(ImageProcessingService().toBase64).toList();
+
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(query, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency, pattern: pattern)
+          .streamChat(query, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency, pattern: pattern, imagesBase64: imagesBase64)
           .listen(
             (response) {
               if (response.conversationId != null) {
