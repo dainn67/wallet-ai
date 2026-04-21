@@ -1,37 +1,32 @@
 ---
-epic: suggested-prompts
-task: 004-tests
+epic: image-input
+task: 170
 status: completed
-created: 2026-04-03T05:30:00Z
-updated: 2026-04-03T05:30:00Z
+created: 2026-04-21T17:00:00Z
+updated: 2026-04-21T17:00:00Z
 ---
 
-# Handoff: T4 Unit tests + widget tests for suggested prompts
+# Handoff: Task #170 — Dependencies and platform permission manifests
 
 ## Status
-COMPLETE — all new tests pass. 139 tests pass, 4 pre-existing failures (unrelated to this epic).
+COMPLETE — `fvm flutter pub get` succeeded. `fvm flutter analyze` shows 138 issues, all pre-existing (none introduced by the new packages).
 
 ## What Was Done
 
-- `test/providers/chat_provider_test.dart`: Already had all 13 tests from T1-T3:
-  - 5 parsing tests (happy path, record array, no delimiter, malformed JSON, empty array)
-  - 7 state tests (selectPrompt with/without actions, selectAction, sendMessage with/without/last active prompt, empty content with active prompt, empty array)
-  - 1 original sendMessage record parsing test
-- `test/screens/chat_tab_test.dart`: Added 2 widget visibility tests:
-  - `'shows SuggestedPromptsBar when prompts non-empty'`: mocks 2 SuggestedPrompt objects, verifies `find.byType(SuggestedPromptsBar)` finds one widget
-  - `'hides SuggestedPromptsBar when prompts empty'`: mocks empty list, verifies `find.byType(SuggestedPromptsBar)` finds nothing
-  - Added imports for `SuggestedPromptsBar` and `SuggestedPrompt`
+- `pubspec.yaml`: Added `flutter_image_compress: ^2.3.0` and `image_picker: ^1.1.2` under `dependencies:`.
+- `ios/Runner/Info.plist`: Added `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` with user-facing English strings.
+- `android/app/src/main/AndroidManifest.xml`: Added `CAMERA`, `READ_MEDIA_IMAGES` (Android 13+), and `READ_EXTERNAL_STORAGE` (with `android:maxSdkVersion="32"`) permissions.
 
-## Files Changed
+## Key Decisions
 
-- `test/screens/chat_tab_test.dart` (2 new widget tests + 2 imports added)
-- `.claude/epics/suggested-prompts/004-tests.md` (status: closed)
+- **Package versions:** `image_picker: ^1.1.2` and `flutter_image_compress: ^2.3.0` as specified in the task. Both resolved without conflicts against SDK `^3.9.2`.
+- **Android permissions:** Added all three permission gates — `CAMERA`, `READ_MEDIA_IMAGES` (API 33+), and `READ_EXTERNAL_STORAGE` with `maxSdkVersion="32"` for pre-API-33 gallery access. This covers all Android versions.
+- **No `permission_handler`:** Per AD-3 in the epic, `image_picker` supplies its own lazy permission prompts. Not added.
+- **iOS permission strings:** Placed at end of root `<dict>` alongside other UI keys.
 
-## Pre-existing Failures (4, unrelated to this epic)
+## Warnings / Notes for Next Tasks
 
-- `test/services/ai_context_service_test.dart`: `AiContextService` method not found (missing/renamed class)
-- `test/screens/home/home_localization_test.dart` (l10n integration): 2 SC-1/SC-3 ApiException failures
-
-## Epic Complete
-
-All 4 tasks (001-model, 002-provider, 003-ui-widget, 004-tests) are closed. The suggested-prompts feature is fully implemented and tested.
+- **#171 ImageProcessingService** and **#172 ImagePickerService** are now unblocked — both packages are installed and platform manifests are in place.
+- `flutter analyze` has 138 pre-existing issues (mostly `avoid_print` in repositories, `use_build_context_synchronously` in screens, and test file errors from `month_divider_test.dart` referencing a deleted component). None are related to this task.
+- Platform builds (`apk --debug`, `ios --no-codesign`) were not run to save time; platform manifest XML structure is correct. Run manually to confirm before release.
+- `image_picker` on iOS requires iOS 12.0+. Check `ios/Podfile` for `platform :ios, '12.0'` or higher — bump if iOS build fails with platform version error.
