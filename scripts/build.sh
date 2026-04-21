@@ -68,3 +68,12 @@ else
     echo "❌ Build failed!"
     exit 1
 fi
+
+# 4. Upload
+if [ "$PLATFORM_NAME" == "android" ]; then
+    echo "☁️  Uploading AAB to Google Play (internal track)..."
+    python3 scripts/upload_android.py "$VERSION"
+else
+    echo "☁️  Uploading IPA to App Store Connect (TestFlight)..."
+    python3 scripts/upload_ios.py "$VERSION"
+fi
