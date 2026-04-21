@@ -283,17 +283,12 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  /// Parses the server-provided `occurred_at` into millisecondsSinceEpoch.
-  /// Accepts int millis or an ISO-8601 string. Returns null if absent/unparseable
-  /// (caller falls back to `Record`'s constructor default of `DateTime.now()`).
+  /// Parses the server-provided `occurred_at` ISO-8601 string (e.g.
+  /// `"2026-04-21T09:00:00"`) into millisecondsSinceEpoch. Returns null when
+  /// absent or unparseable — caller falls back to `Record`'s default of now.
   int? _parseOccurredAt(dynamic raw) {
-    if (raw == null) return null;
-    if (raw is int) return raw;
-    if (raw is num) return raw.toInt();
-    if (raw is String) {
-      return int.tryParse(raw) ?? DateTime.tryParse(raw)?.millisecondsSinceEpoch;
-    }
-    return null;
+    if (raw is! String) return null;
+    return DateTime.tryParse(raw)?.millisecondsSinceEpoch;
   }
 
   void removeMessageRecord(String messageId, int recordId) {
