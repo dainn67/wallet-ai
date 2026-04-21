@@ -211,7 +211,7 @@ void main() {
       await db.close();
     });
 
-    test('rebuilt Record table rejects NULL occurred_at inserts', () async {
+    test('migrated Record table rejects NULL occurred_at inserts', () async {
       final db = await openV7DbWithSeedRows('test_migration_occurred_at_not_null.db', [1700000000000]);
 
       await RecordMigrationService.addOccurredAtColumn(db);
