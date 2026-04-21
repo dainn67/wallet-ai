@@ -88,7 +88,7 @@ class RecordsTab extends StatelessWidget {
     String? lastDateLabel;
 
     for (final record in records) {
-      final date = DateTime.fromMillisecondsSinceEpoch(record.lastUpdated);
+      final date = DateTime.fromMillisecondsSinceEpoch(record.occurredAt);
       final dateLabel = _formatDateLabel(context, date, l10n);
 
       if (lastDateLabel != dateLabel) {

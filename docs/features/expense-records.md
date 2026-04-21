@@ -23,6 +23,7 @@ The Financial Tracking system handles the persistence and management of transact
   - `createRecord(record)`: Executes a **database transaction** that inserts the record and adjusts the `MoneySource` balance based on the transaction type (income/expense).
   - `updateRecord(record)`: Re-calculates source balances if the amount or source of an existing record changes.
   - `getAllCategories()`: Retrieves categorized groupings.
+  - **Schema v8:** `Record` has both `last_updated` (audit) and `occurred_at` (user-editable event time). Sorting and the date-range filter use `occurred_at`. Migration is delegated to `RecordMigrationService.addOccurredAtColumn` (backfills existing rows with `last_updated`).
 
 ### Database Layer
 - **Tables**:

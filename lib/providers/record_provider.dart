@@ -104,8 +104,8 @@ class RecordProvider extends ChangeNotifier {
 
     if (_selectedDateRange != null) {
       filtered = filtered.where((r) {
-        final created = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
-        return !created.isBefore(_selectedDateRange!.start) && !created.isAfter(_selectedDateRange!.end);
+        final occurred = DateTime.fromMillisecondsSinceEpoch(r.occurredAt);
+        return !occurred.isBefore(_selectedDateRange!.start) && !occurred.isAfter(_selectedDateRange!.end);
       }).toList();
     }
 
@@ -210,8 +210,8 @@ class RecordProvider extends ChangeNotifier {
     final currentMonthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
 
     final currentMonthRecords = _records.where((r) {
-      final created = DateTime.fromMillisecondsSinceEpoch(r.lastUpdated);
-      return !created.isBefore(currentMonthStart) && !created.isAfter(currentMonthEnd);
+      final occurred = DateTime.fromMillisecondsSinceEpoch(r.occurredAt);
+      return !occurred.isBefore(currentMonthStart) && !occurred.isAfter(currentMonthEnd);
     });
 
     final currentMonthIncome = currentMonthRecords

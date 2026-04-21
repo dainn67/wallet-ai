@@ -38,6 +38,9 @@ The app uses a single-screen architecture (`HomeScreen`) with a `TabBarView` to 
 ### Record Deletion
 Users can delete a record from either the **RecordsTab** or the **ChatTab** by opening `EditRecordPopup` and tapping the red **Delete** button at the bottom of the form. Confirming the `ConfirmationDialog` calls `RecordProvider.deleteRecord`, which atomically removes the row and reverses the affected `MoneySource` balance. When invoked from a chat bubble, the optional `onDeleted` callback also calls `ChatProvider.removeMessageRecord` so the deleted record disappears from the conversation UI.
 
+### Record Event Time (`occurredAt`)
+Every `Record` carries two timestamps: `lastUpdated` (audit — when the row was last written) and `occurredAt` (the user-editable event time the record represents). Defaults to `DateTime.now()` at creation. `ChatProvider._handleStream` parses an optional `occurred_at` field (int millis or ISO-8601) from the server's record JSON; if absent, falls back to now. `EditRecordPopup` exposes a date+time picker row (native `showDatePicker` + `showTimePicker`) that edits `occurredAt`. All user-facing sorting, the cross-tab date-range filter, `RecordWidget`'s dd/mm/yyyy display, the records-tab date-group dividers, the home-widget monthly totals, and `AiPatternService` context collection use `occurredAt`. Schema migration (v7 → v8) lives in `lib/services/record_migration_service.dart` and backfills existing rows with `occurred_at = last_updated`. Server-side spec: `docs/server/record-time-server-spec.md`.
+
 ### Balance Visibility Toggle
 The `RecordsOverview` card exposes a trailing eye/eye-off icon on the Total Balance row. Tapping it flips a local `_valuesHidden` flag that masks both **Total Balance** and **Income** as `*****` (Spent stays visible). State defaults to hidden and is not persisted — it resets on any tab/app rebuild.
 
