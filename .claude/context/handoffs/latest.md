@@ -1,48 +1,62 @@
 ---
 epic: image-input
-task: 175
+task: 176
 status: completed
-created: 2026-04-21T17:32:27Z
-updated: 2026-04-21T17:32:27Z
+created: 2026-04-21T17:38:37Z
+updated: 2026-04-21T17:38:37Z
 ---
 
-# Handoff: Task #175 — Outgoing bubble image rendering and fullscreen viewer
+# Handoff: EPIC COMPLETE — image-input
 
 ## Status
-COMPLETE — analyze reports 0 issues on all changed files, 3 new chat_bubble_test.dart tests pass. Pre-existing `records_tab_test` failure ("March 2024" date mismatch) was present before this task and is unrelated.
 
-## What Was Done
+ALL 7 TASKS COMPLETE. Epic `image-input` is ready for `/pm:epic-verify image-input`.
 
-- `lib/components/chat_bubble.dart`:
-  - Added imports: `dart:typed_data` and `image_viewer.dart`.
-  - In the `Flexible → Column` children, added a conditional thumbnail block ABOVE the text `Container`:
-    - Renders when `isUser && message.imageBytes != null && message.imageBytes!.isNotEmpty`.
-    - Uses `_buildThumbnailRow(context, message.imageBytes!)` + `SizedBox(height: 8)` spacer (spacer omitted if content is empty).
-  - The text `Container` is now guarded: `if (!isUser || message.content.trim().isNotEmpty)` — so images-only user messages render thumbnails without an empty text bubble.
-  - Added `_buildThumbnailRow`: `Wrap(spacing: 4, runSpacing: 4, alignment: WrapAlignment.end)` of 72×72 `ClipRRect(borderRadius: 8)` `Image.memory` widgets, each wrapped in `GestureDetector(onTap: () => Navigator.of(context).push(ImageViewer.route(bytes)))`.
-  - Assistant bubbles and record widgets: untouched.
+## Summary of All Tasks
 
-- `lib/components/image_viewer.dart` (new):
-  - `class ImageViewer extends StatelessWidget` — takes `required Uint8List bytes`.
-  - `static Route<void> route(Uint8List bytes)` helper returns `MaterialPageRoute<void>`.
-  - `Scaffold(backgroundColor: Colors.black)` with transparent `AppBar` (white icon theme, back arrow dismisses).
-  - Body: `Center → InteractiveViewer(minScale: 1.0, maxScale: 4.0) → Image.memory(bytes, fit: BoxFit.contain)`.
+| Task | Title | Status |
+|------|-------|--------|
+| T001 | Platform permissions, image_picker + flutter_image_compress setup | closed |
+| T010 | ImagePickerService (camera + gallery, 5-cap) | closed |
+| T011 | ImageProcessingService (compress, HEIC→JPEG, oversize guard) | closed |
+| T012 | ChatApiService — top-level `images` field (AD-2) | closed |
+| T020 | ChatProvider.sendMessage — imageBytes → base64 encoding, strip clear | closed |
+| T021/175 | Outgoing bubble thumbnail rendering + ImageViewer fullscreen | closed |
+| T176 | Integration test (widget-level, 4 scenarios) + cross-platform QA checklist | closed |
 
-- `lib/components/components.dart`:
-  - Added `export 'image_viewer.dart';` (after `image_preview_strip.dart`).
+## What T176 Delivered
 
-- `test/components/chat_bubble_test.dart` (new):
-  - 3 widget tests: user bubble with imageBytes renders `Image` widget; user bubble without imageBytes has no `Image` widget; assistant bubble never renders `Image` widget.
-  - Uses same 1×1 JPEG byte fixture as `test/services/image_processing_service_test.dart`.
+### Integration test
+`test/integration/epic_image_input/send_with_images_test.dart` — 4 testWidgets scenarios:
 
-## What #176 (Integration QA) Should Exercise
+- **Scenario A**: 2 images + caption → `sendMessage` receives 2 imageBytes + correct text
+- **Scenario B**: oversize image → `OversizeImageException` → SnackBar "Image too large"
+- **Scenario C**: images-only (empty caption) → `sendMessage` receives empty string + 1 image
+- **Scenario D**: 7 files offered → ≤5 reach `sendMessage` (5-cap enforced)
 
-#176 should manually and/or via widget test verify: send a user message with 2 attached images → bubble shows 2 thumbnails above caption; tap a thumbnail → `ImageViewer` opens (black background); pinch-zoom works (InteractiveViewer scale 1.0–4.0); press back/swipe → dismiss returns to chat. Also verify text-only message still renders as before (no thumbnail row).
+All 4 pass. Full regression: 203 pass / 18 fail — all 18 failures are pre-existing
+(missing source files `month_divider.dart`, `ai_context_service.dart`; date-sensitive
+`records_tab_test`; `formatCategories` separator mismatch in formatting test).
+Zero new failures introduced.
 
-## Files Changed
+### QA checklist
+`.claude/epics/image-input/qa-notes.md` — 20 manual scenarios covering:
+S1 cold launch no-prompt, S2–S6 attach/gallery/camera/cap, S7–S8 send paths,
+S9–S10 image pass-through, S11 HEIC iOS, S12–S13 fullscreen viewer + zoom,
+S14 remove from strip, S15 text-only regression, S16 streaming lock,
+S17 server error bubble, S18 Android 13 photo picker, S19 Android legacy gallery,
+S20 camera denial.
 
-- `lib/components/chat_bubble.dart`
-- `lib/components/image_viewer.dart` (new)
-- `lib/components/components.dart`
-- `test/components/chat_bubble_test.dart` (new)
-- `.claude/epics/image-input/175.md` (frontmatter → closed)
+## Next Step for User
+
+Run `/pm:epic-verify image-input` to perform the formal epic verification pipeline.
+
+Before running manual QA (S7/S8/S17), confirm with the server team that the
+`/streaming` endpoint accepts the new top-level `images` field.
+
+## Files Created / Changed (T176)
+
+- `test/integration/epic_image_input/send_with_images_test.dart` (new)
+- `.claude/epics/image-input/qa-notes.md` (new)
+- `.claude/epics/image-input/176.md` (frontmatter → closed)
+- `.claude/context/handoffs/latest.md` (this file)
