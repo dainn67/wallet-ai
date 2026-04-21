@@ -47,7 +47,10 @@ The AI receives `current_datetime` and the user message. It should produce `occu
 3. **Only time, no day marker** — assume today. If the resulting time is in the *future* relative to `current_datetime`, still pick today (users log past events, never future ones).
 4. **Only a day marker, no time** — pick a neutral default based on meal context: breakfast=`08:00`, lunch=`12:00`, dinner=`19:00`. If no context at all, use `12:00`.
 5. **Explicit date + time** — "Dinner on 20/4 at 8pm" → `2026-04-20T20:00:00` (year inferred from `current_datetime`).
-6. **No time signal in the message** — omit the `occurred_at` field entirely. Client defaults to "now", which preserves current behavior.
+6. **No time signal in the message — omit `occurred_at` entirely. This is mandatory, not optional.**
+   - Examples that have NO time signal: `"10 bucks for coffee"`, `"Grocery 450k"`, `"Bought clothes yesterday"` ← wait, "yesterday" IS a signal → rule 2; but `"Paid rent this month"` has no specific day → omit.
+   - Do NOT invent a time, do NOT default to noon, do NOT copy `current_datetime`. Just leave the field out of the JSON object.
+   - When the field is absent, the client saves the record with `occurred_at` equal to its own internal save time (same millisecond as `last_updated`). That is the correct, desired fallback.
 
 Principle: emit `occurred_at` only when the user was reasonably explicit. Silent omission is safer than a wrong guess — the user can always correct via the in-app date/time picker.
 
