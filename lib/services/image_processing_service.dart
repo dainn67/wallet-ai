@@ -11,10 +11,12 @@ class OversizeImageException implements Exception {
 
   @override
   String toString() =>
-      'Image too large after compression: ${sizeBytes ~/ 1024}KB (max 1536KB) — $originalName';
+      'Image too large after compression: ${sizeBytes ~/ 1024}KB (max ${ImageProcessingService.maxImageBytes ~/ 1024}KB) — $originalName';
 }
 
 class ImageProcessingService {
+  static const int maxImageBytes = 1_500_000;
+
   static final ImageProcessingService _instance = ImageProcessingService._internal();
   static ImageProcessingService? _mockInstance;
 
@@ -59,7 +61,7 @@ class ImageProcessingService {
 
     final result = Uint8List.fromList(compressed);
 
-    if (result.length > 1_500_000) {
+    if (result.length > maxImageBytes) {
       throw OversizeImageException(picked.name, result.length);
     }
 

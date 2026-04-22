@@ -71,9 +71,11 @@ void main() {
         expect(ex.sizeBytes, equals(size));
       });
 
-      test('toString includes size in KB', () {
+      test('toString includes size in KB and correct cap', () {
         final ex = OversizeImageException('img.jpg', 2_000_000);
+        final expectedCap = ImageProcessingService.maxImageBytes ~/ 1024;
         expect(ex.toString(), contains('1953KB'));
+        expect(ex.toString(), contains('max ${expectedCap}KB'));
       });
     });
 
