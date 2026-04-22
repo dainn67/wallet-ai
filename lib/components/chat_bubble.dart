@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +7,7 @@ import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/chat_provider.dart';
 import 'package:wallet_ai/providers/record_provider.dart';
 
+import 'image_viewer.dart';
 import 'popups/edit_record_popup.dart';
 import 'record_widget.dart';
 import 'suggestion_banner.dart';
@@ -79,6 +82,11 @@ class ChatBubble extends StatelessWidget {
             child: Column(
               crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
+                if (isUser && message.imageBytes != null && message.imageBytes!.isNotEmpty) ...[
+                  _buildThumbnailRow(context, message.imageBytes!),
+                  if (message.content.trim().isNotEmpty) const SizedBox(height: 8),
+                ],
+                if (!isUser || message.content.trim().isNotEmpty)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   decoration: BoxDecoration(
@@ -163,6 +171,23 @@ class ChatBubble extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildThumbnailRow(BuildContext context, List<Uint8List> images) {
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      alignment: WrapAlignment.end,
+      children: images.map((bytes) {
+        return GestureDetector(
+          onTap: () => Navigator.of(context).push(ImageViewer.route(bytes)),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(bytes, width: 72, height: 72, fit: BoxFit.cover, gaplessPlayback: true),
+          ),
+        );
+      }).toList(),
     );
   }
 }

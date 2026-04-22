@@ -55,6 +55,7 @@ class ChatApiService {
     String language = 'English',
     String currency = 'USD',
     String? pattern,
+    List<String>? imagesBase64,
   }) async* {
     try {
       // ISO-8601 local time without fractional seconds or timezone suffix,
@@ -63,7 +64,7 @@ class ChatApiService {
       final now = DateTime.now();
       final currentDatetime = now.toIso8601String().split('.').first;
 
-      final inputs = {
+      final Map<String, dynamic> inputs = {
         'user': '123',
         'query': message,
         'inputs': {
@@ -76,6 +77,12 @@ class ChatApiService {
           if (pattern != null && pattern.isNotEmpty) 'pattern': pattern,
         },
       };
+      // AD-2: `images` is a top-level sibling of `query`, not nested inside
+      // `inputs` (the Dify variables map). Omitted entirely when empty so the
+      // server keeps treating the request as text-only.
+      if (imagesBase64 != null && imagesBase64.isNotEmpty) {
+        inputs['images'] = imagesBase64;
+      }
       final result = await ApiService().postStream(ApiConfig.chatFlowPath, data: inputs, token: ApiConfig().mainChatApiKey);
 
       final stream = result.stream;

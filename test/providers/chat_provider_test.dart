@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:wallet_ai/models/models.dart';
@@ -540,6 +541,144 @@ void main() {
       expect(records[0].suggestedCategory, isNotNull); // valid suggestion
       expect(records[1].suggestedCategory, isNull);    // normal category_id
       expect(records[2].suggestedCategory, isNull);    // malformed (missing name)
+    });
+  });
+
+  group('image attachments (image-input epic)', () {
+    test('ChatMessage.toJson on a message with imageBytes omits the imageBytes key (AD-4 transient)', () {
+      final msg = ChatMessage(
+        id: 'id1',
+        role: ChatRole.user,
+        content: 'receipt',
+        timestamp: DateTime.fromMillisecondsSinceEpoch(0),
+        imageBytes: [Uint8List.fromList(const [1, 2, 3])],
+      );
+
+      final json = msg.toJson();
+      expect(json.containsKey('imageBytes'), isFalse);
+      expect(json.containsKey('image_bytes'), isFalse);
+    });
+
+    test('sendMessage with empty content and empty imageBytes is a no-op (AD-6)', () async {
+      await chatProvider.sendMessage('', imageBytes: const []);
+
+      expect(chatProvider.messages, isEmpty);
+      verifyNever(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: any(named: 'imagesBase64'),
+          ));
+    });
+
+    test('sendMessage without images calls streamChat with null imagesBase64 (backward compat)', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: any(named: 'imagesBase64'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final future = chatProvider.sendMessage('hello');
+      streamController.add(ChatStreamResponse(answer: 'hi', messageId: 'm1'));
+      await streamController.close();
+      await future;
+
+      verify(() => mockChatApiService.streamChat(
+            'hello',
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: null,
+          )).called(1);
+      expect(chatProvider.messages.first.imageBytes, isNull);
+    });
+
+    test('sendMessage with imageBytes attaches bytes to the user message and base64-encodes for streamChat', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: any(named: 'imagesBase64'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final bytes = Uint8List.fromList(const [1, 2, 3, 4]);
+      // base64('\x01\x02\x03\x04') == 'AQIDBA=='
+      const expectedB64 = 'AQIDBA==';
+
+      final future = chatProvider.sendMessage('lunch', imageBytes: [bytes]);
+      streamController.add(ChatStreamResponse(answer: 'ok', messageId: 'm2'));
+      await streamController.close();
+      await future;
+
+      final userMsg = chatProvider.messages.firstWhere((m) => m.role == ChatRole.user);
+      expect(userMsg.imageBytes, isNotNull);
+      expect(userMsg.imageBytes!.length, 1);
+      expect(userMsg.imageBytes!.first, bytes);
+
+      verify(() => mockChatApiService.streamChat(
+            'lunch',
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: [expectedB64],
+          )).called(1);
+    });
+
+    test('sendMessage with empty caption but non-empty imageBytes still fires streamChat with empty query + images', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: any(named: 'imagesBase64'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final bytes = Uint8List.fromList(const [9, 9]);
+      const expectedB64 = 'CQk=';
+
+      final future = chatProvider.sendMessage('', imageBytes: [bytes]);
+      streamController.add(ChatStreamResponse(answer: 'ok', messageId: 'm3'));
+      await streamController.close();
+      await future;
+
+      verify(() => mockChatApiService.streamChat(
+            '',
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+            language: any(named: 'language'),
+            currency: any(named: 'currency'),
+            pattern: any(named: 'pattern'),
+            imagesBase64: [expectedB64],
+          )).called(1);
     });
   });
 }

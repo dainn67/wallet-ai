@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'record.dart';
 
 enum ChatRole {
@@ -19,6 +21,13 @@ class ChatMessage {
   final List<Record>? records;
   final bool isAnalyzing;
 
+  /// Transient: already-compressed JPEG bytes for outgoing user messages with
+  /// attached images. Rendered in the bubble via `Image.memory`. Deliberately
+  /// excluded from `toJson`/`fromJson` — mirrors the `Record.suggestedCategory`
+  /// pattern (AD-4 in the image-input epic). The chat history is ephemeral in
+  /// practice and images are preview-only, so persistence isn't needed.
+  final List<Uint8List>? imageBytes;
+
   ChatMessage({
     required this.id,
     required this.role,
@@ -26,6 +35,7 @@ class ChatMessage {
     required this.timestamp,
     this.records,
     this.isAnalyzing = false,
+    this.imageBytes,
   });
 
   ChatMessage copyWith({
@@ -35,6 +45,7 @@ class ChatMessage {
     DateTime? timestamp,
     List<Record>? records,
     bool? isAnalyzing,
+    List<Uint8List>? imageBytes,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -43,10 +54,12 @@ class ChatMessage {
       timestamp: timestamp ?? this.timestamp,
       records: records ?? this.records,
       isAnalyzing: isAnalyzing ?? this.isAnalyzing,
+      imageBytes: imageBytes ?? this.imageBytes,
     );
   }
 
   Map<String, dynamic> toJson() {
+    // Note: `imageBytes` is transient and intentionally excluded from JSON.
     return {
       'id': id,
       'role': role.name,
