@@ -13,7 +13,11 @@
       "Bash(*)",
       "Skill(*)",
       "mcp__supabase__*",
-      "mcp__*"
+      "mcp__*",
+      "Bash(mkdir -p .claude/context/epics/.archive)",
+      "Bash(cp .claude/context/epics/image-input.md .claude/context/epics/.archive/image-input.md)",
+      "Bash(mkdir -p .claude/context/verify/baselines)",
+      "Bash(cp .claude/context/verify/results/latest.json .claude/context/verify/baselines/image-input-baseline.json)"
     ],
     "deny": [
       "Bash(rm -rf /)",
