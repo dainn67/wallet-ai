@@ -1,32 +1,39 @@
-# Handoff: Task #183 — ChatProvider audio plumbing + voice-error surfacing
-Completed: 2026-04-22T12:38:52Z
+# Handoff: Task #181 — Chat composer mic icon + recording bar
+Completed: 2026-04-22T12:44:48Z
 
 ## What was done
-- Extended `sendMessage` with optional `Uint8List? audioBytes` parameter
-- Added `effectiveAudio`/`hasAudio` guard mirroring the existing `effectiveImages`/`hasImages` pattern
-- Extended no-op early-return: `if (content.trim().isEmpty && !hasImages && !hasAudio) return;`
-- Extended `_handleStream` with `Uint8List? audioBytes` parameter
-- `hadAudio` captured as a LOCAL closure variable (not instance field) immediately inside `_handleStream`
-- Base64-encoded audio via `ImageProcessingService().toBase64(audioBytes)` — reusing the image encoder
-- Passed `audioBase64` to `ChatApiService().streamChat(...)` alongside `imagesBase64`
-- Added AD-5 voice-error detection in `onDone`: when `records.isEmpty && hadAudio`, replaces assistant message content with `_localeProvider?.translate('voice_didnt_catch_that') ?? "I didn't catch that. Please try again."`
-- Created 7 unit tests covering all FR-4 and FR-5 acceptance criteria
+- Added `bool _isRecording = false;` and `final AudioRecordingService _audioService = AudioRecordingService();` to `_ChatTabState`
+- Registered `_audioService.onAutoStopped(_handleAutoStopped)` in `initState`; `_audioService.cancel()` called in `dispose`
+- Added mic icon (`Icons.mic_none_outlined`) inside the composer pill, beside the attachment icon; wrapped in `Semantics(label: 'Record voice message')`
+- Mic and camera both disabled (`onPressed: null`) when `isStreaming == true` OR `_isRecording == true`
+- Replaced the composer row with `AnimatedSwitcher(duration: 200ms)` that swaps to `_RecordingBar` (key `ValueKey('recording')`) when recording, and `_buildComposer` (key `ValueKey('composer')`) otherwise
+- Implemented `_onMicTap` with permission rationale dialog + snackbar fallback
+- Implemented `_stopAndSend`, `_cancelRecording`, `_handleAutoStopped`
+- `_RecordingBar` StatelessWidget: `Icons.close` (cancel left), amplitude-driven `Transform.scale` mic icon, elapsed `StreamBuilder<Duration>` M:SS label, `Icons.stop_circle` (stop-and-send right)
+- All `context.read` calls captured before `await` to avoid `use_build_context_synchronously` lint
+- Wrote 7 widget tests covering FR-1, FR-2, FR-3 acceptance criteria — all pass
 
 ## Files changed
-- `lib/providers/chat_provider.dart` — audio pipeline + voice-error detection
-- `test/providers/chat_provider_voice_test.dart` — 7 new tests (all pass)
-- `.claude/epics/voice-input/183.md` — status closed
+- `lib/screens/home/tabs/chat_tab.dart` — mic icon, recording bar, AnimatedSwitcher, audio lifecycle
+- `test/screens/home/tabs/chat_tab_voice_test.dart` — 7 new widget tests (all pass)
+- `.claude/epics/voice-input/181.md` — status closed
 
 ## Decisions
-- `hadAudio` captured as local closure variable, not instance field — prevents state leak between concurrent sends
-- `ImageProcessingService().toBase64` reused for audio (byte-agnostic base64Encode)
-- `voice_didnt_catch_that` fallback hardcoded EN string when `_localeProvider` is null or key missing
+- AnimatedSwitcher with 200ms swap between composer and recording bar
+- Amplitude stream drives `Transform.scale(scale: 0.9 + amplitude * 0.3)`
+- Auto-stop handler (`_handleAutoStopped`) receives `Uint8List? bytes` directly from `onAutoStopped` callback
+- Permission rationale dialog shown before system prompt on first tap; snackbar if user declines
+- `context.read<ChatProvider>()` captured before any `await` in async handlers to avoid build-context lint
 
-## Public API change
-- `ChatProvider.sendMessage(String content, {List<Uint8List>? imageBytes, Uint8List? audioBytes})`
+## UI hook points (for #185 integration tests)
+- Find mic icon via: `find.byIcon(Icons.mic_none_outlined)`
+- Recording bar key: `ValueKey('recording')`
+- Cancel button: `find.byIcon(Icons.close)` inside recording bar
+- Stop-and-send button: `find.byIcon(Icons.stop_circle)` inside recording bar
+- Composer key: `ValueKey('composer')`
 
-## Warnings for next task (#181 UI composer)
-- Call `context.read<ChatProvider>().sendMessage('', audioBytes: bytes)` after stop
-- Empty bytes (Uint8List(0)) is guarded — safe to pass without pre-check
-- The `voice_didnt_catch_that` localization key is ready; task #184 provides the string value
-- `hadAudio && records.isNotEmpty` path runs normal record-card flow — no special handling needed in UI
+## Warnings for #185
+- `MockAudioRecordingService` in tests overrides `onAutoStopped` to capture callback; call `simulateAutoStop(bytes)` to fire it
+- `pumpAndSettle()` needed after tap on mic (async permission + setState)
+- The `_RecordingBar` height is fixed at 56px to match composer height — verify no layout jitter on real device
+- `hasPermission()` in `AudioRecordingService` internally calls `Permission.microphone.request()` which will always be true in tests using the mock; real device will show system dialog

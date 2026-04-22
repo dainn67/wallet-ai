@@ -27,12 +27,16 @@ class _ChatTabState extends State<ChatTab> {
   /// a successful dispatch in `_handleSend`.
   final List<Uint8List> _pendingImages = [];
 
+  bool _isRecording = false;
+  final AudioRecordingService _audioService = AudioRecordingService();
+
   @override
   void initState() {
     super.initState();
     _chatProvider = context.read<ChatProvider>();
     _chatProvider.addListener(_onChatProviderUpdate);
     _controller.addListener(_onTextChanged);
+    _audioService.onAutoStopped(_handleAutoStopped);
   }
 
   @override
@@ -41,6 +45,7 @@ class _ChatTabState extends State<ChatTab> {
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _scrollController.dispose();
+    _audioService.cancel();
     super.dispose();
   }
 
@@ -212,6 +217,65 @@ class _ChatTabState extends State<ChatTab> {
     }
   }
 
+  Future<void> _onMicTap() async {
+    if (_isRecording) return;
+
+    if (!await _audioService.hasPermission()) {
+      if (!mounted) return;
+      final granted = await showDialog<bool>(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Microphone Access'),
+              content: const Text('WalletAI needs microphone access to record voice expense notes.'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not now')),
+                TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Allow')),
+              ],
+            ),
+          ) ??
+          false;
+      if (!granted) {
+        if (mounted) {
+          _showSnackBar('Microphone access is needed to record voice notes.');
+        }
+        return;
+      }
+      // If user tapped Allow, hasPermission() already triggered the system
+      // prompt inside (permission_handler calls request internally). Re-check.
+      if (!await _audioService.hasPermission()) {
+        if (mounted) {
+          _showSnackBar('Microphone access is needed to record voice notes.');
+        }
+        return;
+      }
+    }
+
+    await _audioService.start();
+    if (mounted) setState(() => _isRecording = true);
+  }
+
+  Future<void> _stopAndSend() async {
+    final provider = context.read<ChatProvider>();
+    final bytes = await _audioService.stop();
+    if (mounted) setState(() => _isRecording = false);
+    if (bytes != null && bytes.isNotEmpty) {
+      await provider.sendMessage('', audioBytes: bytes);
+    }
+  }
+
+  Future<void> _cancelRecording() async {
+    await _audioService.cancel();
+    if (mounted) setState(() => _isRecording = false);
+  }
+
+  Future<void> _handleAutoStopped(Uint8List? bytes) async {
+    final provider = context.read<ChatProvider>();
+    if (mounted) setState(() => _isRecording = false);
+    if (bytes != null && bytes.isNotEmpty) {
+      await provider.sendMessage('', audioBytes: bytes);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
@@ -269,49 +333,159 @@ class _ChatTabState extends State<ChatTab> {
         color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.only(left: 16.0),
-              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(24.0)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: widget.focusNode,
-                      style: const TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: l10n.translate('chat_hint'),
-                        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                        border: InputBorder.none,
-                      ),
-                      onSubmitted: (_) => canSend ? _handleSend() : null,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: _isRecording
+            ? _RecordingBar(
+                key: const ValueKey('recording'),
+                elapsedStream: _audioService.elapsedStream,
+                amplitudeStream: _audioService.amplitudeStream,
+                onCancel: _cancelRecording,
+                onStop: _stopAndSend,
+              )
+            : _buildComposer(isStreaming, canSend, l10n),
+      ),
+    );
+  }
+
+  Widget _buildComposer(bool isStreaming, bool canSend, LocaleProvider l10n) {
+    return Row(
+      key: const ValueKey('composer'),
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.only(left: 16.0),
+            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(24.0)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: widget.focusNode,
+                    style: const TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: l10n.translate('chat_hint'),
+                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                      border: InputBorder.none,
                     ),
+                    onSubmitted: (_) => canSend ? _handleSend() : null,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.grey, size: 22),
-                    onPressed: isStreaming ? null : _showAttachmentSheet,
-                    tooltip: 'Attach image',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.grey, size: 22),
+                  onPressed: (isStreaming || _isRecording) ? null : _showAttachmentSheet,
+                  tooltip: 'Attach image',
+                  splashRadius: 20,
+                ),
+                Semantics(
+                  label: 'Record voice message',
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.mic_none_outlined,
+                      color: (isStreaming || _isRecording) ? Colors.grey : Theme.of(context).colorScheme.primary,
+                      size: 22,
+                    ),
+                    onPressed: (isStreaming || _isRecording) ? null : _onMicTap,
+                    tooltip: 'Record voice message',
                     splashRadius: 20,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: canSend ? _handleSend : null,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: canSend ? Theme.of(context).colorScheme.primary : Colors.grey,
-                shape: BoxShape.circle,
-                boxShadow: [if (canSend) BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
-              ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+        ),
+        const SizedBox(width: 12),
+        GestureDetector(
+          onTap: canSend ? _handleSend : null,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: canSend ? Theme.of(context).colorScheme.primary : Colors.grey,
+              shape: BoxShape.circle,
+              boxShadow: [if (canSend) BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
             ),
+            child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RecordingBar extends StatelessWidget {
+  final Stream<Duration> elapsedStream;
+  final Stream<double> amplitudeStream;
+  final VoidCallback onCancel;
+  final VoidCallback onStop;
+
+  const _RecordingBar({
+    super.key,
+    required this.elapsedStream,
+    required this.amplitudeStream,
+    required this.onCancel,
+    required this.onStop,
+  });
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes;
+    final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: onCancel,
+            tooltip: 'Cancel recording',
+            color: Colors.grey[600],
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                StreamBuilder<double>(
+                  stream: amplitudeStream,
+                  initialData: 0.0,
+                  builder: (context, snapshot) {
+                    final amplitude = snapshot.data ?? 0.0;
+                    return Transform.scale(
+                      scale: 0.9 + amplitude * 0.3,
+                      child: Icon(
+                        Icons.mic,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+                StreamBuilder<Duration>(
+                  stream: elapsedStream,
+                  initialData: Duration.zero,
+                  builder: (context, snapshot) {
+                    final elapsed = snapshot.data ?? Duration.zero;
+                    return Text(
+                      _formatDuration(elapsed),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.stop_circle, color: Theme.of(context).colorScheme.primary),
+            onPressed: onStop,
+            tooltip: 'Stop and send',
           ),
         ],
       ),
