@@ -34,8 +34,10 @@ class MockAudioRecordingService extends AudioRecordingService {
   @override
   Stream<double> get amplitudeStream => _ampCtrl.stream;
 
+  bool permissionResult = true;
+
   @override
-  Future<bool> hasPermission() async => true;
+  Future<bool> hasPermission() async => permissionResult;
 
   @override
   Future<void> start() async {
@@ -107,6 +109,35 @@ void main() {
   }
 
   // ---------------------------------------------------------------------------
+  // Permission denied → info dialog with Open Settings
+  // ---------------------------------------------------------------------------
+
+  testWidgets(
+      'permission denied: shows info dialog with Open Settings, start() not called',
+      (tester) async {
+    mockAudio.permissionResult = false;
+
+    await tester.pumpWidget(buildChatTab());
+
+    await tester.tap(find.byIcon(Icons.mic_none_outlined));
+    await tester.pumpAndSettle();
+
+    // Info dialog should be visible
+    expect(find.text('Microphone Access Required'), findsOneWidget);
+    expect(find.text('Open Settings'), findsOneWidget);
+    expect(find.text('Cancel'), findsOneWidget);
+
+    // Recording should NOT have started
+    expect(mockAudio.startCalled, isFalse);
+    expect(find.byIcon(Icons.stop_circle), findsNothing);
+
+    // Dismiss dialog
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Microphone Access Required'), findsNothing);
+  });
+
+  // ---------------------------------------------------------------------------
   // FR-1: Mic icon visibility and semantics
   // ---------------------------------------------------------------------------
 
@@ -159,9 +190,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(mockAudio.startCalled, isTrue);
-    // Recording bar should be visible (has the close and stop_circle icons)
+    // Recording bar should be visible (has the close and send icons)
     expect(find.byIcon(Icons.close), findsOneWidget);
-    expect(find.byIcon(Icons.stop_circle), findsOneWidget);
+    expect(find.byIcon(Icons.send_rounded), findsOneWidget);
   });
 
   // ---------------------------------------------------------------------------
@@ -185,17 +216,17 @@ void main() {
     await tester.tap(find.byIcon(Icons.mic_none_outlined));
     await tester.pumpAndSettle();
 
-    // Tap stop
-    await tester.tap(find.byIcon(Icons.stop_circle));
+    // Tap send (stop-and-send)
+    await tester.tap(find.byIcon(Icons.send_rounded));
     await tester.pumpAndSettle();
 
     expect(mockAudio.stopCalled, isTrue);
     verify(() => mockChatProvider.sendMessage('', audioBytes: fakeBytes))
         .called(1);
 
-    // Composer should be restored
+    // Composer should be restored (cancel button gone)
     expect(find.byIcon(Icons.mic_none_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.stop_circle), findsNothing);
+    expect(find.byIcon(Icons.close), findsNothing);
   });
 
   // ---------------------------------------------------------------------------
@@ -251,8 +282,8 @@ void main() {
     verify(() => mockChatProvider.sendMessage('', audioBytes: fakeBytes))
         .called(1);
 
-    // Composer restored
+    // Composer restored (cancel button gone)
     expect(find.byIcon(Icons.mic_none_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.stop_circle), findsNothing);
+    expect(find.byIcon(Icons.close), findsNothing);
   });
 }

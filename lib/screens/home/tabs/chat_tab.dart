@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/components/components.dart';
@@ -222,32 +223,29 @@ class _ChatTabState extends State<ChatTab> {
 
     if (!await _audioService.hasPermission()) {
       if (!mounted) return;
-      final granted = await showDialog<bool>(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Microphone Access'),
-              content: const Text('WalletAI needs microphone access to record voice expense notes.'),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not now')),
-                TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Allow')),
-              ],
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Microphone Access Required'),
+          content: const Text(
+            'Microphone permission is disabled. Please enable it in Settings to record voice notes.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
-          ) ??
-          false;
-      if (!granted) {
-        if (mounted) {
-          _showSnackBar('Microphone access is needed to record voice notes.');
-        }
-        return;
-      }
-      // If user tapped Allow, hasPermission() already triggered the system
-      // prompt inside (permission_handler calls request internally). Re-check.
-      if (!await _audioService.hasPermission()) {
-        if (mounted) {
-          _showSnackBar('Microphone access is needed to record voice notes.');
-        }
-        return;
-      }
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                openAppSettings();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
+      return;
     }
 
     await _audioService.start();
@@ -372,7 +370,7 @@ class _ChatTabState extends State<ChatTab> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.grey, size: 22),
+                  icon: Icon(Icons.add_photo_alternate_outlined, color: (isStreaming || _isRecording) ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
                   onPressed: (isStreaming || _isRecording) ? null : _showAttachmentSheet,
                   tooltip: 'Attach image',
                   splashRadius: 20,
@@ -395,19 +393,38 @@ class _ChatTabState extends State<ChatTab> {
           ),
         ),
         const SizedBox(width: 12),
-        GestureDetector(
-          onTap: canSend ? _handleSend : null,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: canSend ? Theme.of(context).colorScheme.primary : Colors.grey,
-              shape: BoxShape.circle,
-              boxShadow: [if (canSend) BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
-            ),
-            child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-          ),
-        ),
+        _SendButton(onTap: canSend ? _handleSend : null),
       ],
+    );
+  }
+}
+
+class _SendButton extends StatelessWidget {
+  final VoidCallback? onTap;
+
+  const _SendButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: enabled ? Theme.of(context).colorScheme.primary : Colors.grey,
+          shape: BoxShape.circle,
+          boxShadow: [
+            if (enabled)
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+      ),
     );
   }
 }
@@ -482,11 +499,7 @@ class _RecordingBar extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.stop_circle, color: Theme.of(context).colorScheme.primary),
-            onPressed: onStop,
-            tooltip: 'Stop and send',
-          ),
+          _SendButton(onTap: onStop),
         ],
       ),
     );
