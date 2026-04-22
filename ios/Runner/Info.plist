@@ -53,6 +53,8 @@
 		<true/>
 		<key>NSCameraUsageDescription</key>
 		<string>Wally needs camera access to capture receipts and bills for logging transactions.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>WalletAI uses the microphone to let you speak expenses instead of typing.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Wally needs photo library access to attach receipts and bank notification screenshots.</string>
 	</dict>
