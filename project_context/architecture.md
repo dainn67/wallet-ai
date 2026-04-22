@@ -20,7 +20,8 @@
 ## Services & Singletons
 - **Pattern**: Static `_instance` with a private constructor and a factory.
 - **Initialization**: Async init methods (e.g., `StorageService.init()`) called in `main()` before `runApp`.
-- **Services**: `ApiService` (HTTP), `ChatApiService` (Chat payload), `StorageService` (SharedPreferences), `HomeWidget` (Widget integration).
+- **Services**: `ApiService` (HTTP), `ChatApiService` (Chat payload), `StorageService` (SharedPreferences), `HomeWidget` (Widget integration), `AudioRecordingService` (microphone recording).
+- **AudioRecordingService**: Singleton (`static _instance` + `factory`). Wraps the `record` package and `permission_handler`. Exposes `start()`, `stop()`, `cancel()`, `elapsedStream`, `amplitudeStream`, and an `onAutoStopped(callback)` hook. Enforces a 30-second hard cap via an internal `Timer`. Permission is requested lazily on first `start()` call. Supports `setMockInstance` / `forTesting()` constructor for test injection.
 
 ## Data Layer (Repositories)
 - **RecordRepository**: Singleton managing the SQLite `data.db`.

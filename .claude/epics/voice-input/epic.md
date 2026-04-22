@@ -1,9 +1,9 @@
 ---
 name: voice-input
-status: backlog
+status: completed
 created: 2026-04-22T11:48:06Z
-updated: 2026-04-22T11:57:37Z
-progress: 0%
+updated: 2026-04-22T15:30:00Z
+progress: 100%
 priority: P1
 prd: .claude/prds/voice-input.md
 task_count: 7

@@ -57,6 +57,10 @@ When a record has `category_id: -1` and the server returns a `suggested_category
 1. **Background Pattern Sync**: On app launch, `AiPatternService` checks the last update time. If an update is due, it collects recent transaction context (Latest vs. Momentum) and sends it to the AI for high-level behavior analysis.
 2. **Adaptive Greeting**: On app load, `ChatProvider` automatically sends a hidden `INIT_GREETING` request to the server, including the locally stored `user_pattern` string. This allows the AI to generate a highly personalized greeting based on established user habits.
 
+### Voice Input
+
+Users tap `Icons.mic_none_outlined` in `ChatTab`'s composer pill to record a voice expense note. `AudioRecordingService` (singleton, `lib/services/audio_recording_service.dart`) wraps the `record` package, captures AAC-LC audio into a temp `.m4a` file, and exposes elapsed/amplitude streams plus a 30-second auto-stop timer. On stop, `ChatTab._stopAndSend` calls `ChatProvider.sendMessage(audioBytes:)`, which base64-encodes the bytes via `ImageProcessingService.toBase64`, passes them to `ChatApiService.streamChat(audioBase64:)` as a top-level `audio` key, and the server forwards the audio to Gemini. If the server returns an empty records array (audio not understood), `ChatProvider._handleStream` detects `hadAudio && records.isEmpty` and replaces the assistant message with the `voice_didnt_catch_that` localisation string. See `docs/features/voice-input.md`.
+
 ## Logic Locations
 
 - **Parsing**: `ChatProvider._handleStream` onDone handler — type-checks decoded JSON: Map with `suggestedPrompts` key → prompts; List → records. Also parses `suggested_category` per record when `categoryId == -1`.
