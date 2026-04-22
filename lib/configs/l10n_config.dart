@@ -75,6 +75,8 @@ class L10nConfig {
       'take_photo': 'Take photo',
       'choose_from_library': 'Choose from library',
       'max_images_hint': 'Max {count} images',
+      'voice_didnt_catch_that': "I didn't catch that. Please try again.",
+      'image_load_failed': "Couldn't load the image. Please try again.",
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -146,6 +148,8 @@ class L10nConfig {
       'take_photo': 'Chụp ảnh',
       'choose_from_library': 'Chọn từ thư viện',
       'max_images_hint': 'Tối đa {count} ảnh',
+      'voice_didnt_catch_that': 'Mình chưa nghe rõ. Bạn thử lại nhé.',
+      'image_load_failed': 'Không tải được ảnh. Bạn thử lại nhé.',
     },
   };
 

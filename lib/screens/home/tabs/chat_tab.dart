@@ -146,6 +146,7 @@ class _ChatTabState extends State<ChatTab> {
     final toProcess = files.take(remaining).toList();
 
     int oversizeCount = 0;
+    int failCount = 0;
     final results = await Future.wait(
       toProcess.map((f) async {
         try {
@@ -154,18 +155,23 @@ class _ChatTabState extends State<ChatTab> {
           oversizeCount++;
           return null;
         } catch (_) {
+          failCount++;
           return null;
         }
       }),
     );
 
     if (!mounted) return;
+    final l10n = context.read<LocaleProvider>();
     final valid = results.whereType<Uint8List>().toList();
     if (valid.isNotEmpty) {
       setState(() => _pendingImages.addAll(valid));
     }
     if (oversizeCount > 0) {
       _showSnackBar('Image too large after compression');
+    }
+    if (failCount > 0) {
+      _showSnackBar(l10n.translate('image_load_failed'));
     }
     if (files.length > toProcess.length) {
       _showSnackBar('Maximum 5 images per message');
