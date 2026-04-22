@@ -1,4 +1,5 @@
 export 'ai_pattern_service.dart';
+export 'audio_recording_service.dart';
 
 export 'api_exception.dart';
 export 'api_service.dart';

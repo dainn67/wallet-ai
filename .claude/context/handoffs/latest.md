@@ -1,27 +1,52 @@
-# Handoff: Task #179 — record + permission_handler deps + platform plumbing
-Completed: 2026-04-22T12:13:53Z
+# Handoff: Task #180 — AudioRecordingService singleton
+Completed: 2026-04-22T12:28:34Z
 
 ## What was done
-- Added `record: ^5.0.0` and `permission_handler: ^11.0.0` to `pubspec.yaml` under `dependencies` (alphabetically after `image_picker`)
-- Added `NSMicrophoneUsageDescription` key to `ios/Runner/Info.plist` alongside existing camera/photo library keys
-- Added `<uses-permission android:name="android.permission.RECORD_AUDIO"/>` to `android/app/src/main/AndroidManifest.xml` alongside existing INTERNET and CAMERA permissions
-- Ran `fvm flutter pub get` — resolved successfully
-- Ran `fvm flutter analyze` — 138 pre-existing issues only, zero new errors from this task
+- Created `lib/services/audio_recording_service.dart` as a singleton wrapping `record` 5.2.1 (`AudioRecorder`) and `permission_handler` 11.x (`Permission.microphone`)
+- Implemented full public API: `hasPermission()`, `start()`, `stop()`, `cancel()`, `elapsedStream`, `amplitudeStream`, `onAutoStopped()`
+- Added export to `lib/services/services.dart`
+- `fvm flutter analyze` reports zero issues on the new file
 
 ## Files changed
-- `pubspec.yaml` — added `permission_handler: ^11.0.0` and `record: ^5.0.0`
-- `pubspec.lock` — updated with resolved versions
-- `ios/Runner/Info.plist` — added `NSMicrophoneUsageDescription`
-- `android/app/src/main/AndroidManifest.xml` — added `RECORD_AUDIO` permission
-- `.claude/epics/voice-input/179.md` — frontmatter updated to closed
+- `lib/services/audio_recording_service.dart` — new file (service singleton)
+- `lib/services/services.dart` — added `export 'audio_recording_service.dart';`
+- `.claude/epics/voice-input/180.md` — status: open → closed
 
 ## Decisions
-- `record` locked to **5.2.1** (newest satisfying `^5.0.0`; `^6.x` is available but out of range)
-- `permission_handler` locked to **11.4.0** (newest satisfying `^11.0.0`; `^12.x` is available but out of range)
-- `NSMicrophoneUsageDescription` string: "WalletAI uses the microphone to let you speak expenses instead of typing." — consistent with the task spec's suggested string and matches the app's user-facing tone
+- **Bit rate:** 128 kbps AAC-LC mono, 44100 Hz — yields ~480 KB for 30 s (within NFR-1 500 KB cap)
+- **Channel count:** 1 (mono) — sufficient for voice, halves file size vs stereo
+- **Amplitude normalization:** `-45..0 dBFS` floor → `0.0..1.0` linear. Formula: `((current - (-45)) / 45).clamp(0.0, 1.0)`. Polled every 200 ms via our own `Timer` calling `_recorder.getAmplitude()` (not `onAmplitudeChanged` which requires a listener to stay active)
+- **Temp file naming:** `audio_<epochMillis>.m4a` in `getTemporaryDirectory()` — `path_provider` is a direct dep (confirmed in pubspec.yaml)
+- **start() while recording:** no-op with `debugPrint` warning (not a throw) — keeps UI safe on rapid double-tap
+- **Permission check in start():** uses `Permission.microphone.request()` via `permission_handler` (not `_recorder.hasPermission()`) for explicit OS-level permission request before recording begins
+- **onAutoStopped registration:** `void onAutoStopped(callback)` method (not a setter property) — aligns with task spec
 
-## Warnings for next task (#180 AudioRecordingService)
-- `record 5.2.1` is the API in use — NOT `record ^6.x`. The `AudioRecorder` class is the primary entry point in v5. Use `AudioRecorder()`, `start(RecordConfig(...), path: ...)` and `stop()` — NOT the older static API from v4 or any v6 renames.
-- `permission_handler 11.4.0` uses `Permission.microphone.request()` — same pattern as v10.
-- Both packages resolve cleanly with no transitive conflicts in this project's dependency graph.
-- `record_linux 0.7.2` is a transitive dep — ignore for mobile-only targets.
+## Public API reference (for #181/#182/#183)
+
+```dart
+// Singleton
+AudioRecordingService()  // factory, returns same instance
+
+// Permission
+Future<bool> hasPermission()
+
+// Control
+Future<void> start()         // throws StateError('Microphone permission denied') if denied
+Future<Uint8List?> stop()    // returns null if not recording; catches file errors
+Future<void> cancel()        // no-op if not recording
+
+// Streams (broadcast)
+Stream<Duration> get elapsedStream    // emits every 200 ms while recording
+Stream<double> get amplitudeStream    // emits 0.0..1.0 normalized every 200 ms
+
+// Auto-stop callback
+void onAutoStopped(void Function(Uint8List? bytes) callback)
+// call BEFORE start(); fires when 30-s timer elapses; bytes may be null on error
+```
+
+## Warnings for next tasks
+- **#181 (UI):** Register `onAutoStopped` callback BEFORE calling `start()`. The callback receives `Uint8List?` directly — UI should forward bytes to the provider's send method.
+- **#181 (UI):** `amplitudeStream` emits `double` (0..1), NOT `Amplitude` — UI can use directly for waveform animation without additional conversion.
+- **#182 (API):** `stop()` returns raw `Uint8List` — API layer must base64-encode before attaching to the chat request payload.
+- **#183 (Provider):** `stop()` is safe to call even if not recording (returns null). Provider should check for null before attempting to send.
+- **Pre-existing test failure:** `chat_api_service_formatting_test.dart` has one failing test (comma vs semicolon separator) that pre-dates this task — not caused by these changes.
