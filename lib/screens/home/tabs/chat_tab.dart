@@ -285,7 +285,7 @@ class _ChatTabState extends State<ChatTab> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.grey, size: 22),
+                    icon: Icon(Icons.add_photo_alternate_outlined, color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
                     onPressed: isStreaming ? null : _showAttachmentSheet,
                     tooltip: 'Attach image',
                     splashRadius: 20,
