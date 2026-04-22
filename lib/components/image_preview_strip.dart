@@ -8,11 +8,13 @@ import 'package:flutter/material.dart';
 class ImagePreviewStrip extends StatelessWidget {
   final List<Uint8List> images;
   final void Function(int index) onRemove;
+  final String hintLabel;
 
   const ImagePreviewStrip({
     super.key,
     required this.images,
     required this.onRemove,
+    required this.hintLabel,
   });
 
   @override
@@ -65,7 +67,7 @@ class ImagePreviewStrip extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text(
-            'Max 5 images',
+            hintLabel,
             style: TextStyle(fontSize: 11, color: Colors.grey[500]),
           ),
         ),

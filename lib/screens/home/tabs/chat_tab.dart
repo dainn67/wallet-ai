@@ -208,6 +208,7 @@ class _ChatTabState extends State<ChatTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<LocaleProvider>();
     return Column(
       children: [
         Expanded(
@@ -244,6 +245,7 @@ class _ChatTabState extends State<ChatTab> {
             child: ImagePreviewStrip(
               images: _pendingImages,
               onRemove: (i) => setState(() => _pendingImages.removeAt(i)),
+              hintLabel: l10n.translate('max_images_hint').replaceAll('{count}', '$_maxImages'),
             ),
           ),
         _buildInputArea(),

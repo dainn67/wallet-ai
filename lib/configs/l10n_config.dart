@@ -74,6 +74,7 @@ class L10nConfig {
       'yesterday_label': 'Yesterday',
       'take_photo': 'Take photo',
       'choose_from_library': 'Choose from library',
+      'max_images_hint': 'Max {count} images',
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -144,6 +145,7 @@ class L10nConfig {
       'yesterday_label': 'Hôm qua',
       'take_photo': 'Chụp ảnh',
       'choose_from_library': 'Chọn từ thư viện',
+      'max_images_hint': 'Tối đa {count} ảnh',
     },
   };
 
