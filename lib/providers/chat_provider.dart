@@ -88,7 +88,7 @@ class ChatProvider extends ChangeNotifier {
     _showingActions = false;
   }
 
-  Future<void> sendMessage(String content, {List<Uint8List>? imageBytes}) async {
+  Future<void> sendMessage(String content, {List<Uint8List>? imageBytes, Uint8List? audioBytes}) async {
     final hadActivePrompt = _activePromptIndex != null;
     if (hadActivePrompt) {
       _removeActivePrompt();
@@ -99,8 +99,11 @@ class ChatProvider extends ChangeNotifier {
     final effectiveImages = imageBytes?.where((b) => b.isNotEmpty).toList();
     final hasImages = effectiveImages != null && effectiveImages.isNotEmpty;
 
-    // AD-6: no-op only when both caption and images are empty.
-    if (content.trim().isEmpty && !hasImages) return;
+    final effectiveAudio = (audioBytes != null && audioBytes.isNotEmpty) ? audioBytes : null;
+    final hasAudio = effectiveAudio != null;
+
+    // AD-6: no-op only when caption, images, and audio are all empty.
+    if (content.trim().isEmpty && !hasImages && !hasAudio) return;
 
     _error = null;
     final userMessage = ChatMessage(
@@ -112,11 +115,14 @@ class ChatProvider extends ChangeNotifier {
     );
 
     _messages.add(userMessage);
-    return _handleStream(content, isGreeting: false, imageBytes: hasImages ? effectiveImages : null);
+    return _handleStream(content, isGreeting: false, imageBytes: hasImages ? effectiveImages : null, audioBytes: effectiveAudio);
   }
 
-  Future<void> _handleStream(String query, {bool isGreeting = false, List<Uint8List>? imageBytes}) async {
+  Future<void> _handleStream(String query, {bool isGreeting = false, List<Uint8List>? imageBytes, Uint8List? audioBytes}) async {
     _isStreaming = true;
+    // Capture as a local closure variable — NOT an instance field — to prevent
+    // state leak between concurrent sends (AD-5).
+    final bool hadAudio = audioBytes != null;
     notifyListeners();
 
     final localAssistantId = (DateTime.now().millisecondsSinceEpoch + 1).toString();
@@ -145,12 +151,14 @@ class ChatProvider extends ChangeNotifier {
     // Base64-encode compressed JPEG bytes just before sending. Null / empty
     // when no images were attached — streamChat omits the `images` key.
     final imagesBase64 = imageBytes?.map(ImageProcessingService().toBase64).toList();
+    // Base64-encode audio bytes (byte-agnostic — same encoder as images).
+    final audioBase64 = audioBytes != null ? ImageProcessingService().toBase64(audioBytes) : null;
 
     final completer = Completer<void>();
     try {
       _streamSubscription?.cancel();
       _streamSubscription = ChatApiService()
-          .streamChat(query, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency, pattern: pattern, imagesBase64: imagesBase64)
+          .streamChat(query, conversationId: _conversationId, categoryList: categoryList, moneySourceList: moneySourceList, language: language, currency: currency, pattern: pattern, imagesBase64: imagesBase64, audioBase64: audioBase64)
           .listen(
             (response) {
               if (response.conversationId != null) {
@@ -247,6 +255,18 @@ class ChatProvider extends ChangeNotifier {
                       }
                       _dbUpdateVersion++;
                       await _recordProvider?.loadAll();
+                    }
+
+                    // AD-5: voice-error detection — only when audio was sent
+                    // and the server returned no records (interpretation failure).
+                    // Non-audio empty records (normal chat reply) are left as-is.
+                    if (records.isEmpty && hadAudio) {
+                      final errorText = _localeProvider?.translate('voice_didnt_catch_that')
+                          ?? "I didn't catch that. Please try again.";
+                      final idx = _messages.indexWhere((m) => m.id == currentAssistantId);
+                      if (idx != -1) {
+                        _messages[idx] = _messages[idx].copyWith(content: errorText);
+                      }
                     }
                   }
                 } catch (e) {
