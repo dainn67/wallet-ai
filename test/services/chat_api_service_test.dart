@@ -77,4 +77,49 @@ void main() {
     expect(body['query'], '');
     expect(body['images'], const ['abc', 'def']);
   });
+
+  // audio field tests (AD-2 voice extension)
+  group('audio field', () {
+    test('streamChat without audioBase64 produces body with no audio key', () async {
+      await drain(ChatApiService().streamChat('hello'));
+
+      final body = capturedBody as Map;
+      expect(body.containsKey('audio'), isFalse);
+      expect(body['query'], 'hello');
+    });
+
+    test('streamChat with empty audioBase64 omits the audio key', () async {
+      await drain(ChatApiService().streamChat('', audioBase64: ''));
+
+      final body = capturedBody as Map;
+      expect(body.containsKey('audio'), isFalse);
+    });
+
+    test('streamChat with non-empty audioBase64 includes top-level audio key', () async {
+      await drain(ChatApiService().streamChat('', audioBase64: 'abc123=='));
+
+      final body = capturedBody as Map;
+      expect(body['audio'], 'abc123==');
+      expect(body['query'], '');
+      // Critical: audio must be top-level, NOT nested inside `inputs` (AD-2).
+      final inputs = body['inputs'] as Map;
+      expect(inputs.containsKey('audio'), isFalse);
+    });
+
+    test('streamChat with audioBase64 and non-empty query includes both', () async {
+      await drain(ChatApiService().streamChat('lunch 50k', audioBase64: 'abc123=='));
+
+      final body = capturedBody as Map;
+      expect(body['audio'], 'abc123==');
+      expect(body['query'], 'lunch 50k');
+    });
+
+    test('regression: streamChat with imagesBase64 has images key and no audio key', () async {
+      await drain(ChatApiService().streamChat('hello', imagesBase64: const ['imgdata']));
+
+      final body = capturedBody as Map;
+      expect(body['images'], const ['imgdata']);
+      expect(body.containsKey('audio'), isFalse);
+    });
+  });
 }

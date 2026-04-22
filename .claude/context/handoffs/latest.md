@@ -1,28 +1,25 @@
-# Handoff: Task #184 — error strings + image error snackbar
-Completed: 2026-04-22T12:32:33Z
+# Handoff: Task #182 — ChatApiService audioBase64 parameter
+Completed: 2026-04-22T12:35:17Z
 
 ## What was done
-- Added `voice_didnt_catch_that` and `image_load_failed` l10n keys to both English and Vietnamese blocks in `lib/configs/l10n_config.dart`
-- Added `failCount` tracking in `_processAndAdd` in `chat_tab.dart`; when any non-oversize exception fires during image processing, shows a localized snackbar via `l10n.translate('image_load_failed')`
+- Added `String? audioBase64` optional named parameter to `ChatApiService.streamChat()` after `imagesBase64`
+- Added conditional branch `if (audioBase64 != null && audioBase64.isNotEmpty) { inputs['audio'] = audioBase64; }` at the outer request map level (same nesting as `images`), with AD-2 comment mirroring the images comment
+- Added 5 new audio-field tests to `test/services/chat_api_service_test.dart` in a group `'audio field'` — all pass
 
 ## Files changed
-- `lib/configs/l10n_config.dart` — 4 new key/value entries (2 per language)
-- `lib/screens/home/tabs/chat_tab.dart` — added `failCount` tracking and localized snackbar in `_processAndAdd` catch block (~10 lines added)
-- `.claude/epics/voice-input/184.md` — status closed
-- `.claude/context/handoffs/latest.md` — this file
+- `lib/services/chat_api_service.dart` — new `audioBase64` param + `audio` branch
+- `test/services/chat_api_service_test.dart` — 5 new audio tests appended
+- `.claude/epics/voice-input/182.md` — status closed
 
 ## Decisions
-- EN `voice_didnt_catch_that`: "I didn't catch that. Please try again."
-- VN `voice_didnt_catch_that`: "Mình chưa nghe rõ. Bạn thử lại nhé."
-- EN `image_load_failed`: "Couldn't load the image. Please try again."
-- VN `image_load_failed`: "Không tải được ảnh. Bạn thử lại nhé."
-- Surfacing pattern: `context.read<LocaleProvider>().translate(key)` — mirrors how `_showAttachmentSheet` reads l10n in the same file
-- Keys placed at the end of each language block (no strict alphabetical order observed in existing file)
+- Tests written: used existing mocktail + `ApiService.setMockInstance` pattern already present in the file; no new framework introduced
+- Pre-existing `formatCategories` test failure (expects `, ` separator, actual uses `; `) exists before this task and is unaffected
 
-## Key strings for downstream tasks
-- voice_didnt_catch_that (used by #183 ChatProvider for voice-failure UI)
-- image_load_failed (already surfaced here in chat_tab.dart `_processAndAdd` catch block, ~line 178)
+## Public API change
+- streamChat(..., String? audioBase64) — optional, defaults to null
+- Body contains inputs['audio'] iff audioBase64 != null && audioBase64.isNotEmpty
+- NO other behavior changed
 
-## Warnings for next tasks
-- `chat_tab.dart` now has `failCount` + snackbar in `_processAndAdd` (lines ~148–178). Task #181's mic-icon addition should sit beside the camera icon in the build method widget tree — do NOT touch `_processAndAdd` unless intentionally extending image error handling.
-- The `formatCategories` test in `test/services/chat_api_service_formatting_test.dart` was already failing before this task (pre-existing semicolon vs comma mismatch). Not caused by task #184.
+## Warnings for next task (#183 ChatProvider)
+- Provider should base64-encode via ImageProcessingService().toBase64(audioBytes) and pass as audioBase64 named arg.
+- Empty-bytes guard (Uint8List(0)) in provider must produce null/empty string, not a one-char empty base64 — verify.

@@ -56,6 +56,7 @@ class ChatApiService {
     String currency = 'USD',
     String? pattern,
     List<String>? imagesBase64,
+    String? audioBase64,
   }) async* {
     try {
       // ISO-8601 local time without fractional seconds or timezone suffix,
@@ -82,6 +83,11 @@ class ChatApiService {
       // server keeps treating the request as text-only.
       if (imagesBase64 != null && imagesBase64.isNotEmpty) {
         inputs['images'] = imagesBase64;
+      }
+      // AD-2 (voice): `audio` mirrors the same top-level pattern as `images`.
+      // Omitted entirely when absent so the server routes as text/image-only.
+      if (audioBase64 != null && audioBase64.isNotEmpty) {
+        inputs['audio'] = audioBase64;
       }
       final result = await ApiService().postStream(ApiConfig.chatFlowPath, data: inputs, token: ApiConfig().mainChatApiKey);
 
