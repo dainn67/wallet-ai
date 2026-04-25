@@ -13,10 +13,7 @@ class ApiConfig {
   static const String updateUserPatternPath = '/api/single-question/walletai-analyze-pattern';
   static const String chatFlowPath = '/api/chat-flow/wallet-ai-chatbot';
 
-  String get baseUrl {
-    if (!AppConfig().devMode) return 'https://chatbot-flow-server.onrender.com';
-    return '${Platform.isIOS ? 'http://localhost' : 'http://192.168.88.93'}:8000';
-  }
+  String get baseUrl => 'https://chatbot-flow-server.onrender.com';
 
   Duration get connectTimeout => const Duration(seconds: 10);
   Duration get receiveTimeout => const Duration(seconds: 10);

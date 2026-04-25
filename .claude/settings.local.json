@@ -17,7 +17,11 @@
       "Bash(mkdir -p .claude/context/epics/.archive)",
       "Bash(cp .claude/context/epics/image-input.md .claude/context/epics/.archive/image-input.md)",
       "Bash(mkdir -p .claude/context/verify/baselines)",
-      "Bash(cp .claude/context/verify/results/latest.json .claude/context/verify/baselines/image-input-baseline.json)"
+      "Bash(cp .claude/context/verify/results/latest.json .claude/context/verify/baselines/image-input-baseline.json)",
+      "Bash(sed -i '' 's|^github:.*|github: __TRACKED_VAR__|' .claude/epics/category-filter/epic.md)",
+      "Bash(sed -i '' 's|^updated:.*|updated: __TRACKED_VAR__|' .claude/epics/category-filter/epic.md)",
+      "Bash(sed -i '' 's/| 001 /| 188 /g; s/| 010 /| 189 /g; s/| 020 /| 190 /g; s/| 090 /| 191 /g' .claude/epics/category-filter/epic.md)",
+      "Bash(sed -i '' 's/depends: 001/depends: 188/g; s/depends: 001, 010/depends: 188, 189/g; s/depends: all/depends: 188, 189, 190/g' .claude/epics/category-filter/epic.md)"
     ],
     "deny": [
       "Bash(rm -rf /)",
