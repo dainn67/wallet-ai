@@ -61,6 +61,7 @@ When a record has `category_id: -1` and the server returns a `suggested_category
 
 - **Parsing**: `ChatProvider._handleStream` onDone handler — type-checks decoded JSON: Map with `suggestedPrompts` key → prompts; List → records. Also parses `suggested_category` per record when `categoryId == -1`.
 - **Aggregation Logic**: `RecordProvider._calculateCategoryTotals` (calculates flat and hierarchical totals from cached records).
+- **Category Drill-Down**: `RecordProvider.getRecordsForCategory(List<int> categoryIds, DateTimeRange?)` — pure in-memory filter+sort (`occurredAt DESC`); used by `lib/components/popups/category_records_bottom_sheet.dart`. Tapping a parent row opens the sheet with union of parent+sub ids; tapping a sub row opens it with only that sub's id.
 - **AI Pattern Logic**: `AiPatternService.updateUserPattern` (orchestrates date range windows and context snapshot collection).
 - **Adaptive Greeting Logic**: `ChatProvider.sendAdaptiveGreeting` (triggers the INIT_GREETING flow).
 - **Suggested Prompts State**: `ChatProvider.selectPrompt`, `selectAction`, `_removeActivePrompt` — manage chip bar state.

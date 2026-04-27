@@ -1,8 +1,9 @@
 ---
 name: category-filter
-status: backlog
+status: completed
 created: 2026-04-25T11:50:25Z
-progress: 0%
+updated: 2026-04-27T10:00:00Z
+progress: 100%
 priority: P1
 prd: .claude/prds/category-filter.md
 task_count: 4

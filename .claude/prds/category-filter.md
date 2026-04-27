@@ -1,11 +1,11 @@
 ---
 name: category-filter
 description: Tap a category on the Categories tab to open a popup listing that category's records for the month; plus a Records-tab sort fix (occur time instead of last-update).
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-04-24T17:08:07Z
-updated: null
+updated: 2026-04-27T10:00:00Z
 ---
 
 # PRD: category-filter
