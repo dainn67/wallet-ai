@@ -7,8 +7,15 @@ import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
-class CategoriesTab extends StatelessWidget {
+class CategoriesTab extends StatefulWidget {
   const CategoriesTab({super.key});
+
+  @override
+  State<CategoriesTab> createState() => _CategoriesTabState();
+}
+
+class _CategoriesTabState extends State<CategoriesTab> {
+  final Map<int, ExpansibleController> _controllers = {};
 
   void _showAddDialog(BuildContext context) {
     showDialog(context: context, builder: (context) => const CategoryFormDialog());
@@ -18,6 +25,22 @@ class CategoriesTab extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => CategoryFormDialog(category: category),
+    );
+  }
+
+  void _openCategoryPopup(BuildContext context, Category category, {required bool isParent}) {
+    final provider = context.read<RecordProvider>();
+    final subCats = isParent ? provider.getSubCategories(category.categoryId!) : <Category>[];
+    final ids = [category.categoryId!, ...subCats.map((s) => s.categoryId!)];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CategoryRecordsBottomSheet(
+        category: category,
+        categoryIds: ids,
+        subCategories: subCats,
+      ),
     );
   }
 
@@ -33,6 +56,10 @@ class CategoriesTab extends StatelessWidget {
         final categories = provider.categories;
         final parentCategories = categories.where((c) => c.parentId == -1).toList();
         final selectedDate = provider.selectedDateRange?.start ?? DateTime.now();
+
+        for (final cat in parentCategories) {
+          _controllers.putIfAbsent(cat.categoryId!, () => ExpansibleController());
+        }
 
         return Column(
           children: [
@@ -101,6 +128,7 @@ class CategoriesTab extends StatelessWidget {
                         final category = parentCategories[index];
                         final subCategories = provider.getSubCategories(category.categoryId!);
                         final total = provider.getCategoryTotal(category.categoryId!);
+                        final controller = _controllers[category.categoryId!]!;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -113,16 +141,23 @@ class CategoriesTab extends StatelessWidget {
                           child: Theme(
                             data: Theme.of(context).copyWith(dividerColor: Colors.transparent, splashColor: Colors.transparent, highlightColor: Colors.transparent),
                             child: ExpansionTile(
+                              controller: controller,
                               tilePadding: const EdgeInsets.only(right: 12),
                               childrenPadding: EdgeInsets.zero,
                               collapsedBackgroundColor: Colors.transparent,
                               backgroundColor: Colors.transparent,
+                              trailing: IconButton(
+                                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF94A3B8)),
+                                onPressed: () => controller.isExpanded ? controller.collapse() : controller.expand(),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
                               title: CategoryWidget(
                                 category: category,
                                 total: total,
                                 typeLabel: category.type == 'income' ? l10n.translate('income_label') : l10n.translate('spent_label'),
                                 defaultLabel: category.categoryId == 1 ? l10n.translate('category_default_label') : null,
-                                onTap: null, // Let ExpansionTile handle tap
+                                onTap: () => _openCategoryPopup(context, category, isParent: true),
                                 onEdit: category.categoryId == 1 ? null : () => _showEditDialog(context, category),
                                 showChevron: false,
                                 showDecoration: false,
@@ -135,7 +170,8 @@ class CategoriesTab extends StatelessWidget {
                                     category: sub,
                                     total: provider.getCategoryTotal(sub.categoryId!),
                                     typeLabel: sub.type == 'income' ? l10n.translate('income_label') : l10n.translate('spent_label'),
-                                    onTap: () => _showEditDialog(context, sub),
+                                    onTap: () => _openCategoryPopup(context, sub, isParent: false),
+                                    onEdit: () => _showEditDialog(context, sub),
                                     showDecoration: false,
                                     padding: const EdgeInsets.only(left: 56, top: 8, bottom: 8, right: 16),
                                   ),
