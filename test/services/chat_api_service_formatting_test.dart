@@ -24,7 +24,7 @@ void main() {
         Category(categoryId: 2, name: 'Salary', type: 'income'),
       ];
       final result = ChatApiService.formatCategories(categories);
-      expect(result, '1-Food, 2-Salary');
+      expect(result, '1-Food; 2-Salary');
     });
 
     test('formatCategories handles empty list', () {

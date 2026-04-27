@@ -41,6 +41,7 @@ void main() {
           description TEXT,
           type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
           last_updated INTEGER NOT NULL,
+          occurred_at INTEGER NOT NULL DEFAULT 0,
           FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
           FOREIGN KEY (category_id) REFERENCES Category (category_id)
         )

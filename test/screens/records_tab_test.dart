@@ -94,7 +94,7 @@ void main() {
     expect(find.textContaining('100').last, findsOneWidget);
   });
 
-  testWidgets('RecordsTab shows only one divider for single month', (tester) async {
+  testWidgets('RecordsTab shows only one divider for same-day records', (tester) async {
     tester.view.physicalSize = const Size(1200, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
@@ -132,7 +132,7 @@ void main() {
 
     await tester.pumpWidget(createRecordsTab());
     
-    expect(find.text('March 2024'), findsOneWidget);
+    expect(find.text('Fri, 15 Mar 2024'), findsOneWidget);
   });
 
   testWidgets('Records remain sorted descending within each month', (tester) async {

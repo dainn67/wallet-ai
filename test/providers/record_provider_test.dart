@@ -221,10 +221,12 @@ void main() {
     });
 
     group('filtering and sorting', () {
-      final mockRecords = [
-        Record(recordId: 1, moneySourceId: 1, categoryId: 1, amount: 100.0, currency: 'VND', description: 'Exp 1', type: 'expense'),
-        Record(recordId: 2, moneySourceId: 2, categoryId: 2, amount: 200.0, currency: 'VND', description: 'Inc 1', type: 'income'),
-        Record(recordId: 3, moneySourceId: 1, categoryId: 1, amount: 300.0, currency: 'VND', description: 'Inc 2', type: 'income'),
+      // Explicit occurredAt values to get deterministic occurredAt DESC ordering: 3, 2, 1
+    final _baseMs = DateTime(2026, 4, 15).millisecondsSinceEpoch;
+    final mockRecords = [
+        Record(recordId: 1, moneySourceId: 1, categoryId: 1, amount: 100.0, currency: 'VND', description: 'Exp 1', type: 'expense', occurredAt: _baseMs),
+        Record(recordId: 2, moneySourceId: 2, categoryId: 2, amount: 200.0, currency: 'VND', description: 'Inc 1', type: 'income', occurredAt: _baseMs + 1000),
+        Record(recordId: 3, moneySourceId: 1, categoryId: 1, amount: 300.0, currency: 'VND', description: 'Inc 2', type: 'income', occurredAt: _baseMs + 2000),
       ];
 
       setUp(() async {
@@ -234,7 +236,7 @@ void main() {
         await recordProvider.loadAll();
       });
 
-      test('filteredRecords returns all records sorted by recordId descending by default', () {
+      test('filteredRecords returns all records sorted by occurredAt descending by default', () {
         final filtered = recordProvider.filteredRecords;
         expect(filtered.length, 3);
         expect(filtered[0].recordId, 3);
