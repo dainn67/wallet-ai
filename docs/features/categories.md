@@ -6,9 +6,10 @@ The Categories Management system allows users to define and track financial clas
 ## Technical Mapping
 
 ### UI Layer
-- **CategoriesTab**: Main interface for category management.
+- **CategoriesTab**: Main interface for category management. Now a `StatefulWidget` to hold a `Map<int, ExpansibleController> _controllers` for each parent category.
   - **Month Selector**: A horizontal control at the top that allows users to filter category totals by month/year.
-  - **ExpansionTile Hierarchy**: Parent categories are shown as expandable cards. Expanding a card reveals its sub-categories.
+  - **ExpansionTile Hierarchy**: Parent categories are shown as expandable cards. Tapping the **row body** opens `CategoryRecordsBottomSheet` (scoped to parent + all subs). Tapping the **trailing chevron button** expands/collapses the tile. The `ExpansionTile` does NOT expand on row-body tap because `CategoryWidget`'s inner `InkWell` absorbs the pointer first.
+  - **Sub-category rows**: Tapping a sub row opens `CategoryRecordsBottomSheet` scoped to that sub only. The pencil icon (via `onEdit`) opens the category edit dialog.
   - **Add Sub Category Button**: A prominent full-width button (within the indented area) at the bottom of each parent's group to quickly create children.
 - **CategoryWidget**: A consistent card component displaying:
   - **Icon**: Visual indicator of transaction type.
