@@ -28,6 +28,18 @@ The Categories Management system allows users to define and track financial clas
   - **Category Table**: Includes `parent_id` (default: -1) for hierarchical associations.
   - **Date-Range Totals**: `getCategoryTotals()` supports server-side (disk) aggregation, though the provider currently performs this in-memory for immediate responsiveness.
 
+## Category Records Drill-Down (category-filter epic)
+
+Tapping a category row opens a `CategoryRecordsBottomSheet` modal that lists all records contributing to that category's monthly total.
+
+- **Widget**: `lib/components/popups/category_records_bottom_sheet.dart`
+- **Constructor**: `CategoryRecordsBottomSheet({required Category category, required List<int> categoryIds, required List<Category> subCategories})`
+- **Invocation**: `showModalBottomSheet(isScrollControlled: true, builder: (_) => CategoryRecordsBottomSheet(...))`
+- **Grouped view**: When opened for a parent category (`subCategories` non-empty), records are split into bordered sections — parent-direct first, then one section per sub-category. Empty sections are skipped.
+- **Flat view**: When opened for a sub-category (`subCategories` empty), a plain list is shown.
+- **Auto-refresh**: The sheet is wrapped in `Consumer<RecordProvider>`, so editing a record via the built-in edit button triggers `notifyListeners` and the list updates immediately.
+- **Data source**: `RecordProvider.getRecordsForCategory(categoryIds, selectedDateRange)` — pure in-memory, sorted `occurredAt DESC`.
+
 ## Hierarchy & Rules
 - **Parent vs. Sub**: Parent categories have `parentId = -1`. Sub-categories point to their parent's ID.
 - **Uncategorized (ID 1)**: The system-default category. It cannot be deleted and serves as a fallback.

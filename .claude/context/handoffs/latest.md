@@ -1,62 +1,98 @@
 ---
-epic: image-input
-task: 176
+epic: category-filter
+task: 189
 status: completed
-created: 2026-04-21T17:38:37Z
-updated: 2026-04-21T17:38:37Z
+created: 2026-04-27T08:39:53Z
+updated: 2026-04-27T08:39:53Z
 ---
 
-# Handoff: EPIC COMPLETE — image-input
+# Handoff: Task #189 — CategoryRecordsBottomSheet
 
 ## Status
 
-ALL 7 TASKS COMPLETE. Epic `image-input` is ready for `/pm:epic-verify image-input`.
+COMPLETED. One new file created.
 
-## Summary of All Tasks
+## What Was Done
 
-| Task | Title | Status |
-|------|-------|--------|
-| T001 | Platform permissions, image_picker + flutter_image_compress setup | closed |
-| T010 | ImagePickerService (camera + gallery, 5-cap) | closed |
-| T011 | ImageProcessingService (compress, HEIC→JPEG, oversize guard) | closed |
-| T012 | ChatApiService — top-level `images` field (AD-2) | closed |
-| T020 | ChatProvider.sendMessage — imageBytes → base64 encoding, strip clear | closed |
-| T021/175 | Outgoing bubble thumbnail rendering + ImageViewer fullscreen | closed |
-| T176 | Integration test (widget-level, 4 scenarios) + cross-platform QA checklist | closed |
+Created `lib/components/popups/category_records_bottom_sheet.dart` — a `StatelessWidget` wrapping a `DraggableScrollableSheet` that shows records for a category (or union of parent + subs).
 
-## What T176 Delivered
+## Widget Location & Constructor
 
-### Integration test
-`test/integration/epic_image_input/send_with_images_test.dart` — 4 testWidgets scenarios:
+**File:** `lib/components/popups/category_records_bottom_sheet.dart`
 
-- **Scenario A**: 2 images + caption → `sendMessage` receives 2 imageBytes + correct text
-- **Scenario B**: oversize image → `OversizeImageException` → SnackBar "Image too large"
-- **Scenario C**: images-only (empty caption) → `sendMessage` receives empty string + 1 image
-- **Scenario D**: 7 files offered → ≤5 reach `sendMessage` (5-cap enforced)
+```dart
+const CategoryRecordsBottomSheet({
+  super.key,
+  required this.category,     // Category — the tapped item (for title + parent-direct filter)
+  required this.categoryIds,  // List<int> — all ids to include (union for parent, single for sub)
+  required this.subCategories, // List<Category> — empty for sub tap, non-empty for parent tap
+});
+```
 
-All 4 pass. Full regression: 203 pass / 18 fail — all 18 failures are pre-existing
-(missing source files `month_divider.dart`, `ai_context_service.dart`; date-sensitive
-`records_tab_test`; `formatCategories` separator mismatch in formatting test).
-Zero new failures introduced.
+## How to Invoke (for #190)
 
-### QA checklist
-`.claude/epics/image-input/qa-notes.md` — 20 manual scenarios covering:
-S1 cold launch no-prompt, S2–S6 attach/gallery/camera/cap, S7–S8 send paths,
-S9–S10 image pass-through, S11 HEIC iOS, S12–S13 fullscreen viewer + zoom,
-S14 remove from strip, S15 text-only regression, S16 streaming lock,
-S17 server error bubble, S18 Android 13 photo picker, S19 Android legacy gallery,
-S20 camera denial.
+```dart
+showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) => CategoryRecordsBottomSheet(
+    category: category,
+    categoryIds: ids,        // build with: [category.categoryId!, ...subCats.map((s) => s.categoryId!)]
+    subCategories: subCats,  // from: provider.getSubCategories(category.categoryId!)
+  ),
+);
+```
 
-## Next Step for User
+`backgroundColor: Colors.transparent` on `showModalBottomSheet` lets the sheet's own `BorderRadius` show cleanly.
 
-Run `/pm:epic-verify image-input` to perform the formal epic verification pipeline.
+## Edit Flow
 
-Before running manual QA (S7/S8/S17), confirm with the server team that the
-`/streaming` endpoint accepts the new top-level `images` field.
+The sheet uses `showDialog<Record>` (not `showModalBottomSheet`) to open `EditRecordPopup` — matching `RecordsTab._showEditRecordPopup` exactly:
 
-## Files Created / Changed (T176)
+```dart
+final updatedRecord = await showDialog<Record>(
+  context: context,
+  builder: (_) => EditRecordPopup(record: record),
+);
+if (updatedRecord != null && context.mounted) {
+  await context.read<RecordProvider>().updateRecord(updatedRecord);
+}
+```
 
-- `test/integration/epic_image_input/send_with_images_test.dart` (new)
-- `.claude/epics/image-input/qa-notes.md` (new)
-- `.claude/epics/image-input/176.md` (frontmatter → closed)
-- `.claude/context/handoffs/latest.md` (this file)
+The `Consumer<RecordProvider>` in the sheet causes auto-refresh after `updateRecord` calls `notifyListeners()`.
+
+## RecordWidget Reused
+
+- **Name:** `RecordWidget`
+- **Path:** `lib/components/record_widget.dart`
+- **Usage:** `RecordWidget(record: record, isEditable: true, onEdit: () => _showEditPopup(context, record))`
+- `onEdit` is `VoidCallback?` — no changes needed to `RecordWidget`.
+
+## Key Implementation Details
+
+- `DraggableScrollableSheet`: `initialChildSize: 0.6`, `maxChildSize: 0.95`, `minChildSize: 0.3`, `expand: false`
+- Header shows: category name (bold), `CurrencyHelper.format(total.abs())` + month label (via `DateFormat('MMM yyyy')`)
+- Total sign: positive sums green, negative (expenses dominate) red
+- Grouped sections use `Border.all(color: Color(0xFFE2E8F0))` matching `category_widget.dart`
+- Empty state: centered `Text('No records in this category for {month}.')`
+- `_Section` is a private internal class — not exported
+
+## Analyze Result
+
+`fvm flutter analyze lib/components/popups/category_records_bottom_sheet.dart` — **No issues found.**
+
+## Files Changed
+
+- `lib/components/popups/category_records_bottom_sheet.dart` — new file, ~226 lines
+- `.claude/epics/category-filter/189.md` — frontmatter updated to `status: closed`
+- `docs/features/categories.md` — added drill-down popup section
+
+## Next Task: #190 — Rewire Categories tab interactions
+
+Key things to know:
+1. Import `category_records_bottom_sheet.dart` and call it as described above
+2. Build `categoryIds` union: `[category.categoryId!, ...subCats.map((s) => s.categoryId!)]`
+3. Get subCats via `context.read<RecordProvider>().getSubCategories(category.categoryId!)`
+4. The `CategoriesTab` may need conversion to `StatefulWidget` for `ExpansionTileController` map — check current class declaration first
+5. `EditRecordPopup` returns `Record?` from `showDialog` — the sheet handles saving internally, no changes needed in CategoriesTab for the edit flow
