@@ -12,6 +12,7 @@ import 'package:wallet_ai/providers/record_provider.dart';
 import 'package:wallet_ai/components/popups/category_records_bottom_sheet.dart';
 
 class MockRecordProvider extends Mock implements RecordProvider {}
+class _RecordFake extends Fake implements Record {}
 
 // Helper: milliseconds for a date within March 2026
 int _ms(int year, int month, int day) =>
@@ -23,12 +24,17 @@ final _march2026 = DateTimeRange(
 );
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(_RecordFake());
+  });
+
   late MockRecordProvider provider;
 
   setUp(() {
     provider = MockRecordProvider();
     when(() => provider.selectedDateRange).thenReturn(_march2026);
     when(() => provider.updateRecord(any())).thenAnswer((_) async {});
+    when(() => provider.getCategoryName(any())).thenReturn('Food');
   });
 
   Widget buildSheet({
@@ -40,18 +46,48 @@ void main() {
     when(() => provider.getRecordsForCategory(any(), any()))
         .thenReturn(records);
 
+    // Wrap in showModalBottomSheet context so DraggableScrollableSheet lays out correctly
     return MaterialApp(
       home: ChangeNotifierProvider<RecordProvider>.value(
         value: provider,
-        child: Scaffold(
-          body: CategoryRecordsBottomSheet(
-            category: category,
-            categoryIds: categoryIds,
-            subCategories: subCategories,
+        child: Builder(
+          builder: (ctx) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => showModalBottomSheet(
+                context: ctx,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => ChangeNotifierProvider<RecordProvider>.value(
+                  value: provider,
+                  child: CategoryRecordsBottomSheet(
+                    category: category,
+                    categoryIds: categoryIds,
+                    subCategories: subCategories,
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> openSheet(WidgetTester tester, {
+    required Category category,
+    required List<int> categoryIds,
+    required List<Category> subCategories,
+    required List<Record> records,
+  }) async {
+    await tester.pumpWidget(buildSheet(
+      category: category,
+      categoryIds: categoryIds,
+      subCategories: subCategories,
+      records: records,
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
   }
 
   final parentCategory = Category(
@@ -105,81 +141,65 @@ void main() {
   );
 
   testWidgets('S1: parent tap — sheet shows category name in header', (tester) async {
-    await tester.pumpWidget(buildSheet(
+    await openSheet(tester,
       category: parentCategory,
       categoryIds: [10, 11, 12],
       subCategories: [subGroceries, subDining],
       records: [recordParentDirect, recordGroceries, recordDining],
-    ));
-    await tester.pump();
-
+    );
     expect(find.text('Food'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('S2: parent tap — shows grouped sections with sub-category names', (tester) async {
-    await tester.pumpWidget(buildSheet(
+    await openSheet(tester,
       category: parentCategory,
       categoryIds: [10, 11, 12],
       subCategories: [subGroceries, subDining],
       records: [recordParentDirect, recordGroceries, recordDining],
-    ));
-    await tester.pump();
-
-    // Section labels for Groceries and Dining appear
+    );
+    // Verify first visible section
     expect(find.text('Groceries'), findsAtLeastNWidgets(1));
-    expect(find.text('Dining'), findsAtLeastNWidgets(1));
-    // Record descriptions appear
     expect(find.text('Supermarket'), findsOneWidget);
+
+    // Scroll down to reveal Dining section (may be off-screen due to lazy ListView)
+    await tester.scrollUntilVisible(find.text('Dining'), 100.0);
+    await tester.pump();
+    expect(find.text('Dining'), findsAtLeastNWidgets(1));
     expect(find.text('Restaurant'), findsOneWidget);
   });
 
   testWidgets('S3: sub tap — sheet shows flat list without sub-group labels', (tester) async {
-    await tester.pumpWidget(buildSheet(
+    await openSheet(tester,
       category: subGroceries,
       categoryIds: [11],
       subCategories: const [],
       records: [recordGroceries],
-    ));
-    await tester.pump();
-
+    );
     expect(find.text('Supermarket'), findsOneWidget);
-    // No Dining section label (flat layout for sub)
     expect(find.text('Dining'), findsNothing);
   });
 
   testWidgets('S4 (NTH-1): empty category shows empty-state message', (tester) async {
-    await tester.pumpWidget(buildSheet(
+    await openSheet(tester,
       category: parentCategory,
       categoryIds: [10],
       subCategories: const [],
       records: const [],
-    ));
-    await tester.pump();
-
-    // Empty-state text contains the month label
-    expect(
-      find.textContaining('No records in this category for'),
-      findsOneWidget,
     );
+    expect(find.textContaining('No records in this category for'), findsOneWidget);
   });
 
   testWidgets('S5: grouped view shows bordered containers for each sub-group', (tester) async {
-    await tester.pumpWidget(buildSheet(
+    await openSheet(tester,
       category: parentCategory,
       categoryIds: [10, 11, 12],
       subCategories: [subGroceries, subDining],
       records: [recordParentDirect, recordGroceries, recordDining],
-    ));
-    await tester.pump();
-
-    // Each section renders a Container with a Border — verify via decoration
+    );
     final containers = tester.widgetList<Container>(find.byType(Container));
     final borderedContainers = containers.where((c) {
       final deco = c.decoration;
-      if (deco is BoxDecoration) {
-        return deco.border != null;
-      }
-      return false;
+      return deco is BoxDecoration && deco.border != null;
     }).toList();
     expect(borderedContainers.length, greaterThanOrEqualTo(2));
   });

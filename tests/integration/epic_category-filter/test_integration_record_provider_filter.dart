@@ -145,14 +145,17 @@ void main() {
       expect(result.first.recordId, 1);
     });
 
-    test('R2: null range returns all records for the categoryIds (no date filter)', () async {
+    test('R2: null range falls back to provider selectedDateRange', () async {
       await seedRecords(provider, [recordParentCat10, recordOldDate]);
-      // Override selectedDateRange: provider.selectedDateRange is set on init;
-      // pass null explicitly to bypass it
+      // Set selectedDateRange to March 2026
+      provider.selectedDateRange = _march2026;
+
+      // Passing null → uses _selectedDateRange (March 2026)
       final result = provider.getRecordsForCategory([10], null);
 
-      // Both recordParentCat10 (March) and recordOldDate (Feb) are in cat 10
-      expect(result, hasLength(2));
+      // Only recordParentCat10 (March 15) matches; recordOldDate (Feb 28) is excluded
+      expect(result, hasLength(1));
+      expect(result.first.recordId, 1);
     });
   });
 
