@@ -6,9 +6,10 @@ The Categories Management system allows users to define and track financial clas
 ## Technical Mapping
 
 ### UI Layer
-- **CategoriesTab**: Main interface for category management.
+- **CategoriesTab**: Main interface for category management. Now a `StatefulWidget` to hold a `Map<int, ExpansibleController> _controllers` for each parent category.
   - **Month Selector**: A horizontal control at the top that allows users to filter category totals by month/year.
-  - **ExpansionTile Hierarchy**: Parent categories are shown as expandable cards. Expanding a card reveals its sub-categories.
+  - **ExpansionTile Hierarchy**: Parent categories are shown as expandable cards. Tapping the **row body** opens `CategoryRecordsBottomSheet` (scoped to parent + all subs). Tapping the **trailing chevron button** expands/collapses the tile. The `ExpansionTile` does NOT expand on row-body tap because `CategoryWidget`'s inner `InkWell` absorbs the pointer first.
+  - **Sub-category rows**: Tapping a sub row opens `CategoryRecordsBottomSheet` scoped to that sub only. The pencil icon (via `onEdit`) opens the category edit dialog.
   - **Add Sub Category Button**: A prominent full-width button (within the indented area) at the bottom of each parent's group to quickly create children.
 - **CategoryWidget**: A consistent card component displaying:
   - **Icon**: Visual indicator of transaction type.
@@ -27,6 +28,18 @@ The Categories Management system allows users to define and track financial clas
 - **RecordRepository**: SQLite storage management.
   - **Category Table**: Includes `parent_id` (default: -1) for hierarchical associations.
   - **Date-Range Totals**: `getCategoryTotals()` supports server-side (disk) aggregation, though the provider currently performs this in-memory for immediate responsiveness.
+
+## Category Records Drill-Down (category-filter epic)
+
+Tapping a category row opens a `CategoryRecordsBottomSheet` modal that lists all records contributing to that category's monthly total.
+
+- **Widget**: `lib/components/popups/category_records_bottom_sheet.dart`
+- **Constructor**: `CategoryRecordsBottomSheet({required Category category, required List<int> categoryIds, required List<Category> subCategories})`
+- **Invocation**: `showModalBottomSheet(isScrollControlled: true, builder: (_) => CategoryRecordsBottomSheet(...))`
+- **Grouped view**: When opened for a parent category (`subCategories` non-empty), records are split into bordered sections — parent-direct first, then one section per sub-category. Empty sections are skipped.
+- **Flat view**: When opened for a sub-category (`subCategories` empty), a plain list is shown.
+- **Auto-refresh**: The sheet is wrapped in `Consumer<RecordProvider>`, so editing a record via the built-in edit button triggers `notifyListeners` and the list updates immediately.
+- **Data source**: `RecordProvider.getRecordsForCategory(categoryIds, selectedDateRange)` — pure in-memory, sorted `occurredAt DESC`.
 
 ## Hierarchy & Rules
 - **Parent vs. Sub**: Parent categories have `parentId = -1`. Sub-categories point to their parent's ID.

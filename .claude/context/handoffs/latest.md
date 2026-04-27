@@ -1,62 +1,58 @@
 ---
-epic: image-input
-task: 176
+epic: category-filter
+task: 190
 status: completed
-created: 2026-04-21T17:38:37Z
-updated: 2026-04-21T17:38:37Z
+created: 2026-04-27T09:10:00Z
+updated: 2026-04-27T09:10:00Z
 ---
 
-# Handoff: EPIC COMPLETE — image-input
+# Handoff: Task #190 — Rewire Categories Tab
 
 ## Status
 
-ALL 7 TASKS COMPLETE. Epic `image-input` is ready for `/pm:epic-verify image-input`.
+COMPLETED. Two existing files modified.
 
-## Summary of All Tasks
+## What Was Done
 
-| Task | Title | Status |
-|------|-------|--------|
-| T001 | Platform permissions, image_picker + flutter_image_compress setup | closed |
-| T010 | ImagePickerService (camera + gallery, 5-cap) | closed |
-| T011 | ImageProcessingService (compress, HEIC→JPEG, oversize guard) | closed |
-| T012 | ChatApiService — top-level `images` field (AD-2) | closed |
-| T020 | ChatProvider.sendMessage — imageBytes → base64 encoding, strip clear | closed |
-| T021/175 | Outgoing bubble thumbnail rendering + ImageViewer fullscreen | closed |
-| T176 | Integration test (widget-level, 4 scenarios) + cross-platform QA checklist | closed |
+1. Converted `CategoriesTab` from `StatelessWidget` to `StatefulWidget` with a `Map<int, ExpansibleController> _controllers` field.
+2. Added `_openCategoryPopup(context, category, {required bool isParent})` helper that reads `RecordProvider.getSubCategories`, builds the `categoryIds` union, and calls `showModalBottomSheet` with `CategoryRecordsBottomSheet`.
+3. Rewired parent `CategoryWidget.onTap` from `null` to `_openCategoryPopup(..., isParent: true)` — the tile no longer expands on row body tap.
+4. Added `ExpansibleController` to each `ExpansionTile` via `controller:` parameter; added trailing `IconButton` (keyboard_arrow_down_rounded icon) that calls `controller.isExpanded ? controller.collapse() : controller.expand()`.
+5. Rewired sub-category `CategoryWidget.onTap` to `_openCategoryPopup(..., isParent: false)` and added `onEdit: () => _showEditDialog(context, sub)` so the pencil icon opens the edit dialog.
+6. Added `category_records_bottom_sheet.dart` export to `lib/components/components.dart`.
 
-## What T176 Delivered
+**Note:** Flutter 3.35.7 deprecated `ExpansionTileController` (typedef `ExpansibleController`). Code uses `ExpansibleController` directly to avoid deprecation warnings. `ExpansibleController` has no `toggle()` — used `isExpanded ? collapse() : expand()` instead.
 
-### Integration test
-`test/integration/epic_image_input/send_with_images_test.dart` — 4 testWidgets scenarios:
+## Files Changed
 
-- **Scenario A**: 2 images + caption → `sendMessage` receives 2 imageBytes + correct text
-- **Scenario B**: oversize image → `OversizeImageException` → SnackBar "Image too large"
-- **Scenario C**: images-only (empty caption) → `sendMessage` receives empty string + 1 image
-- **Scenario D**: 7 files offered → ≤5 reach `sendMessage` (5-cap enforced)
+- `lib/screens/home/tabs/categories_tab.dart` — converted to StatefulWidget, ~200 lines total
+- `lib/components/components.dart` — added one export line
+- `.claude/epics/category-filter/190.md` — status: closed
 
-All 4 pass. Full regression: 203 pass / 18 fail — all 18 failures are pre-existing
-(missing source files `month_divider.dart`, `ai_context_service.dart`; date-sensitive
-`records_tab_test`; `formatCategories` separator mismatch in formatting test).
-Zero new failures introduced.
+## Key Behavior Notes for #191 Verification
 
-### QA checklist
-`.claude/epics/image-input/qa-notes.md` — 20 manual scenarios covering:
-S1 cold launch no-prompt, S2–S6 attach/gallery/camera/cap, S7–S8 send paths,
-S9–S10 image pass-through, S11 HEIC iOS, S12–S13 fullscreen viewer + zoom,
-S14 remove from strip, S15 text-only regression, S16 streaming lock,
-S17 server error bubble, S18 Android 13 photo picker, S19 Android legacy gallery,
-S20 camera denial.
+| Action | Expected Behavior |
+|--------|-------------------|
+| Tap parent category row body | `CategoryRecordsBottomSheet` opens; `categoryIds` = [parentId, sub1Id, ...]; `subCategories` = list of subs; tile does NOT expand |
+| Tap trailing chevron button | `ExpansionTile` expands/collapses; no popup opens |
+| Tap sub-category row | `CategoryRecordsBottomSheet` opens; `categoryIds` = [subId]; `subCategories` = [] |
+| Tap pencil icon on sub row | `CategoryFormDialog` opens (edit category name/type) — NOT the records popup |
+| Tap pencil icon on parent row (non-Uncategorized) | `CategoryFormDialog` opens |
+| Uncategorized row (categoryId == 1) | Tap opens popup; no pencil icon (onEdit == null for categoryId == 1) |
+| "+ Add sub-category" button | `showAddSubCategoryDialog` called — unchanged |
+| Top-right add button | `CategoryFormDialog` (add mode) — unchanged |
 
-## Next Step for User
+## Controller Note
 
-Run `/pm:epic-verify image-input` to perform the formal epic verification pipeline.
+`_controllers` uses `putIfAbsent` so existing controllers (and their expanded state) survive `notifyListeners()` rebuilds. Controllers are NOT disposed — they are `ChangeNotifier`s owned by the State. This is acceptable for a tab-level state.
 
-Before running manual QA (S7/S8/S17), confirm with the server team that the
-`/streaming` endpoint accepts the new top-level `images` field.
+## Analyze Result
 
-## Files Created / Changed (T176)
+`fvm flutter analyze lib/screens/home/tabs/categories_tab.dart lib/components/components.dart` — **No issues found.**
 
-- `test/integration/epic_image_input/send_with_images_test.dart` (new)
-- `.claude/epics/image-input/qa-notes.md` (new)
-- `.claude/epics/image-input/176.md` (frontmatter → closed)
-- `.claude/context/handoffs/latest.md` (this file)
+## Next Task: #191 — Verification
+
+Verify all acceptance criteria from tasks 188, 189, 190:
+- `getRecordsForCategory` returns correct union
+- `CategoryRecordsBottomSheet` renders grouped/flat correctly
+- Parent/sub tap behaviors, chevron, edit pencil all work as described above

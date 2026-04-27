@@ -62,6 +62,20 @@ class RecordProvider extends ChangeNotifier {
 
   double getCategoryTotal(int id) => _categoryTotals[id] ?? 0.0;
 
+  /// Returns records whose [categoryId] is in [categoryIds], filtered to [range]
+  /// (falls back to [_selectedDateRange] when null). Sorted occurredAt DESC.
+  /// Pure in-memory read — no DB query, no notifyListeners.
+  List<Record> getRecordsForCategory(List<int> categoryIds, DateTimeRange? range) {
+    final r = range ?? _selectedDateRange;
+    return _records.where((rec) {
+      if (!categoryIds.contains(rec.categoryId)) return false;
+      if (r == null) return true;
+      final occurred = DateTime.fromMillisecondsSinceEpoch(rec.occurredAt);
+      return !occurred.isBefore(r.start) && !occurred.isAfter(r.end);
+    }).toList()
+      ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+  }
+
   // Filter getters
   int? get selectedSourceId => _selectedSourceId;
   String? get selectedType => _selectedType;
@@ -109,10 +123,8 @@ class RecordProvider extends ChangeNotifier {
       }).toList();
     }
 
-    // Sort by recordId descending as default
-    filtered.sort((a, b) {
-      return b.recordId.compareTo(a.recordId);
-    });
+    // Sort by occurredAt descending so position is stable after edits
+    filtered.sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
 
     return List.unmodifiable(filtered);
   }

@@ -39,6 +39,7 @@ void main() {
         'content': content,
         'timestamp': timestamp.toIso8601String(),
         'records': null,
+        'is_analyzing': false,
       });
     });
 
