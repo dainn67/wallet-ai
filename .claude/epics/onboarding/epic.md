@@ -1,13 +1,14 @@
 ---
 name: onboarding
-status: backlog
+status: completed
 created: 2026-04-28T03:50:49Z
-progress: 0%
+progress: 100%
 priority: P1
 prd: .claude/prds/onboarding.md
 task_count: 4
 github: https://github.com/dainn67/wallet-ai/issues/193
-updated: 2026-04-28T04:00:45Z
+updated: 2026-04-28T05:07:27Z
+completed: 2026-04-28T05:07:27Z
 ---
 
 # Epic: onboarding
