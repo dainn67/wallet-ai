@@ -75,6 +75,11 @@ class L10nConfig {
       'take_photo': 'Take photo',
       'choose_from_library': 'Choose from library',
       'max_images_hint': 'Max {count} images',
+      'onboarding_slide_1_text': 'Just chat and the AI handles your tracking automatically.',
+      'onboarding_slide_2_text': 'View and manage all your income and expense records easily.',
+      'onboarding_slide_3_text': 'Change language and currency anytime from the menu drawer.',
+      'onboarding_next': 'Next',
+      'onboarding_got_it': 'Got it',
     },
     AppLanguage.vietnamese: {
       'drawer_records': 'Ghi chép',
@@ -146,6 +151,11 @@ class L10nConfig {
       'take_photo': 'Chụp ảnh',
       'choose_from_library': 'Chọn từ thư viện',
       'max_images_hint': 'Tối đa {count} ảnh',
+      'onboarding_slide_1_text': 'Chỉ cần nhắn tin, AI sẽ tự động ghi lại giao dịch cho bạn.',
+      'onboarding_slide_2_text': 'Xem và quản lý toàn bộ thu chi một cách dễ dàng.',
+      'onboarding_slide_3_text': 'Thay đổi ngôn ngữ và tiền tệ bất cứ lúc nào trong menu.',
+      'onboarding_next': 'Tiếp theo',
+      'onboarding_got_it': 'Bắt đầu',
     },
   };
 
