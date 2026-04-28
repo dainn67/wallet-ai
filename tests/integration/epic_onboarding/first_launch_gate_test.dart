@@ -34,7 +34,7 @@ void main() {
   late MockChatProvider mockChatProvider;
   late MockLocaleProvider mockLocaleProvider;
 
-  void _stubProviders() {
+  void stubProviders() {
     when(() => mockRecordProvider.records).thenReturn([]);
     when(() => mockRecordProvider.filteredRecords).thenReturn([]);
     when(() => mockRecordProvider.moneySources).thenReturn([]);
@@ -77,7 +77,7 @@ void main() {
     mockRecordProvider = MockRecordProvider();
     mockChatProvider = MockChatProvider();
     mockLocaleProvider = MockLocaleProvider();
-    _stubProviders();
+    stubProviders();
   });
 
   Widget buildHomeScreen() {

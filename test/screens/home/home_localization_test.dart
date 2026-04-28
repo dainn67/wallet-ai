@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
-import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/services/storage_service.dart';
 import 'package:mocktail/mocktail.dart';
 
