@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 import 'package:wallet_ai/screens/home/tabs/categories_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/records_tab.dart';
@@ -43,6 +44,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     // Listen for clicks while the app is in the background
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
+
+    // Show onboarding dialog on first launch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (StorageService().getBool(StorageService.keyOnboardingComplete) != true) {
+        OnboardingDialog.show(context);
+      }
+    });
   }
 
   @override

@@ -1,22 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/components/popups/confirmation_dialog.dart';
 import 'package:wallet_ai/configs/configs.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 
 class MockRecordProvider extends Mock implements RecordProvider {}
 class MockChatProvider extends Mock implements ChatProvider {}
 class MockLocaleProvider extends Mock implements LocaleProvider {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const homeWidgetChannel = MethodChannel('home_widget');
+
+  setUpAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(homeWidgetChannel, (_) async => null);
+  });
+
   late MockRecordProvider mockRecordProvider;
   late MockChatProvider mockChatProvider;
   late MockLocaleProvider mockLocaleProvider;
 
-  setUp(() {
+  setUp(() async {
+    // Suppress OnboardingDialog in these unrelated tests
+    SharedPreferences.setMockInitialValues({
+      StorageService.keyOnboardingComplete: true,
+    });
+    await StorageService.init();
+
     mockRecordProvider = MockRecordProvider();
     mockChatProvider = MockChatProvider();
     mockLocaleProvider = MockLocaleProvider();

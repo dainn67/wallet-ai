@@ -40,6 +40,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'user_language': AppLanguage.english.toString(),
       'user_currency': AppCurrency.usd.toString(),
+      StorageService.keyOnboardingComplete: true,
     });
     await StorageService.init();
     storageService = StorageService();
