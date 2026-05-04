@@ -26,6 +26,11 @@ class LocaleProvider with ChangeNotifier {
         (e) => e.toString() == langStr || e.name == langStr,
         orElse: () => AppLanguage.english,
       );
+    } else {
+      // First launch — follow device locale, then persist so it sticks.
+      final deviceLang = PlatformDispatcher.instance.locale.languageCode;
+      _language = deviceLang == 'vi' ? AppLanguage.vietnamese : AppLanguage.english;
+      _storageService.setString(_keyLanguage, _language.name);
     }
 
     final currStr = _storageService.getString(_keyCurrency);
@@ -34,6 +39,10 @@ class LocaleProvider with ChangeNotifier {
         (e) => e.toString() == currStr || e.name == currStr || L10nConfig.currencyCodes[e] == currStr,
         orElse: () => AppCurrency.usd,
       );
+    } else {
+      _currency = _language == AppLanguage.vietnamese ? AppCurrency.vnd : AppCurrency.usd;
+      final code = L10nConfig.currencyCodes[_currency] ?? 'USD';
+      _storageService.setString(_keyCurrency, code);
     }
     notifyListeners();
   }

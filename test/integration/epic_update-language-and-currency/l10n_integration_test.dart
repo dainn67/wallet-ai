@@ -55,6 +55,7 @@ void main() {
     
     // Initialize AppConfig
     await AppConfig().init();
+    AppConfig().devMode = false; // dev-mode gate would otherwise force the onboarding dialog open
   });
 
   Widget createTestWidget() {
