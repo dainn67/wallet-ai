@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/screens/home/home_screen.dart';
 import 'package:wallet_ai/services/storage_service.dart';
@@ -33,6 +34,7 @@ void main() {
       StorageService.keyOnboardingComplete: true,
     });
     await StorageService.init();
+    AppConfig().devMode = false; // dev-mode gate would otherwise force the dialog open
 
     mockRecordProvider = MockRecordProvider();
     mockChatProvider = MockChatProvider();

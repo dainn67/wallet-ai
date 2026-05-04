@@ -34,6 +34,7 @@ void main() {
       StorageService.keyOnboardingComplete: true,
     });
     await StorageService.init();
+    AppConfig().devMode = false; // dialog also opens in dev mode; opt out for unrelated tests
 
     mockRecordProvider = MockRecordProvider();
     mockChatProvider = MockChatProvider();

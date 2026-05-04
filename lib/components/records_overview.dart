@@ -199,7 +199,7 @@ class _RecordsOverviewState extends State<RecordsOverview> {
                 children: [
                   Text(source.sourceName, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
                   Text(
-                    CurrencyHelper.format(source.amount),
+                    _valuesHidden ? _hiddenValue : CurrencyHelper.format(source.amount),
                     style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                 ],

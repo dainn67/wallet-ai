@@ -73,6 +73,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await StorageService.init();
+    AppConfig().devMode = false; // dev-mode gate would otherwise force the dialog open
 
     mockRecordProvider = MockRecordProvider();
     mockChatProvider = MockChatProvider();

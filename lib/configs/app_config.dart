@@ -15,21 +15,20 @@ class AppConfig {
 
   String get fullVersion => 'v$_version($_buildNumber)';
 
-  bool _devMode = kDebugMode;
-  bool get devMode => _devMode;
+  bool devMode = kDebugMode;
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    _devMode = prefs.getBool('dev_mode') ?? kDebugMode;
-    
+    devMode = prefs.getBool('dev_mode') ?? kDebugMode;
+
     final packageInfo = await PackageInfo.fromPlatform();
     _version = packageInfo.version;
     _buildNumber = packageInfo.buildNumber;
   }
 
   Future<void> toggleDevMode() async {
-    _devMode = !_devMode;
+    devMode = !devMode;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('dev_mode', _devMode);
+    await prefs.setBool('dev_mode', devMode);
   }
 }
