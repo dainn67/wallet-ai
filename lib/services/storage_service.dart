@@ -8,6 +8,7 @@ class StorageService {
   // Keys
   static const String keyCurrency = 'user_currency';
   static const String keyLastPatternUpdateTime = 'last_pattern_update_time';
+  static const String keyOnboardingComplete = 'onboarding_complete';
   static const String keyUserPattern = 'user_pattern';
 
   factory StorageService() => _instance;

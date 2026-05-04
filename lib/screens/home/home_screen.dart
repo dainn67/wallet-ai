@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/services/storage_service.dart';
 import 'package:wallet_ai/screens/home/tabs/categories_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/records_tab.dart';
@@ -43,6 +45,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     // Listen for clicks while the app is in the background
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
+
+    // Show onboarding dialog on first launch — or always when dev mode is on
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notDone = StorageService().getBool(StorageService.keyOnboardingComplete) != true;
+      if (notDone || AppConfig().devMode) {
+        OnboardingDialog.show(context);
+      }
+    });
   }
 
   @override
@@ -305,6 +316,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   }
                 }
               },
+            ),
+            Builder(
+              builder: (tileContext) => ListTile(
+                leading: const Icon(Icons.share_outlined, size: 20),
+                title: Text(l10n.translate('share_app_label')),
+                onTap: () {
+                  final box = tileContext.findRenderObject() as RenderBox?;
+                  final origin = box != null && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+                  Share.share(
+                    l10n.translate('share_app_message'),
+                    sharePositionOrigin: origin,
+                  );
+                },
+              ),
             ),
             const Spacer(),
             const Divider(indent: 16, endIndent: 16),

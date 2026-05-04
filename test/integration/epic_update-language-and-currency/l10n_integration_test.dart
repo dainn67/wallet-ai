@@ -40,6 +40,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'user_language': AppLanguage.english.toString(),
       'user_currency': AppCurrency.usd.toString(),
+      StorageService.keyOnboardingComplete: true,
     });
     await StorageService.init();
     storageService = StorageService();
@@ -54,6 +55,7 @@ void main() {
     
     // Initialize AppConfig
     await AppConfig().init();
+    AppConfig().devMode = false; // dev-mode gate would otherwise force the onboarding dialog open
   });
 
   Widget createTestWidget() {
