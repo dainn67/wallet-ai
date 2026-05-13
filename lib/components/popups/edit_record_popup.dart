@@ -78,24 +78,30 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
           insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500),
-            padding: const EdgeInsets.all(24),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    l10n.translate('edit_record_title'),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E293B),
-                      fontFamily: 'Poppins',
-                    ),
-                    textAlign: TextAlign.center,
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Title — locked at top
+                Text(
+                  l10n.translate('edit_record_title'),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'Poppins',
                   ),
-                  const SizedBox(height: 24),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
 
+                // Scrollable form fields
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                   // Type Toggle
                   _buildLabel(l10n.translate('type_label')),
                   const SizedBox(height: 8),
@@ -243,76 +249,79 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-                  // Action Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                // Action Buttons — locked at bottom
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            l10n.translate('popup_cancel'),
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                              fontFamily: 'Poppins',
-                            ),
+                        ),
+                        child: Text(
+                          l10n.translate('popup_cancel'),
+                          style: const TextStyle(
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            fontFamily: 'Poppins',
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _handleSave(provider),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _handleSave(provider),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6366F1),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            l10n.translate('save_button'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              fontFamily: 'Poppins',
-                            ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          l10n.translate('save_button'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            fontFamily: 'Poppins',
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: () => _handleDelete(l10n),
-                    icon: Icon(Icons.delete_outline, color: Colors.red.shade600, size: 20),
-                    label: Text(
-                      l10n.translate('delete_button'),
-                      style: TextStyle(
-                        color: Colors.red.shade600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        fontFamily: 'Poppins',
-                      ),
                     ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () => _handleDelete(l10n),
+                  icon: Icon(Icons.delete_outline, color: Colors.red.shade600, size: 20),
+                  label: Text(
+                    l10n.translate('delete_button'),
+                    style: TextStyle(
+                      color: Colors.red.shade600,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      fontFamily: 'Poppins',
                     ),
                   ),
-                ],
-              ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
             ),
           ),
         );

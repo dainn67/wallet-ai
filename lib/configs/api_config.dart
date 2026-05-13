@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:wallet_ai/configs/configs.dart';
 
 class ApiConfig {
   static final ApiConfig _instance = ApiConfig._internal();
@@ -14,6 +12,7 @@ class ApiConfig {
   static const String chatFlowPath = '/api/chat-flow/wallet-ai-chatbot';
 
   String get baseUrl => 'https://chatbot-flow-server.onrender.com';
+  // String get baseUrl => 'http://192.168.88.38:8000';
 
   Duration get connectTimeout => const Duration(seconds: 10);
   Duration get receiveTimeout => const Duration(seconds: 10);
