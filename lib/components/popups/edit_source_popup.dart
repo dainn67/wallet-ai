@@ -6,6 +6,7 @@ import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
 import 'confirmation_dialog.dart';
+import 'transfer_popup.dart';
 
 class EditSourcePopup extends StatefulWidget {
   final MoneySource source;
@@ -49,7 +50,11 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
           children: [
             Row(
               children: [
-                const SizedBox(width: 48), // Spacer to balance the delete icon
+                IconButton(
+                  onPressed: _handleTransfer,
+                  icon: const Icon(Icons.swap_horiz, color: Color(0xFF6366F1), size: 24),
+                  tooltip: l10n.translate('transfer_source_tooltip'),
+                ),
                 Expanded(
                   child: Text(
                     '${l10n.translate('edit_source_title')} ${widget.source.sourceName}',
@@ -148,6 +153,18 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
     }
 
     Navigator.of(context).pop(amount);
+  }
+
+  void _handleTransfer() {
+    // Close this popup and open the TransferPopup with the current source as the origin.
+    // Capture the Navigator before pop — `context` is invalid once this State is disposed.
+    final navigator = Navigator.of(context);
+    final source = widget.source;
+    navigator.pop();
+    showDialog(
+      context: navigator.context,
+      builder: (_) => TransferPopup(fromSource: source),
+    );
   }
 
   void _handleDelete(LocaleProvider l10n) {

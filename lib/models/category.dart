@@ -1,7 +1,7 @@
 class Category {
   final int? categoryId;
   final String name;
-  final String type; // 'income' or 'expense'
+  final String type; // 'income', 'expense', or 'transfer'
   final int parentId; // -1 for parent category
 
   Category({
@@ -9,7 +9,10 @@ class Category {
     required this.name,
     required this.type,
     this.parentId = -1,
-  }) : assert(type == 'income' || type == 'expense', 'Type must be income or expense');
+  }) : assert(
+          type == 'income' || type == 'expense' || type == 'transfer',
+          'Type must be income, expense, or transfer',
+        );
 
   Map<String, dynamic> toMap() {
     return {

@@ -71,7 +71,7 @@ void main() {
     });
 
     test('Category name formatting "Parent - Sub"', () async {
-      final db = await openDatabase(inMemoryDatabasePath, version: 7,
+      final db = await openDatabase(inMemoryDatabasePath, version: 9,
           onCreate: (Database db, int version) async {
         await db.execute('''
           CREATE TABLE Category (
@@ -92,14 +92,16 @@ void main() {
           CREATE TABLE Record (
             record_id INTEGER PRIMARY KEY AUTOINCREMENT,
             money_source_id INTEGER NOT NULL,
+            target_source_id INTEGER,
             category_id INTEGER NOT NULL DEFAULT 1,
             amount REAL NOT NULL,
             currency TEXT NOT NULL,
             description TEXT,
-            type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+            type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'transfer')),
             last_updated INTEGER NOT NULL,
             occurred_at INTEGER NOT NULL,
             FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
+            FOREIGN KEY (target_source_id) REFERENCES MoneySource (source_id),
             FOREIGN KEY (category_id) REFERENCES Category (category_id)
           )
         ''');

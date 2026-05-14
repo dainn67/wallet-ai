@@ -66,7 +66,7 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 8;
+  static const int _dbVersion = 9;
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
@@ -90,19 +90,22 @@ class RecordRepository {
       CREATE TABLE Record (
         record_id INTEGER PRIMARY KEY AUTOINCREMENT,
         money_source_id INTEGER NOT NULL,
+        target_source_id INTEGER,
         category_id INTEGER NOT NULL DEFAULT 1,
         amount REAL NOT NULL,
         currency TEXT NOT NULL,
         description TEXT,
-        type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+        type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'transfer')),
         last_updated INTEGER NOT NULL,
         occurred_at INTEGER NOT NULL,
         FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
+        FOREIGN KEY (target_source_id) REFERENCES MoneySource (source_id),
         FOREIGN KEY (category_id) REFERENCES Category (category_id)
       )
     ''');
 
     await db.execute('CREATE INDEX idx_record_money_source_id ON Record(money_source_id)');
+    await db.execute('CREATE INDEX idx_record_target_source_id ON Record(target_source_id)');
     await db.execute('CREATE INDEX idx_record_category_id ON Record(category_id)');
     await db.execute('CREATE INDEX idx_record_type ON Record(type)');
     await db.execute('CREATE INDEX idx_record_last_updated ON Record(last_updated)');
@@ -122,6 +125,7 @@ class RecordRepository {
     await db.insert('Category', {'name': 'Rent', 'type': 'expense', 'parent_id': -1});          // 6
     await db.insert('Category', {'name': 'Health', 'type': 'expense', 'parent_id': -1});        // 7
     await db.insert('Category', {'name': 'Shopping', 'type': 'expense', 'parent_id': -1});      // 8
+    await db.insert('Category', {'name': 'Transfer', 'type': 'transfer', 'parent_id': -1});    // 9
 
     // Seed Sub-Categories
     // Food
@@ -176,6 +180,16 @@ class RecordRepository {
     if (oldVersion < 8) {
       await RecordMigrationService.addOccurredAtColumn(db);
     }
+    if (oldVersion < 9) {
+      await RecordMigrationService.addTargetSourceIdColumn(db);
+      // Seed the Transfer category (idempotent: skip if a row with this name+type already exists)
+      final existing = await db.rawQuery(
+        "SELECT category_id FROM Category WHERE name = 'Transfer' AND type = 'transfer' LIMIT 1",
+      );
+      if (existing.isEmpty) {
+        await db.insert('Category', {'name': 'Transfer', 'type': 'transfer', 'parent_id': -1});
+      }
+    }
   }
 
   Future<void> _adjustMoneySourceAmount(DatabaseExecutor txn, {required int sourceId, required double delta}) async {
@@ -185,15 +199,38 @@ class RecordRepository {
     );
   }
 
+  /// Applies `record`'s effect on money source balance(s).
+  /// Pass `reverse: true` to undo it (used by update/delete).
+  Future<void> _applyRecordImpact(
+    DatabaseExecutor txn,
+    Record record, {
+    bool reverse = false,
+  }) async {
+    final sign = reverse ? -1 : 1;
+    switch (record.type) {
+      case 'income':
+        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: sign * record.amount);
+        break;
+      case 'expense':
+        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: -sign * record.amount);
+        break;
+      case 'transfer':
+        // Debit source, credit target. Reverse flips both.
+        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: -sign * record.amount);
+        if (record.targetSourceId != null) {
+          await _adjustMoneySourceAmount(txn, sourceId: record.targetSourceId!, delta: sign * record.amount);
+        }
+        break;
+    }
+  }
+
   Future<int> createRecord(Record record) async {
     try {
       int insertedId = 0;
       await database.transaction((txn) async {
         insertedId = await txn.insert('Record', record.toMap());
-        print("Log: Created record $insertedId");
-        final delta = record.type == 'income' ? record.amount : -record.amount;
-        print("Log: Adjusting source ${record.moneySourceId} by delta $delta");
-        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: delta);
+        print("Log: Created record $insertedId (type=${record.type})");
+        await _applyRecordImpact(txn, record);
       });
 
       return insertedId;
@@ -206,13 +243,15 @@ class RecordRepository {
   Future<List<Record>> getAllRecords() async {
     try {
       final List<Map<String, dynamic>> maps = await database.rawQuery('''
-        SELECT r.*, 
-               COALESCE(p.name || ' - ' || c.name, c.name) as category_name, 
-               ms.source_name
+        SELECT r.*,
+               COALESCE(p.name || ' - ' || c.name, c.name) as category_name,
+               ms.source_name,
+               tms.source_name as target_source_name
         FROM Record r
         LEFT JOIN Category c ON r.category_id = c.category_id
         LEFT JOIN Category p ON c.parent_id = p.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
+        LEFT JOIN MoneySource tms ON r.target_source_id = tms.source_id
         ORDER BY r.occurred_at DESC
       ''');
       return List.generate(maps.length, (i) => Record.fromMap(maps[i]));
@@ -225,13 +264,15 @@ class RecordRepository {
   Future<Record?> getRecordById(int id) async {
     try {
       final maps = await database.rawQuery('''
-        SELECT r.*, 
-               COALESCE(p.name || ' - ' || c.name, c.name) as category_name, 
-               ms.source_name
+        SELECT r.*,
+               COALESCE(p.name || ' - ' || c.name, c.name) as category_name,
+               ms.source_name,
+               tms.source_name as target_source_name
         FROM Record r
         LEFT JOIN Category c ON r.category_id = c.category_id
         LEFT JOIN Category p ON c.parent_id = p.category_id
         LEFT JOIN MoneySource ms ON r.money_source_id = ms.source_id
+        LEFT JOIN MoneySource tms ON r.target_source_id = tms.source_id
         WHERE r.record_id = ?
         LIMIT 1
       ''', [id]);
@@ -267,17 +308,11 @@ class RecordRepository {
         final existing = Record.fromMap(maps.first);
         print("Log: Existing record found: ${existing.amount} from source ${existing.moneySourceId}");
 
-        // 1. Reverse the old record's impact on its source
-        final oldRevertDelta = existing.type == 'income' ? -existing.amount : existing.amount;
-        print("Log: Reverting old impact: delta $oldRevertDelta on source ${existing.moneySourceId}");
-        await _adjustMoneySourceAmount(txn, sourceId: existing.moneySourceId, delta: oldRevertDelta);
-
-        // 2. Apply the new record's impact on its source
-        final newApplyDelta = record.type == 'income' ? record.amount : -record.amount;
-        print("Log: Applying new impact: delta $newApplyDelta on source ${record.moneySourceId}");
-        await _adjustMoneySourceAmount(txn, sourceId: record.moneySourceId, delta: newApplyDelta);
-
-        // 3. Update the record data
+        // 1. Reverse the old impact (handles income/expense/transfer).
+        await _applyRecordImpact(txn, existing, reverse: true);
+        // 2. Apply the new impact.
+        await _applyRecordImpact(txn, record);
+        // 3. Update the record data.
         await txn.update('Record', record.toMap(), where: 'record_id = ?', whereArgs: [record.recordId]);
       });
 
@@ -307,8 +342,8 @@ class RecordRepository {
         if (maps.isEmpty) return;
 
         final existing = Record.fromMap(maps.first);
-        final delta = existing.type == 'income' ? -existing.amount : existing.amount;
-        await _adjustMoneySourceAmount(txn, sourceId: existing.moneySourceId, delta: delta);
+        // Reverse the impact (income/expense/transfer) before removing the row.
+        await _applyRecordImpact(txn, existing, reverse: true);
         await txn.delete('Record', where: 'record_id = ?', whereArgs: [id]);
       });
 

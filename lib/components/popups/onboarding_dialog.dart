@@ -125,7 +125,10 @@ class _Slide extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Image.asset(slide.imageAsset, fit: BoxFit.contain),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(slide.imageAsset, fit: BoxFit.contain),
+            ),
           ),
         ),
         const SizedBox(height: 16),

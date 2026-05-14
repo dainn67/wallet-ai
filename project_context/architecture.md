@@ -28,8 +28,8 @@
 - **RecordRepository**: Singleton managing the SQLite `data.db`.
 - **Transactions**: All balance-affecting operations (creating/updating/deleting records) are executed as atomic database transactions.
 - **Schema**:
-  - `Record`: Transaction data with foreign keys to `Category` and `MoneySource`. Carries both `lastUpdated` (audit timestamp) and `occurredAt` (user-editable event time, defaults to creation time). The `Record` model also carries a transient `suggestedCategory` (`SuggestedCategory?`) field — it is NOT included in `toMap()`/`fromMap()` and is never written to or read from SQLite. It carries the AI's category suggestion from chat stream parsing to the UI banner (cleared on confirm/cancel or app restart).
-  - `Category`: User-defined or default classification. Supports `parent_id` for grouping.
+  - `Record`: Transaction data with foreign keys to `Category` and `MoneySource`. Carries both `lastUpdated` (audit timestamp) and `occurredAt` (user-editable event time, defaults to creation time). The `Record` model also carries a transient `suggestedCategory` (`SuggestedCategory?`) field — it is NOT included in `toMap()`/`fromMap()` and is never written to or read from SQLite. It carries the AI's category suggestion from chat stream parsing to the UI banner (cleared on confirm/cancel or app restart). `type` accepts `'income'`, `'expense'`, or `'transfer'`. Transfers also set `targetSourceId` (FK → `MoneySource.source_id`); the repository's `_applyRecordImpact` helper debits `moneySourceId` and credits `targetSourceId` atomically.
+  - `Category`: User-defined or default classification. Supports `parent_id` for grouping. A seeded `'Transfer'` category (type `'transfer'`) is used for transfer rows.
   - `MoneySource`: Named sources with tracked balances.
 
 ## UI Architecture

@@ -182,7 +182,7 @@ class RecordProvider extends ChangeNotifier {
     }
   }
 
-  // Computed getters
+  // Computed getters — transfers are intentionally excluded from income/expense totals.
   double get filteredTotalIncome => filteredRecords.where((r) => r.type == 'income').fold<double>(0, (sum, r) => sum + r.amount);
 
   double get filteredTotalExpense => filteredRecords.where((r) => r.type == 'expense').fold<double>(0, (sum, r) => sum + r.amount);
@@ -251,6 +251,33 @@ class RecordProvider extends ChangeNotifier {
   });
 
   Future<void> deleteRecord(int id) => _performOperation(() => _repository.deleteRecord(id));
+
+  /// Saves a transfer between two money sources as a single row with
+  /// `type = 'transfer'`. The repository debits `fromSourceId` and credits
+  /// `toSourceId` atomically.
+  Future<void> createTransfer({
+    required int fromSourceId,
+    required int toSourceId,
+    required double amount,
+    required String description,
+    DateTime? occurredAt,
+  }) {
+    final transferCategory = _categories.firstWhereOrNull(
+      (c) => c.type == 'transfer',
+    );
+    final currency = StorageService().getString(StorageService.keyCurrency) ?? 'USD';
+    final record = Record(
+      moneySourceId: fromSourceId,
+      targetSourceId: toSourceId,
+      categoryId: transferCategory?.categoryId ?? 1,
+      amount: amount,
+      currency: currency,
+      description: description,
+      type: 'transfer',
+      occurredAt: occurredAt?.millisecondsSinceEpoch,
+    );
+    return _performOperation(() => _repository.createRecord(record));
+  }
 
   // MoneySource CRUD
   Future<void> addMoneySource(MoneySource source) async {

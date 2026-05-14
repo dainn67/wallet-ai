@@ -27,10 +27,17 @@ class RecordWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isExpense = record.type == 'expense';
+    final isTransfer = record.isTransfer;
 
-    // Use established colors for income/expense
-    final recordColor = isExpense ? Colors.red : Colors.green;
+    // Transfers use a neutral indigo accent; income/expense keep green/red.
+    final Color recordColor = isTransfer
+        ? const Color(0xFF6366F1)
+        : (isExpense ? Colors.red : Colors.green);
     final backgroundColor = recordColor.withValues(alpha: 0.1);
+    final IconData iconData = isTransfer
+        ? Icons.swap_horiz
+        : (isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded);
+    final String amountPrefix = isTransfer ? '' : (isExpense ? '-' : '+');
     final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(record.occurredAt));
 
     return InkWell(
@@ -51,7 +58,7 @@ class RecordWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
-              child: Icon(isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded, color: recordColor, size: 16),
+              child: Icon(iconData, color: recordColor, size: 16),
             ),
             const SizedBox(width: 12),
 
@@ -83,7 +90,7 @@ class RecordWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${isExpense ? '-' : '+'}${CurrencyHelper.format(record.amount)} ${record.currency}',
+                  '$amountPrefix${CurrencyHelper.format(record.amount)} ${record.currency}',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: recordColor),
                 ),
                 const SizedBox(height: 2),
@@ -108,6 +115,13 @@ class RecordWidget extends StatelessWidget {
   }
 
   String _buildSubtitle(BuildContext context) {
+    // Transfers show "From → To" instead of category + source.
+    if (record.isTransfer) {
+      final from = record.sourceName ?? '?';
+      final to = record.targetSourceName ?? '?';
+      return '$from → $to';
+    }
+
     final isExpense = record.type == 'expense';
     final parts = <String>[];
 
