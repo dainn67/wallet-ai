@@ -15,3 +15,5 @@ export 'popups/category_form_dialog.dart';
 export 'popups/add_sub_category_dialog.dart';
 export 'popups/category_records_bottom_sheet.dart';
 export 'popups/onboarding_dialog.dart';
+export 'popups/transfer_popup.dart';
+export 'popups/transfer_info_popup.dart';

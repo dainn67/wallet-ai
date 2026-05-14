@@ -9,6 +9,7 @@ import 'package:wallet_ai/providers/record_provider.dart';
 
 import 'image_viewer.dart';
 import 'popups/edit_record_popup.dart';
+import 'popups/transfer_info_popup.dart';
 import 'record_widget.dart';
 import 'suggestion_banner.dart';
 
@@ -40,9 +41,20 @@ class ChatBubble extends StatelessWidget {
     final recordProvider = context.read<RecordProvider>();
     final chatProvider = context.read<ChatProvider>();
 
+    if (record.isTransfer) {
+      await showDialog(
+        context: context,
+        builder: (_) => TransferInfoPopup(
+          record: record,
+          onDeleted: () => chatProvider.removeMessageRecord(messageId, record.recordId),
+        ),
+      );
+      return;
+    }
+
     final updatedRecord = await showDialog<Record>(
       context: context,
-      builder: (context) => EditRecordPopup(
+      builder: (_) => EditRecordPopup(
         record: record,
         onDeleted: () => chatProvider.removeMessageRecord(messageId, record.recordId),
       ),

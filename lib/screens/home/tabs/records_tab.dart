@@ -127,9 +127,17 @@ class RecordsTab extends StatelessWidget {
   }
 
   void _showEditRecordPopup(BuildContext context, Record record) async {
+    if (record.isTransfer) {
+      await showDialog(
+        context: context,
+        builder: (_) => TransferInfoPopup(record: record),
+      );
+      return;
+    }
+
     final updatedRecord = await showDialog<Record>(
       context: context,
-      builder: (context) => EditRecordPopup(record: record),
+      builder: (_) => EditRecordPopup(record: record),
     );
 
     if (updatedRecord != null && context.mounted) {

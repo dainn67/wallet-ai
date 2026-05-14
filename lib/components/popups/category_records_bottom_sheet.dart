@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/components/popups/edit_record_popup.dart';
+import 'package:wallet_ai/components/popups/transfer_info_popup.dart';
 import 'package:wallet_ai/components/record_widget.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
 import 'package:wallet_ai/models/category.dart';
@@ -201,6 +202,14 @@ class CategoryRecordsBottomSheet extends StatelessWidget {
   }
 
   void _showEditPopup(BuildContext context, Record record) async {
+    if (record.isTransfer) {
+      await showDialog(
+        context: context,
+        builder: (_) => TransferInfoPopup(record: record),
+      );
+      return;
+    }
+
     final updatedRecord = await showDialog<Record>(
       context: context,
       builder: (_) => EditRecordPopup(record: record),
