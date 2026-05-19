@@ -544,6 +544,149 @@ void main() {
     });
   });
 
+  group('transfer stream parsing', () {
+    // Seeded Transfer category id matches the default-DB seed (9). The chat
+    // parser resolves it via RecordProvider.transferCategory, so we stub the
+    // getter rather than `categories`.
+    final transferCat = Category(
+      categoryId: 9,
+      name: 'Transfer',
+      type: 'transfer',
+      parentId: -1,
+    );
+
+    setUp(() {
+      when(() => mockRecordProvider.transferCategory).thenReturn(transferCat);
+      when(() => mockRecordProvider.getMoneySourceName(any())).thenReturn(null);
+      when(() => mockRecordProvider.getMoneySourceName(2)).thenReturn('Bank');
+      when(() => mockRecordProvider.getMoneySourceName(5)).thenReturn('Wallet');
+    });
+
+    test('transfer item parsed with target_source_id, Transfer category, raw description', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Moved it.\n--//--\n'
+          '[{"source_id": 2, "target_source_id": 5, "amount": 100000, "description": "to savings", "type": "transfer"}]';
+
+      final future = chatProvider.sendMessage('move 100k to savings');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_tr1'));
+      await streamController.close();
+      await future;
+
+      verify(() => mockRecordProvider.createRecord(any(
+        that: predicate<Record>((r) =>
+          r.type == 'transfer' &&
+          r.moneySourceId == 2 &&
+          r.targetSourceId == 5 &&
+          r.categoryId == 9 &&
+          r.amount == 100000 &&
+          r.description == 'to savings' &&
+          r.suggestedCategory == null &&
+          r.sourceName == 'Bank' &&
+          r.targetSourceName == 'Wallet'
+        )
+      ))).called(1);
+      expect(chatProvider.messages.last.records?.length, 1);
+      final tr = chatProvider.messages.last.records!.first;
+      expect(tr.isTransfer, true);
+      expect(tr.sourceName, 'Bank');
+      expect(tr.targetSourceName, 'Wallet');
+    });
+
+    test('mixed list saves both expense and transfer correctly', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Done.\n--//--\n'
+          '['
+          '  {"source_id": 1, "category_id": 3, "amount": 50000, "category": "Food", "description": "Lunch", "type": "expense"},'
+          '  {"source_id": 1, "target_source_id": 4, "amount": 200000, "description": "topup", "type": "transfer"}'
+          ']';
+
+      final future = chatProvider.sendMessage('lunch 50k then transfer 200k');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_tr2'));
+      await streamController.close();
+      await future;
+
+      verify(() => mockRecordProvider.createRecord(any(
+        that: predicate<Record>((r) =>
+          r.type == 'expense' && r.categoryId == 3 && r.description == 'Food: Lunch'
+        )
+      ))).called(1);
+      verify(() => mockRecordProvider.createRecord(any(
+        that: predicate<Record>((r) =>
+          r.type == 'transfer' && r.targetSourceId == 4 && r.amount == 200000
+        )
+      ))).called(1);
+      expect(chatProvider.messages.last.records?.length, 2);
+    });
+
+    test('transfer missing target_source_id is skipped, not persisted', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Tried.\n--//--\n'
+          '['
+          '  {"source_id": 1, "amount": 100000, "description": "broken", "type": "transfer"},'
+          '  {"source_id": 1, "category_id": 2, "amount": 10000, "description": "Coffee", "type": "expense"}'
+          ']';
+
+      final future = chatProvider.sendMessage('mixed batch');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_tr3'));
+      await streamController.close();
+      await future;
+
+      verifyNever(() => mockRecordProvider.createRecord(any(
+        that: predicate<Record>((r) => r.type == 'transfer')
+      )));
+      verify(() => mockRecordProvider.createRecord(any(
+        that: predicate<Record>((r) => r.type == 'expense' && r.description == 'Coffee')
+      ))).called(1);
+      expect(chatProvider.messages.last.records?.length, 1);
+    });
+
+    test('self-transfer (target == source) is skipped', () async {
+      final streamController = StreamController<ChatStreamResponse>();
+
+      when(() => mockChatApiService.streamChat(
+            any(),
+            conversationId: any(named: 'conversationId'),
+            categoryList: any(named: 'categoryList'),
+            moneySourceList: any(named: 'moneySourceList'),
+          )).thenAnswer((_) => streamController.stream);
+
+      final aiResponse = 'Tried.\n--//--\n'
+          '[{"source_id": 3, "target_source_id": 3, "amount": 50000, "description": "self", "type": "transfer"}]';
+
+      final future = chatProvider.sendMessage('self transfer');
+      streamController.add(ChatStreamResponse(answer: aiResponse, messageId: 'msg_tr4'));
+      await streamController.close();
+      await future;
+
+      verifyNever(() => mockRecordProvider.createRecord(any()));
+      expect(chatProvider.messages.last.records, isNull);
+    });
+  });
+
   group('image attachments (image-input epic)', () {
     test('ChatMessage.toJson on a message with imageBytes omits the imageBytes key (AD-4 transient)', () {
       final msg = ChatMessage(

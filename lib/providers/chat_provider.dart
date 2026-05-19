@@ -206,35 +206,11 @@ class ChatProvider extends ChangeNotifier {
                   } else if (decoded is List) {
                     final List<dynamic> recordsJson = decoded;
                     final List<Record> records = [];
+                    final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
 
                     for (var item in recordsJson) {
-                      final sourceIdRaw = item['source_id'];
-                      final categoryIdRaw = item['category_id'];
-                      final amountStr = item['amount']?.toString().trim() ?? '0';
-                      final categoryName = item['category']?.toString().trim() ?? '';
-                      final description = item['description']?.toString().trim() ?? '';
-                      final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
-
-                      final amount = double.tryParse(amountStr) ?? 0.0;
-                      final type = (typeStr == 'income' || typeStr == 'expense') ? typeStr : 'expense';
-
-                      final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
-                      final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
-
-                      final currencyString = L10nConfig.currencyCodes[_localeProvider?.currency] ?? 'USD';
-                      final suggestion = categoryId == -1 ? SuggestedCategory.fromJson(item['suggested_category']) : null;
-                      final occurredAt = _parseOccurredAt(item['occurred_at']);
-                      final record = Record(
-                        moneySourceId: sourceId,
-                        categoryId: categoryId,
-                        amount: amount,
-                        currency: currencyString,
-                        description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
-                        type: type,
-                        occurredAt: occurredAt,
-                        suggestedCategory: suggestion,
-                      );
-
+                      final record = _buildRecordFromJson(item as Map<String, dynamic>, currencyString);
+                      if (record == null) continue;
                       // Save via RecordProvider (AD-1: provider-only repository access)
                       final recordId = await _recordProvider!.createRecord(record);
                       records.add(record.copyWith(recordId: recordId));
@@ -304,6 +280,64 @@ class ChatProvider extends ChangeNotifier {
   int? _parseOccurredAt(dynamic raw) {
     if (raw is! String) return null;
     return DateTime.tryParse(raw)?.millisecondsSinceEpoch;
+  }
+
+  /// Builds a `Record` from one item in the post-`--//--` JSON list. Returns
+  /// null when the item should be skipped (today: invalid transfer). Caller
+  /// owns persistence.
+  ///
+  /// Transfers ignore any AI-supplied `category_id` / `category` / `suggested_category`
+  /// and always resolve to the seeded Transfer category — mirroring the
+  /// popup-driven `RecordProvider.createTransfer` flow.
+  Record? _buildRecordFromJson(Map<String, dynamic> item, String currency) {
+    final sourceIdRaw = item['source_id'];
+    final amountStr = item['amount']?.toString().trim() ?? '0';
+    final description = item['description']?.toString().trim() ?? '';
+    final typeStr = item['type']?.toString().trim().toLowerCase() ?? 'expense';
+    final type = (typeStr == 'income' || typeStr == 'expense' || typeStr == 'transfer')
+        ? typeStr
+        : 'expense';
+
+    final amount = double.tryParse(amountStr) ?? 0.0;
+    final sourceId = (sourceIdRaw is int) ? sourceIdRaw : (int.tryParse(sourceIdRaw?.toString() ?? '') ?? 1);
+    final occurredAt = _parseOccurredAt(item['occurred_at']);
+
+    if (type == 'transfer') {
+      final targetIdRaw = item['target_source_id'];
+      final targetId = (targetIdRaw is int) ? targetIdRaw : int.tryParse(targetIdRaw?.toString() ?? '');
+      if (targetId == null || targetId == sourceId) {
+        debugPrint('Skipping transfer with invalid target_source_id: $targetIdRaw');
+        return null;
+      }
+      return Record(
+        moneySourceId: sourceId,
+        targetSourceId: targetId,
+        categoryId: _recordProvider?.transferCategory?.categoryId ?? 1,
+        amount: amount,
+        currency: currency,
+        description: description,
+        type: 'transfer',
+        occurredAt: occurredAt,
+        sourceName: _recordProvider?.getMoneySourceName(sourceId),
+        targetSourceName: _recordProvider?.getMoneySourceName(targetId),
+      );
+    }
+
+    final categoryIdRaw = item['category_id'];
+    final categoryName = item['category']?.toString().trim() ?? '';
+    final categoryId = (categoryIdRaw is int) ? categoryIdRaw : (int.tryParse(categoryIdRaw?.toString() ?? '') ?? 1);
+    final suggestion = categoryId == -1 ? SuggestedCategory.fromJson(item['suggested_category']) : null;
+    return Record(
+      moneySourceId: sourceId,
+      categoryId: categoryId,
+      amount: amount,
+      currency: currency,
+      description: categoryName.isNotEmpty ? '$categoryName: $description' : description,
+      type: type,
+      occurredAt: occurredAt,
+      suggestedCategory: suggestion,
+      sourceName: _recordProvider?.getMoneySourceName(sourceId),
+    );
   }
 
   void removeMessageRecord(String messageId, int recordId) {

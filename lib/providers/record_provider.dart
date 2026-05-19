@@ -37,7 +37,22 @@ class RecordProvider extends ChangeNotifier {
   List<MoneySource> get moneySources => List.unmodifiable(_moneySources);
   List<Category> get categories => List.unmodifiable(_categories);
   List<Category> getSubCategories(int parentId) => _subCategories[parentId] ?? [];
+
+  /// The seeded `'Transfer'` category. Single source of truth for callers that
+  /// build transfer records (UI popup + chat-stream parser).
+  Category? get transferCategory =>
+      _categories.firstWhereOrNull((c) => c.type == 'transfer');
   bool get isLoading => _isLoading;
+
+  /// Looks up a money source's display name by id. Returns null when [id] is
+  /// null or unmatched — callers (e.g. `RecordWidget`) already render the
+  /// null case (typically as `'?'`). Used by the chat-stream parser to
+  /// denormalize names onto freshly parsed records, matching what the SQL
+  /// JOIN in `RecordRepository.getAllRecords` produces for stored rows.
+  String? getMoneySourceName(int? id) {
+    if (id == null) return null;
+    return _moneySources.firstWhereOrNull((s) => s.sourceId == id)?.sourceName;
+  }
 
   String getCategoryName(int id) {
     final category = _categories.firstWhere(
@@ -262,9 +277,6 @@ class RecordProvider extends ChangeNotifier {
     required String description,
     DateTime? occurredAt,
   }) {
-    final transferCategory = _categories.firstWhereOrNull(
-      (c) => c.type == 'transfer',
-    );
     final currency = StorageService().getString(StorageService.keyCurrency) ?? 'USD';
     final record = Record(
       moneySourceId: fromSourceId,

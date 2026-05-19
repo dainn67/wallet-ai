@@ -19,7 +19,7 @@ The app uses a single-screen architecture (`HomeScreen`) with a `TabBarView` to 
 1. **Chat**: The AI assistant tab for conversational record entry.
 2. **Records**: The financial dashboard for list views and stats.
 3. **Categories**: The classification manager with hierarchical grouping and monthly reporting.
-   A navigation drawer provides secondary access to these tabs and global settings (Language, Currency, Data Management).
+   A navigation drawer provides secondary access to these tabs and global settings (Language, Currency, Data Management). **Share App** opens the system share sheet with localized copy plus a Google Play URL from `AppConfig.androidPlayStoreUrl` (App Store line omitted until iOS submission; see `docs/features/share-app.md`).
 
 ### Data Filtering
 
@@ -32,7 +32,7 @@ The app uses a single-screen architecture (`HomeScreen`) with a `TabBarView` to 
 2. **ChatProvider** fetches the list of available categories and sources from **RecordProvider**.
 3. **ChatApiService** sends the request to the backend with the user message and local context.
 4. Assistant replies with a text response followed by a JSON array of records.
-5. **ChatProvider** parses the JSON and saves records via **RecordRepository** using atomic transactions.
+5. **ChatProvider** parses the JSON and saves records via **RecordRepository** using atomic transactions. The `type` field accepts `'income'`, `'expense'`, or `'transfer'`; transfers also require `target_source_id` and resolve the seeded Transfer category client-side (any AI-supplied `category_id` / `category` / `suggested_category` is ignored). Invalid transfers (missing or self-referential `target_source_id`) are skipped without aborting the batch.
 6. **RecordProvider** reloads from disk and recalculates in-memory totals.
 
 ### Record Deletion
@@ -62,7 +62,7 @@ When a record has `category_id: -1` and the server returns a `suggested_category
 
 ## Logic Locations
 
-- **Parsing**: `ChatProvider._handleStream` onDone handler — type-checks decoded JSON: Map with `suggestedPrompts` key → prompts; List → records. Also parses `suggested_category` per record when `categoryId == -1`.
+- **Parsing**: `ChatProvider._handleStream` onDone handler — type-checks decoded JSON: Map with `suggestedPrompts` key → prompts; List → records. Per-item record construction lives in `ChatProvider._buildRecordFromJson`, which branches on `type`: transfers ignore AI category fields and resolve the seeded Transfer category via `RecordProvider.transferCategory` (returns `null` to skip invalid transfers); income/expense parse `suggested_category` when `categoryId == -1`.
 - **Aggregation Logic**: `RecordProvider._calculateCategoryTotals` (calculates flat and hierarchical totals from cached records).
 - **Category Drill-Down**: `RecordProvider.getRecordsForCategory(List<int> categoryIds, DateTimeRange?)` — pure in-memory filter+sort (`occurredAt DESC`); used by `lib/components/popups/category_records_bottom_sheet.dart`. Tapping a parent row opens the sheet with union of parent+sub ids; tapping a sub row opens it with only that sub's id.
 - **AI Pattern Logic**: `AiPatternService.updateUserPattern` (orchestrates date range windows and context snapshot collection).
@@ -72,5 +72,6 @@ When a record has `category_id: -1` and the server returns a `suggested_category
 - **Category Resolver**: `RecordProvider.resolveCategoryByNameOrCreate(name, type, parentId)` — finds or creates a category, refreshes cache, returns new id.
 - **Suggestion Banner UI**: `lib/components/suggestion_banner.dart` — inline widget with double-tap guard; wired in `lib/components/chat_bubble.dart`.
 - **DB Transactions**: `RecordRepository.createRecord`.
-- **Transfer Persistence**: `RecordRepository._applyRecordImpact` (handles income/expense/transfer balance math), `RecordProvider.createTransfer` (provider-level wrapper that fills the Transfer category).
+- **Transfer Persistence**: `RecordRepository._applyRecordImpact` (handles income/expense/transfer balance math), `RecordProvider.createTransfer` (popup-driven wrapper). Both UI popup and chat parser look up the seeded Transfer category via `RecordProvider.transferCategory` — single source of truth.
 - **State Synchronization**: `ChangeNotifierProxyProvider` links `RecordProvider` to `ChatProvider`.
+- **Share App**: `HomeScreen` drawer `ListTile` — `Share.share` with `share_app_message` from `L10nConfig`, substituting `{android_url}` from `AppConfig`.

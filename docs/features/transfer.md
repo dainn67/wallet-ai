@@ -35,6 +35,29 @@ Because SQLite can't `ALTER` a `CHECK` constraint in place, `RecordMigrationServ
 ### Model Layer
 - **Record** (`lib/models/record.dart`): Adds `int? targetSourceId`, `String? targetSourceName` (denormalized for display). Relaxes the type assertion to allow `'transfer'`. Adds `bool get isTransfer` and `copyWith(..., clearTargetSource: bool)`.
 
+### Detection from Chat
+
+Transfers can also be created conversationally. When the server emits a record item with `type: "transfer"` in the post-`--//--` JSON list, `ChatProvider._buildRecordFromJson` (`lib/providers/chat_provider.dart`) takes a separate branch:
+
+- Reads `source_id`, `target_source_id`, `amount`, `description`, `occurred_at` (same tolerant int-or-string coercion used for other types).
+- **Ignores** any AI-supplied `category_id` / `category` / `suggested_category`. The category is always resolved client-side via `RecordProvider.transferCategory` (the seeded `'Transfer'` row).
+- **Skips** the item (returns `null`, no DB write, no exception) when `target_source_id` is missing/unparseable, or equals `source_id`. A `debugPrint` records the dropped payload.
+- Builds a `Record` with `type: 'transfer'` and persists via the same `RecordProvider.createRecord` path used for income/expense — `_applyRecordImpact` handles the debit/credit atomically.
+
+The resulting chat-bubble card uses `RecordWidget`'s existing transfer rendering (indigo `swap_horiz` glyph, "From → To" subtitle, no `+`/`-` sign). Tapping it opens the same read-only delete-only `EditRecordPopup` view as non-chat transfers.
+
+Expected server payload shape (one item):
+```json
+{
+  "type": "transfer",
+  "source_id": 2,
+  "target_source_id": 5,
+  "amount": "100000",
+  "description": "moved to savings",
+  "occurred_at": "2026-05-17T10:00:00"
+}
+```
+
 ## User Flow
 
 ```

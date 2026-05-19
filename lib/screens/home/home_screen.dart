@@ -32,11 +32,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: AppConfig().devMode ? 4 : 3,
-      vsync: this,
-      initialIndex: 0,
-    );
+    _tabController = TabController(length: AppConfig().devMode ? 4 : 3, vsync: this, initialIndex: 0);
 
     // Check if the app was opened from a widget
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
@@ -92,16 +88,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         if (mounted) {
           final oldIndex = _tabController.index;
           _tabController.dispose();
-          _tabController = TabController(
-            length: AppConfig().devMode ? 4 : 3,
-            vsync: this,
-            initialIndex: oldIndex.clamp(0, AppConfig().devMode ? 3 : 2),
-          );
+          _tabController = TabController(length: AppConfig().devMode ? 4 : 3, vsync: this, initialIndex: oldIndex.clamp(0, AppConfig().devMode ? 3 : 2));
           setState(() {});
           final message = AppConfig().devMode ? localeProvider.translate('dev_mode_enabled') : localeProvider.translate('dev_mode_disabled');
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 2)));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 2)));
         }
       });
     }
@@ -135,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           systemOverlayStyle: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.dark, // For Android
-            statusBarBrightness: Brightness.light,    // For iOS (dark icons)
+            statusBarBrightness: Brightness.light, // For iOS (dark icons)
           ),
           title: _buildAppBarTitle(),
           // actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
@@ -176,14 +166,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.secondary,
-                  ],
-                ),
-              ),
+              decoration: BoxDecoration(gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary])),
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Column(
@@ -198,19 +181,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     const SizedBox(height: 12),
                     Text(
                       AppConfig().appName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
                     ),
-                    Text(
-                      l10n.translate('app_subtitle'),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 12,
-                      ),
-                    ),
+                    Text(l10n.translate('app_subtitle'), style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
                   ],
                 ),
               ),
@@ -219,12 +192,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 l10n.translate('settings_header'),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey,
-                  letterSpacing: 0.5,
-                ),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey, letterSpacing: 0.5),
               ),
             ),
             ListTile(
@@ -232,10 +200,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               title: Text(l10n.translate('language_label')),
               trailing: Text(
                 l10n.language == AppLanguage.english ? 'English' : 'Tiếng Việt',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
               ),
               onTap: () {
                 final current = l10n.language;
@@ -273,10 +238,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               title: Text(l10n.translate('currency_label')),
               trailing: Text(
                 L10nConfig.currencyCodes[l10n.currency] ?? 'VND',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
               ),
               onTap: () async {
                 final localeProvider = context.read<LocaleProvider>();
@@ -285,17 +247,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 final currentCurrency = localeProvider.currency;
                 final currentCode = L10nConfig.currencyCodes[currentCurrency] ?? 'VND';
 
-                final selected = await showCurrencySelectionPopup(
-                  context: context,
-                  currentCurrency: currentCode,
-                );
-                
+                final selected = await showCurrencySelectionPopup(context: context, currentCurrency: currentCode);
+
                 if (selected != null) {
-                  final newCurrency = AppCurrency.values.firstWhere(
-                    (e) => L10nConfig.currencyCodes[e] == selected, 
-                    orElse: () => AppCurrency.vnd
-                  );
-                  
+                  final newCurrency = AppCurrency.values.firstWhere((e) => L10nConfig.currencyCodes[e] == selected, orElse: () => AppCurrency.vnd);
+
                   if (newCurrency != currentCurrency) {
                     // ignore: use_build_context_synchronously
                     showDialog(
@@ -324,10 +280,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 onTap: () {
                   final box = tileContext.findRenderObject() as RenderBox?;
                   final origin = box != null && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
-                  Share.share(
-                    l10n.translate('share_app_message'),
-                    sharePositionOrigin: origin,
-                  );
+                  final message = l10n.translate('share_app_message').replaceAll('{android_url}', AppConfig.androidPlayStoreUrl);
+                  Share.share(message, sharePositionOrigin: origin);
                 },
               ),
             ),

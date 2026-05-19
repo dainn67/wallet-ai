@@ -10,6 +10,12 @@ class AppConfig {
   AppConfig._internal();
 
   final String appName = 'Wally AI';
+
+  // Store product URLs.
+  // iOS: not on App Store yet — uncomment and set the product URL when submitted.
+  // static const String iosAppStoreUrl = 'https://apps.apple.com/app/id...';
+  static const String androidPlayStoreUrl = 'https://play.google.com/store/apps/details?id=com.leslie.wallyai';
+
   String _version = '1.0.0';
   String _buildNumber = '15';
 
