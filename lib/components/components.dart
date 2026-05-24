@@ -1,3 +1,5 @@
+export 'icon_square.dart';
+export 'section_label.dart';
 export 'category_widget.dart';
 export 'chat_bubble.dart';
 export 'image_preview_strip.dart';
