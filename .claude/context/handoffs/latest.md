@@ -1,75 +1,37 @@
 ---
-epic: onboarding
-task: 197
+epic: redesign-ui
+task: 200
 status: completed
-created: 2026-04-28T05:07:27Z
-updated: 2026-04-28T05:07:27Z
+created: 2026-05-24T08:07:27Z
+updated: 2026-05-24T08:07:27Z
 ---
 
-# Handoff: Task #197 — Integration verification & cleanup
+## What was done
 
-## Status
+Created the full theme token foundation for the redesign-ui epic:
+- `lib/configs/app_theme.dart` with all design token classes and `AppTheme.light()` factory
+- Exported `app_theme.dart` from the `lib/configs/configs.dart` barrel
+- Replaced the old hardcoded `ThemeData(...)` in `lib/main.dart` with `AppTheme.light()`
+- Wrote 14 unit/widget tests covering token values, `copyWith`, `lerp`, and `ThemeExtension` registration
 
-Epic fully verified and marked complete. All acceptance criteria pass.
+## Files changed
 
-## Test Results
+- `lib/configs/app_theme.dart` — CREATED (new; all tokens, `AppSemanticColors`, `AppTheme`)
+- `lib/configs/configs.dart` — MODIFIED (added `export 'app_theme.dart';`)
+- `lib/main.dart` — MODIFIED (replaced old inline `ThemeData` with `AppTheme.light()`)
+- `test/configs/app_theme_test.dart` — CREATED (14 tests, all pass)
 
-| Suite | Result |
-|---|---|
-| Smoke tests (`onboarding_dialog_smoke_test.dart`) | 6/6 PASS |
-| Integration tests (`first_launch_gate_test.dart`) | 2/2 PASS (Gate-1, Gate-2) |
-| Full regression suite (`fvm flutter test`) | 219/219 PASS, 0 failing |
+## Key decisions
 
-## Acceptance Criteria Coverage (6/6)
+- Used `CardThemeData` and `DialogThemeData` (not `CardTheme`/`DialogTheme`) — Flutter 3.35.7 requires these types in `ThemeData`.
+- `AppSemanticColors.lerp` returns `this` when `other` is null — standard `ThemeExtension` contract.
+- `extensions` list uses `const` — all six category accent colors and semantic colors are compile-time constants, so `AppSemanticColors` is a `const` constructor.
+- No `google_fonts` import anywhere in `lib/` — font family is `'PlusJakartaSans'` string literal only; font assets will be provided by T2.
+- The old `ThemeData` used `fontFamily: 'Poppins'` and seed color `0xFF6366F1` (indigo); these are fully replaced. Any widget tests that matched on the old theme colors will now see the new violet palette (`AppColors.primary = 0xFF8B5CF6`).
 
-| Requirement | Status | Verification |
-|---|---|---|
-| FR-1: First-launch gate | PASS | Gate-1 integration test + `HomeScreen.initState` post-frame callback confirmed |
-| FR-2: Sequential 3-slide navigation, back/swipe blocked | PASS | S2, S5, S6 smoke tests |
-| FR-3: Configurable slide content (asset swap without code change) | PASS | `const _slides` list at top of `onboarding_dialog.dart`; PNG paths decoupled from logic |
-| FR-4: Completion flag prevents re-show | PASS | S4 smoke test + Gate-2 integration test |
-| NFR-1: No new packages | PASS | pubspec.yaml diff shows only `- assets/onboarding/` asset declaration added, no new deps |
-| NFR-2: Back button blocked on all platforms | PASS | S5 smoke test (`PopScope(canPop: false)`) |
+## Warnings for next task
 
-## Analyzer Issues
-
-- **New issues introduced by this epic: 0**
-- Pre-existing (acceptable): `use_build_context_synchronously` on `home_screen.dart:300` (pre-existing, not introduced by this epic)
-- Test-only-API warnings (acceptable): `setMockInitialValues` in onboarding test files, `handlePopRoute` in smoke test — standard pattern across codebase
-
-## NFR Verification
-
-pubspec.yaml diff adds only `- assets/onboarding/` under `flutter.assets`. Zero new packages added.
-
-## Files Changed (19 files, 534 insertions / 71 deletions)
-
-Source files:
-- `lib/services/storage_service.dart` — `keyOnboardingComplete` constant
-- `lib/configs/l10n_config.dart` — 6 l10n keys (EN + VN, slide texts + button labels)
-- `lib/components/components.dart` — export for `OnboardingDialog`
-- `lib/components/popups/onboarding_dialog.dart` — new widget (142 lines)
-- `lib/screens/home/home_screen.dart` — post-frame callback integration
-- `pubspec.yaml` — asset directory declaration
-- `assets/onboarding/slide_1.png`, `slide_2.png`, `slide_3.png` — placeholder PNGs
-
-Test files:
-- `tests/e2e/epic_onboarding/onboarding_dialog_smoke_test.dart` — 6 smoke tests
-- `tests/integration/epic_onboarding/first_launch_gate_test.dart` — 2 gate tests
-- `test/screens/home/home_screen_test.dart` — onboarding suppression in setUp
-- `test/screens/home/home_localization_test.dart` — onboarding suppression in setUp
-- `test/integration/epic_update-language-and-currency/l10n_integration_test.dart` — onboarding flag in mock prefs
-
-Epic tracking:
-- `.claude/epics/onboarding/194.md`, `195.md`, `196.md`, `197.md` — status: closed
-- `.claude/epics/onboarding/epic.md` — status: completed, progress: 100%
-- `.claude/context/epics/onboarding.md` — epic context
-- `.claude/context/handoffs/latest.md` — this file
-
-## Pre-existing Diagnostics (Acceptable)
-
-- `home_screen.dart:300`: `use_build_context_synchronously` — pre-dates this epic (currency-change handler)
-- `setMockInitialValues` / `handlePopRoute` test-only-API warnings — standard pattern across all test files in codebase
-
-## Next Steps
-
-Epic is implementation-complete and all tests pass. Recommended next action: `/pm:epic-verify onboarding` for final PM-level gate check, then `/pm:epic-merge onboarding` to merge `epic/onboarding` into `main`.
+- **Pre-existing test failures (14):** `test/components/popups/edit_source_popup_test.dart` fails with `type 'Null' is not a subtype of type 'Future<bool>'` — this is unrelated to theme work and existed before T1. Do not count these against NFR-2.
+- **Font fallback until T2:** `fontFamily: 'PlusJakartaSans'` renders with system fallback until T2 delivers the TTF assets to `pubspec.yaml`.
+- **Token names for downstream tasks:** Use `AppColors.*`, `AppSpacing.*`, `AppRadius.*`, `AppElevation.*` constants — never raw hex/numeric literals. Use `AppSemanticColors.incomeGreen`, `.expenseRed`, `.transferTint`, `.categoryAccents[idx % 6]` for semantic tokens.
+- **Accessing `AppSemanticColors` in widgets:** `Theme.of(context).extension<AppSemanticColors>()!` — always non-null under `MaterialApp(theme: AppTheme.light())`.
