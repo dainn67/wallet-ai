@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:wallet_ai/configs/configs.dart';
 
 /// Horizontal strip of pending-image thumbnails shown above the chat input.
 /// Each thumbnail has a small close button overlay; tapping it invokes
@@ -65,10 +66,15 @@ class ImagePreviewStrip extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.xs,
+          ),
           child: Text(
             hintLabel,
-            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
         ),
       ],

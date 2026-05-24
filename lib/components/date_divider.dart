@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:wallet_ai/components/section_label.dart';
+import 'package:wallet_ai/configs/app_theme.dart';
+
 /// A component that displays a date label to divide records in a list.
 class DateDivider extends StatelessWidget {
   /// The text to display as the divider label (e.g., "6 April 2026").
@@ -10,21 +13,17 @@ class DateDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.lg,
+        horizontal: AppSpacing.xs,
+      ),
       child: Row(
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(width: 12),
+          SectionLabel(label),
+          const SizedBox(width: AppSpacing.md),
           const Expanded(
             child: Divider(
-              color: Color(0xFFE2E8F0),
+              color: AppColors.outline,
               thickness: 1,
             ),
           ),

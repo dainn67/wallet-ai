@@ -51,9 +51,7 @@ void main() {
     // Verify that ChatTab is the default tab.
     expect(find.byType(ChatTab), findsOneWidget);
     
-    // Verify app title.
-    expect(find.text('Wally AI'), findsOneWidget);
-    // In tests, kDebugMode is true, so it should show '(dev)' by default
-    expect(find.textContaining('(dev)'), findsOneWidget);
+    // Verify app title — new AppBar shows wordmark only (no subtitle/dev badge).
+    expect(find.text('Wally AI'), findsWidgets);
   });
 }

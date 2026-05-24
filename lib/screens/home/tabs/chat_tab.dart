@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/components/components.dart';
+import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/services/services.dart';
 
@@ -199,47 +200,53 @@ class _ChatTabState extends State<ChatTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
-    return Column(
-      children: [
-        Expanded(
-          child: Consumer<ChatProvider>(
-            builder: (context, provider, child) {
-              final messages = provider.messages;
-              return ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  final message = messages[index];
-                  return ChatBubble(message: message);
-                },
+    return Container(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      child: Column(
+        children: [
+          Expanded(
+            child: Consumer<ChatProvider>(
+              builder: (context, provider, child) {
+                final messages = provider.messages;
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.xl,
+                  ),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    return ChatBubble(message: message);
+                  },
+                );
+              },
+            ),
+          ),
+          Consumer<ChatProvider>(
+            builder: (context, provider, _) {
+              if (provider.suggestedPrompts.isEmpty) return const SizedBox.shrink();
+              return SuggestedPromptsBar(
+                prompts: provider.suggestedPrompts,
+                activePromptIndex: provider.activePromptIndex,
+                showingActions: provider.showingActions,
+                onPromptTap: (index) => _onPromptTap(provider, index),
+                onActionTap: (index) => _onActionTap(provider, index),
               );
             },
           ),
-        ),
-        Consumer<ChatProvider>(
-          builder: (context, provider, _) {
-            if (provider.suggestedPrompts.isEmpty) return const SizedBox.shrink();
-            return SuggestedPromptsBar(
-              prompts: provider.suggestedPrompts,
-              activePromptIndex: provider.activePromptIndex,
-              showingActions: provider.showingActions,
-              onPromptTap: (index) => _onPromptTap(provider, index),
-              onActionTap: (index) => _onActionTap(provider, index),
-            );
-          },
-        ),
-        if (_pendingImages.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: ImagePreviewStrip(
-              images: _pendingImages,
-              onRemove: (i) => setState(() => _pendingImages.removeAt(i)),
-              hintLabel: l10n.translate('max_images_hint').replaceAll('{count}', '$_maxImages'),
+          if (_pendingImages.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: ImagePreviewStrip(
+                images: _pendingImages,
+                onRemove: (i) => setState(() => _pendingImages.removeAt(i)),
+                hintLabel: l10n.translate('max_images_hint').replaceAll('{count}', '$_maxImages'),
+              ),
             ),
-          ),
-        _buildInputArea(),
-      ],
+          _buildInputArea(),
+        ],
+      ),
     );
   }
 
@@ -247,57 +254,63 @@ class _ChatTabState extends State<ChatTab> {
     final isStreaming = context.watch<ChatProvider>().isStreaming;
     final l10n = context.watch<LocaleProvider>();
     final canSend = !isStreaming && (_controller.text.trim().isNotEmpty || _pendingImages.isNotEmpty);
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.only(left: 16.0),
-              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(24.0)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: widget.focusNode,
-                      style: const TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: l10n.translate('chat_hint'),
-                        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                        border: InputBorder.none,
-                      ),
-                      onSubmitted: (_) => canSend ? _handleSend() : null,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add_photo_alternate_outlined, color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
-                    onPressed: isStreaming ? null : _showAttachmentSheet,
-                    tooltip: 'Attach image',
-                    splashRadius: 20,
-                  ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          border: Border.all(color: AppColors.outline),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.add_photo_alternate_outlined,
+                color: isStreaming ? AppColors.onSurfaceVariant : AppColors.primary,
+              ),
+              onPressed: isStreaming ? null : _showAttachmentSheet,
+              tooltip: 'Attach image',
+              splashRadius: 20,
+            ),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                focusNode: widget.focusNode,
+                decoration: InputDecoration.collapsed(
+                  hintText: l10n.translate('chat_hint'),
+                  hintStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                ),
+                onSubmitted: (_) => canSend ? _handleSend() : null,
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: canSend ? _handleSend : null,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: canSend ? Theme.of(context).colorScheme.primary : Colors.grey,
-                shape: BoxShape.circle,
-                boxShadow: [if (canSend) BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+            const SizedBox(width: AppSpacing.sm),
+            // Send button — GestureDetector wraps the circular primary chip.
+            // Kept as GestureDetector (not IconButton) so existing chat_tab
+            // tests that read `tester.widget<GestureDetector>(...).onTap`
+            // continue to validate disabled state during streaming.
+            GestureDetector(
+              onTap: canSend ? _handleSend : null,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: canSend ? AppColors.primary : AppColors.onSurfaceVariant,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.send_rounded,
+                  color: AppColors.onPrimary,
+                  size: 18,
+                ),
               ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

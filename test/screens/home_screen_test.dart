@@ -51,6 +51,7 @@ void main() {
       if (key == 'reset_all_data') return 'Reset All Data';
       if (key == 'drawer_chat') return 'Chat';
       if (key == 'drawer_records') return 'Records';
+      if (key == 'drawer_categories') return 'Categories';
       return key;
     });
   });
@@ -69,10 +70,11 @@ void main() {
     );
   }
 
-  testWidgets('HomeScreen has BottomNavigationBar and Tabs', (tester) async {
+  testWidgets('HomeScreen has NavigationBar and Tabs', (tester) async {
     await tester.pumpWidget(createHomeScreen());
 
-    expect(find.byType(TabBar), findsOneWidget); // HomeScreen uses TabBar now
+    // HomeScreen now uses NavigationBar (Material 3) instead of TabBar.
+    expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.text('Chat'), findsWidgets);
     expect(find.text('Records'), findsWidgets);
   });
@@ -98,7 +100,8 @@ void main() {
     scaffoldState.openDrawer();
     await tester.pumpAndSettle();
 
-    expect(find.text('Settings'), findsOneWidget);
+    // SectionLabel auto-uppercases: 'Settings' is displayed as 'SETTINGS'.
+    expect(find.text('SETTINGS'), findsOneWidget);
     expect(find.text('Currency'), findsOneWidget);
     expect(find.text('Language'), findsOneWidget);
     expect(find.text('Reset All Data'), findsOneWidget);

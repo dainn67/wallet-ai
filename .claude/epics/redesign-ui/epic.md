@@ -1,12 +1,14 @@
 ---
 name: redesign-ui
-status: backlog
+status: completed
 created: 2026-05-24T07:23:44Z
-progress: 0%
+progress: 100%
 priority: P1
 prd: .claude/prds/redesign-ui.md
 task_count: 10
 github: "199"
+completed: 2026-05-24T10:25:52Z
+updated: 2026-05-24T10:25:52Z
 ---
 
 # Epic: redesign-ui

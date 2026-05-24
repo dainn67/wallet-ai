@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/configs/app_theme.dart';
 
 /// Records a transfer of money from [fromSource] to another [MoneySource].
 ///
@@ -38,119 +39,96 @@ class _TransferPopupState extends State<TransferPopup> {
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
     final provider = context.watch<RecordProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     final destinations = provider.moneySources
         .where((s) => s.sourceId != null && s.sourceId != widget.fromSource.sourceId)
         .toList();
 
     return Dialog(
-      backgroundColor: Colors.white,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               l10n.translate('transfer_title'),
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E293B),
-                fontFamily: 'Poppins',
-              ),
+              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
-            _label(l10n.translate('transfer_from_label')),
-            const SizedBox(height: 8),
-            _readOnlyField(widget.fromSource.sourceName),
-            const SizedBox(height: 16),
+            _label(l10n.translate('transfer_from_label'), textTheme),
+            const SizedBox(height: AppSpacing.sm),
+            _readOnlyField(widget.fromSource.sourceName, textTheme),
+            const SizedBox(height: AppSpacing.lg),
 
-            _label(l10n.translate('transfer_to_label')),
-            const SizedBox(height: 8),
+            _label(l10n.translate('transfer_to_label'), textTheme),
+            const SizedBox(height: AppSpacing.sm),
             if (destinations.isEmpty)
               _readOnlyField(
                 l10n.translate('transfer_no_other_source_error'),
+                textTheme,
                 isError: true,
+                colorScheme: colorScheme,
               )
             else
-              _buildDestinationDropdown(destinations),
+              _buildDestinationDropdown(destinations, textTheme),
             if (_toError != null) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.xs + AppSpacing.xs),
               Text(
                 l10n.translate(_toError!),
-                style: const TextStyle(color: Colors.red, fontSize: 12, fontFamily: 'Poppins'),
+                style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
-            _label(l10n.translate('transfer_amount_label')),
-            const SizedBox(height: 8),
+            _label(l10n.translate('transfer_amount_label'), textTheme),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _amountController,
               onChanged: (_) {
                 if (_amountError != null) setState(() => _amountError = null);
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
-              decoration: _inputDecoration(
-                hint: '0.00',
-                error: _amountError != null ? l10n.translate(_amountError!) : null,
+              decoration: InputDecoration(
+                hintText: '0.00',
+                errorText: _amountError != null ? l10n.translate(_amountError!) : null,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
-            _label(l10n.translate('transfer_note_label')),
-            const SizedBox(height: 8),
+            _label(l10n.translate('transfer_note_label'), textTheme),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _descriptionController,
               textCapitalization: TextCapitalization.sentences,
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
-              decoration: _inputDecoration(hint: l10n.translate('description_hint')),
+              decoration: InputDecoration(hintText: l10n.translate('description_hint')),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
 
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                      l10n.translate('popup_cancel'),
-                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
-                    ),
+                    child: Text(l10n.translate('popup_cancel')),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: (_saving || destinations.isEmpty) ? null : () => _handleSave(provider, l10n),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
                     child: _saving
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
                           )
-                        : Text(
-                            l10n.translate('transfer_button'),
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
-                          ),
+                        : Text(l10n.translate('transfer_button')),
                   ),
                 ),
               ],
@@ -161,48 +139,40 @@ class _TransferPopupState extends State<TransferPopup> {
     );
   }
 
-  Widget _label(String text) => Text(
+  Widget _label(String text, TextTheme textTheme) => Text(
         text,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+        style: textTheme.labelLarge?.copyWith(color: AppColors.onSurfaceVariant),
       );
 
-  Widget _readOnlyField(String text, {bool isError = false}) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  Widget _readOnlyField(String text, TextTheme textTheme, {bool isError = false, ColorScheme? colorScheme}) => Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          border: Border.all(color: AppColors.outline),
         ),
         child: Text(
           text,
-          style: TextStyle(
-            color: isError ? Colors.red : const Color(0xFF1E293B),
-            fontSize: 15,
-            fontFamily: 'Poppins',
+          style: textTheme.bodyMedium?.copyWith(
+            color: isError ? (colorScheme?.error ?? AppColors.error) : AppColors.onSurface,
           ),
         ),
       );
 
-  InputDecoration _inputDecoration({required String hint, String? error}) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
-        errorText: error,
-        errorStyle: const TextStyle(fontFamily: 'Poppins'),
-        filled: true,
-        fillColor: const Color(0xFFF1F5F9),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      );
-
-  Widget _buildDestinationDropdown(List<MoneySource> destinations) {
+  Widget _buildDestinationDropdown(List<MoneySource> destinations, TextTheme textTheme) {
     // Reset selection if it no longer exists in the list.
     if (_toSourceId != null && !destinations.any((s) => s.sourceId == _toSourceId)) {
       _toSourceId = null;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        border: Border.all(color: AppColors.outline),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
@@ -210,18 +180,15 @@ class _TransferPopupState extends State<TransferPopup> {
           isExpanded: true,
           hint: Text(
             context.read<LocaleProvider>().translate('transfer_select_to_hint'),
-            style: const TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Poppins', fontSize: 15),
+            style: textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
           ),
-          dropdownColor: Colors.white,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
+          dropdownColor: AppColors.surface,
+          icon: Icon(Icons.keyboard_arrow_down, color: AppColors.onSurfaceVariant),
           items: destinations
               .map(
                 (s) => DropdownMenuItem<int>(
                   value: s.sourceId!,
-                  child: Text(
-                    s.sourceName,
-                    style: const TextStyle(color: Color(0xFF1E293B), fontFamily: 'Poppins', fontSize: 15),
-                  ),
+                  child: Text(s.sourceName, style: textTheme.bodyMedium),
                 ),
               )
               .toList(),

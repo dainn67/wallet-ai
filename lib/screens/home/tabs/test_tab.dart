@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import 'package:wallet_ai/configs/app_theme.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 import 'package:wallet_ai/services/services.dart';
@@ -93,74 +94,80 @@ class _TestTabState extends State<TestTab> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       children: [
-        const Text(
+        Text(
           'Demo data',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+          style: textTheme.titleLarge?.copyWith(color: AppColors.onSurface),
         ),
-        const SizedBox(height: 8),
-        const Text('Add sample records and money sources for testing.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Add sample records and money sources for testing.',
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppSpacing.xxl),
         FilledButton.icon(
           onPressed: () => _addDemoRecords(context),
           icon: const Icon(Icons.receipt_long),
           label: const Text('Add demo records'),
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         FilledButton.icon(
           onPressed: () => _addDemoMoneySources(context),
           icon: const Icon(Icons.account_balance_wallet),
           label: const Text('Add demo money sources'),
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          ),
         ),
-        const SizedBox(height: 32),
-        const Text(
+        const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
+        Text(
           'AI Pattern Sync',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+          style: textTheme.titleLarge?.copyWith(color: AppColors.onSurface),
         ),
-        const SizedBox(height: 8),
-        const Text('Test syncing your records with the server.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Test syncing your records with the server.',
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppSpacing.xxl),
         FilledButton.icon(
           onPressed: _isLoading ? null : _testAiSync,
-          icon: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.sync),
+          icon: _isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2),
+                )
+              : const Icon(Icons.sync),
           label: Text(_isLoading ? 'Syncing...' : 'Test AI Sync'),
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF6366F1),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          ),
         ),
         if (_apiResult != null) ...[
-          const SizedBox(height: 24),
-          const Text(
+          const SizedBox(height: AppSpacing.xxl),
+          Text(
             'Result:',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurface,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              color: AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppRadius.tile),
+              border: Border.all(color: AppColors.outline),
             ),
             child: Text(
               _apiResult!,
-              style: const TextStyle(fontSize: 13, fontFamily: 'monospace', color: Color(0xFF334155)),
+              style: textTheme.bodySmall?.copyWith(
+                fontFamily: 'monospace',
+                color: AppColors.onSurface,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           TextButton.icon(
             onPressed: () {
               setState(() {
@@ -168,45 +175,53 @@ class _TestTabState extends State<TestTab> {
               });
             },
             icon: const Icon(Icons.clear, size: 18),
-          label: const Text('Clear result'),
-          style: TextButton.styleFrom(foregroundColor: const Color(0xFF64748B)),
-        ),
-      ],
-      const SizedBox(height: 32),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Stored AI Pattern',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+            label: const Text('Clear result'),
           ),
-          IconButton(onPressed: _loadStoredData, icon: const Icon(Icons.refresh, size: 20, color: Color(0xFF6366F1))),
         ],
-      ),
-      const SizedBox(height: 8),
-      Text(
-        _lastUpdateTime != null ? 'Last updated: ${DateFormat('HH:mm d MMM yyyy').format(_lastUpdateTime!)}' : 'Never updated',
-        style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-      ),
-      const SizedBox(height: 16),
-      Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxHeight: 200),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+        const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Stored AI Pattern',
+              style: textTheme.titleLarge?.copyWith(color: AppColors.onSurface),
+            ),
+            IconButton(
+              onPressed: _loadStoredData,
+              icon: const Icon(Icons.refresh, size: 20, color: AppColors.primary),
+            ),
+          ],
         ),
-        child: SingleChildScrollView(
-          child: Text(
-            _storedPattern?.isNotEmpty == true ? _storedPattern! : 'No pattern stored yet.',
-            style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: Color(0xFF334155), height: 1.4),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          _lastUpdateTime != null
+              ? 'Last updated: ${DateFormat('HH:mm d MMM yyyy').format(_lastUpdateTime!)}'
+              : 'Never updated',
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxHeight: 200),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.tile),
+            border: Border.all(color: AppColors.outline),
+          ),
+          child: SingleChildScrollView(
+            child: Text(
+              _storedPattern?.isNotEmpty == true ? _storedPattern! : 'No pattern stored yet.',
+              style: textTheme.bodySmall?.copyWith(
+                fontFamily: 'monospace',
+                color: AppColors.onSurface,
+                height: 1.4,
+              ),
+            ),
           ),
         ),
-      ),
-      const SizedBox(height: 32),
-    ],
+        const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
+      ],
     );
   }
 }
