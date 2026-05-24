@@ -127,7 +127,7 @@ void main() {
       await tester.pump(); // triggers setState(_isProcessing = true)
 
       // Button now shows a progress indicator — tap by button type, which is disabled
-      final buttons = tester.widgetList<FilledButton>(find.byType(FilledButton));
+      final buttons = tester.widgetList<TextButton>(find.byType(TextButton));
       expect(buttons.first.onPressed, isNull); // disabled
 
       // Complete the future and allow async to resolve
@@ -153,7 +153,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100)); // processes the throw + setState re-enable
 
       // After error, button should be re-enabled (shows 'Confirm' text again)
-      final confirmButton = tester.widget<FilledButton>(find.byType(FilledButton));
+      final confirmButton = tester.widget<TextButton>(find.byType(TextButton));
       expect(confirmButton.onPressed, isNotNull);
       expect(confirmCount, 1);
     });
