@@ -48,7 +48,7 @@ class _ChatTabState extends State<ChatTab> {
     if (!mounted) return;
     final provider = context.read<ChatProvider>();
     if (provider.isStreaming) {
-      _scrollToBottomIfNearBottom();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
   }
 
@@ -60,17 +60,7 @@ class _ChatTabState extends State<ChatTab> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
-    }
-  }
-
-  void _scrollToBottomIfNearBottom() {
-    if (_scrollController.hasClients) {
-      final position = _scrollController.position;
-      final isNearBottom = position.pixels >= position.maxScrollExtent - 100;
-      if (isNearBottom) {
-        _scrollToBottom();
-      }
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     }
   }
 
