@@ -7,6 +7,8 @@ priority: P1
 prd: .claude/prds/redesign-ui.md
 task_count: 10
 github: "199"
+completed: 2026-05-24T10:25:52Z
+updated: 2026-05-24T10:25:52Z
 ---
 
 # Epic: redesign-ui
