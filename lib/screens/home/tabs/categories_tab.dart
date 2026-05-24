@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/components/components.dart';
+import 'package:wallet_ai/configs/app_theme.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
@@ -63,66 +64,86 @@ class _CategoriesTabState extends State<CategoriesTab> {
 
         return Column(
           children: [
+            // Header row: title label + Add Category button
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     l10n.translate('drawer_categories'),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add, color: Colors.blue),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    // NOTE: using add_category_title key — no standalone add_category key exists.
+                    // T9 cleanup can add a dedicated key if needed.
+                    label: Text(l10n.translate('add_category_title')),
                     onPressed: () => _showAddDialog(context),
                   ),
                 ],
               ),
             ),
-            // Month Selector
+
+            // Date-period pill navigator
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF64748B)),
+                      icon: const Icon(Icons.chevron_left_rounded, size: 20),
                       onPressed: () => context.read<RecordProvider>().navigateMonth(-1),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      color: AppColors.primary,
                     ),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       DateFormat('MMMM yyyy').format(selectedDate),
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
                     IconButton(
-                      icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF64748B)),
+                      icon: const Icon(Icons.chevron_right_rounded, size: 20),
                       onPressed: () => context.read<RecordProvider>().navigateMonth(1),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      color: AppColors.primary,
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+
+            const SizedBox(height: AppSpacing.sm),
+
             Expanded(
               child: parentCategories.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.category_outlined, size: 48, color: Colors.grey.shade400),
-                          const SizedBox(height: 16),
-                          Text(l10n.translate('no_categories'), style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                          Icon(Icons.category_outlined, size: 48, color: AppColors.onSurfaceVariant),
+                          const SizedBox(height: AppSpacing.lg),
+                          Text(
+                            l10n.translate('no_categories'),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+                          ),
                         ],
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                       itemCount: parentCategories.length,
                       itemBuilder: (context, index) {
                         final category = parentCategories[index];
@@ -131,23 +152,34 @@ class _CategoriesTabState extends State<CategoriesTab> {
                         final controller = _controllers[category.categoryId!]!;
 
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                          // Card container with themed surface + shadow
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 4))],
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppRadius.card),
+                            border: Border.all(color: AppColors.outline),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Theme(
-                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent, splashColor: Colors.transparent, highlightColor: Colors.transparent),
+                            data: Theme.of(context).copyWith(
+                              dividerColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                            ),
                             child: ExpansionTile(
                               controller: controller,
-                              tilePadding: const EdgeInsets.only(right: 12),
+                              tilePadding: const EdgeInsets.only(right: AppSpacing.md),
                               childrenPadding: EdgeInsets.zero,
                               collapsedBackgroundColor: Colors.transparent,
                               backgroundColor: Colors.transparent,
                               trailing: IconButton(
-                                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF94A3B8)),
+                                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.onSurfaceVariant),
                                 onPressed: () => controller.isExpanded ? controller.collapse() : controller.expand(),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -161,42 +193,44 @@ class _CategoriesTabState extends State<CategoriesTab> {
                                 onEdit: category.categoryId == 1 ? null : () => _showEditDialog(context, category),
                                 showChevron: false,
                                 showDecoration: false,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                               ),
                               children: [
-                                const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF1F5F9)),
+                                Divider(height: 1, indent: AppSpacing.lg, endIndent: AppSpacing.lg, color: AppColors.outlineVariant),
                                 ...subCategories.map(
-                                  (sub) => CategoryWidget(
+                                  (sub) => SubCategoryWidget(
                                     category: sub,
                                     total: provider.getCategoryTotal(sub.categoryId!),
                                     typeLabel: sub.type == 'income' ? l10n.translate('income_label') : l10n.translate('spent_label'),
                                     onTap: () => _openCategoryPopup(context, sub, isParent: false),
                                     onEdit: () => _showEditDialog(context, sub),
-                                    showDecoration: false,
-                                    padding: const EdgeInsets.only(left: 56, top: 8, bottom: 8, right: 16),
                                   ),
                                 ),
+                                // Add sub-category button
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                                   child: InkWell(
                                     onTap: () => showAddSubCategoryDialog(context: context, parent: category),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(AppSpacing.sm),
                                     child: Container(
                                       width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + AppSpacing.xs),
                                       decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.blue.withValues(alpha: 0.15)),
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Colors.blue.withValues(alpha: 0.02),
+                                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                                        borderRadius: BorderRadius.circular(AppSpacing.sm),
+                                        color: AppColors.primary.withValues(alpha: 0.02),
                                       ),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          const Icon(Icons.add, size: 14, color: Colors.blue),
-                                          const SizedBox(width: 8),
+                                          const Icon(Icons.add, size: 14, color: AppColors.primary),
+                                          const SizedBox(width: AppSpacing.sm),
                                           Text(
                                             l10n.translate('add_sub_category'),
-                                            style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 13),
+                                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                                  color: AppColors.primary,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                           ),
                                         ],
                                       ),
