@@ -1,11 +1,11 @@
 ---
 name: redesign-ui
 description: Complete visual redesign of Wally AI with a centralized design token system, Plus Jakarta Sans font, and a new design language — flows and behavior preserved.
-status: complete
+status: backlog
 priority: P1
 scale: large
 created: 2026-05-24T07:10:32Z
-updated: 2026-05-24T10:28:29Z
+updated: 2026-05-24T07:19:03Z
 ---
 
 # PRD: redesign-ui
