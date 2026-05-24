@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/configs/app_theme.dart';
 
 import 'confirmation_dialog.dart';
 import 'transfer_popup.dart';
@@ -36,14 +37,13 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
-      backgroundColor: Colors.white,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -52,83 +52,55 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
               children: [
                 IconButton(
                   onPressed: _handleTransfer,
-                  icon: const Icon(Icons.swap_horiz, color: Color(0xFF6366F1), size: 24),
+                  icon: Icon(Icons.swap_horiz, color: colorScheme.primary, size: 24),
                   tooltip: l10n.translate('transfer_source_tooltip'),
                 ),
                 Expanded(
                   child: Text(
                     '${l10n.translate('edit_source_title')} ${widget.source.sourceName}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E293B),
-                      fontFamily: 'PlusJakartaSans',
-                    ),
+                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                     textAlign: TextAlign.center,
                   ),
                 ),
+                // NFR-2: test finds Icons.delete_outline — must keep this icon
                 IconButton(
                   onPressed: () => _handleDelete(l10n),
-                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 24),
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error, size: 24),
                   tooltip: l10n.translate('delete_source_tooltip'),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
             Text(
               l10n.translate('update_amount_label'),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'PlusJakartaSans'),
+              style: textTheme.labelLarge?.copyWith(color: AppColors.onSurfaceVariant),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _amountController,
               onChanged: (_) {
                 if (_amountError != null) setState(() => _amountError = null);
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'PlusJakartaSans'),
               decoration: InputDecoration(
                 hintText: '0.00',
-                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'PlusJakartaSans'),
                 errorText: _amountError != null ? l10n.translate(_amountError!) : null,
-                errorStyle: const TextStyle(fontFamily: 'PlusJakartaSans'),
-                filled: true,
-                fillColor: const Color(0xFFF1F5F9),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                      l10n.translate('popup_cancel'),
-                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'PlusJakartaSans'),
-                    ),
+                    child: Text(l10n.translate('popup_cancel')),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: () => _handleSave(l10n),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      l10n.translate('save_button'),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'PlusJakartaSans'),
-                    ),
+                    child: Text(l10n.translate('save_button')),
                   ),
                 ),
               ],

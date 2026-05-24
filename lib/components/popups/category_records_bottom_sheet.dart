@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:wallet_ai/components/popups/edit_record_popup.dart';
 import 'package:wallet_ai/components/popups/transfer_info_popup.dart';
 import 'package:wallet_ai/components/record_widget.dart';
+import 'package:wallet_ai/configs/app_theme.dart';
 import 'package:wallet_ai/helpers/currency_helper.dart';
 import 'package:wallet_ai/models/category.dart';
 import 'package:wallet_ai/models/record.dart';
@@ -42,13 +43,15 @@ class CategoryRecordsBottomSheet extends StatelessWidget {
           minChildSize: 0.3,
           expand: false,
           builder: (_, scrollController) => Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            // BottomSheetThemeData from AppTheme.light() provides shape + color,
+            // but DraggableScrollableSheet wraps with a Container so we apply here.
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
             ),
             child: Column(
               children: [
-                _buildHeader(provider, total),
+                _buildHeader(context, provider, total),
                 Expanded(child: _buildBody(context, records, scrollController, provider)),
               ],
             ),
@@ -58,48 +61,53 @@ class CategoryRecordsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(RecordProvider provider, double total) {
+  Widget _buildHeader(BuildContext context, RecordProvider provider, double total) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final month = _monthLabel(provider.selectedDateRange);
     final isNegative = total < 0;
-    final totalColor = isNegative ? Colors.red : Colors.green;
+
+    // Semantic colors: expense red / income green from AppSemanticColors extension
+    final sem = Theme.of(context).extension<AppSemanticColors>();
+    final totalColor = isNegative
+        ? (sem?.expenseRed ?? colorScheme.error)
+        : (sem?.incomeGreen ?? colorScheme.primary);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
       child: Column(
         children: [
           // Drag handle
           Container(
             width: 40,
             height: 4,
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
             decoration: BoxDecoration(
-              color: const Color(0xFFCBD5E1),
-              borderRadius: BorderRadius.circular(2),
+              color: AppColors.outline,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
             ),
           ),
           Text(
             category.name,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-              fontFamily: 'PlusJakartaSans',
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             '${CurrencyHelper.format(total.abs())}  •  $month',
-            style: TextStyle(
-              fontSize: 13,
+            style: textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w500,
               color: totalColor,
-              fontFamily: 'PlusJakartaSans',
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          const SizedBox(height: AppSpacing.sm),
+          Divider(height: 1, color: AppColors.outline),
         ],
       ),
     );
@@ -111,15 +119,13 @@ class CategoryRecordsBottomSheet extends StatelessWidget {
     ScrollController scrollController,
     RecordProvider provider,
   ) {
+    final textTheme = Theme.of(context).textTheme;
+
     if (records.isEmpty) {
       return Center(
         child: Text(
           'No records in this category for ${_monthLabel(provider.selectedDateRange)}.',
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF64748B),
-            fontFamily: 'PlusJakartaSans',
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
       );
@@ -129,9 +135,9 @@ class CategoryRecordsBottomSheet extends StatelessWidget {
       // Flat list — sub-category tap or parent without subs
       return ListView.separated(
         controller: scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         itemCount: records.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
         itemBuilder: (ctx, i) => _buildRecordRow(ctx, records[i]),
       );
     }
@@ -155,39 +161,46 @@ class CategoryRecordsBottomSheet extends StatelessWidget {
 
     return ListView.separated(
       controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       itemCount: sections.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (ctx, i) => _buildSection(ctx, sections[i]),
     );
   }
 
   Widget _buildSection(BuildContext context, _Section section) {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.outline),
+        borderRadius: BorderRadius.circular(AppRadius.tile),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm + AppSpacing.xs,
+              AppSpacing.md,
+              AppSpacing.xs,
+            ),
             child: Text(
               section.title,
-              style: const TextStyle(
-                fontSize: 12,
+              style: textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF64748B),
-                fontFamily: 'PlusJakartaSans',
+                color: AppColors.onSurfaceVariant,
               ),
             ),
           ),
           ...section.records.map((r) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
                 child: _buildRecordRow(context, r),
               )),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
         ],
       ),
     );

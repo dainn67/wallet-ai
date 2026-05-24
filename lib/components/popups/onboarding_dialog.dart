@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:wallet_ai/configs/app_theme.dart';
 import 'package:wallet_ai/providers/locale_provider.dart';
 import 'package:wallet_ai/services/storage_service.dart';
 
-const _accent = Color(0xFF0F172A);
-const _dotInactive = Color(0xFFE2E8F0);
+// Slide text color — T9 will migrate content; T8 migrates chrome only.
+// Using AppColors.onSurface instead of the old _accent (Color(0xFF0F172A)) — same visual intent.
 
 class _OnboardingSlide {
   final String imageAsset;
@@ -23,6 +24,9 @@ const _slides = <_OnboardingSlide>[
 ///
 /// Opens via [OnboardingDialog.show]. Resolves when the user taps the primary
 /// CTA on the last slide and the completion flag is written to [StorageService].
+///
+/// T8: chrome migration — themed Dialog container, FilledButton next/finish.
+/// T9 scope: step content, step count, navigation logic changes.
 class OnboardingDialog extends StatefulWidget {
   const OnboardingDialog({super.key});
 
@@ -71,17 +75,23 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
+    final textTheme = Theme.of(context).textTheme;
     final isLastPage = _currentPage == _slides.length - 1;
 
     return PopScope(
       canPop: false,
       child: Dialog(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xxl,
+          vertical: AppSpacing.xxl,
+        ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.xxl + AppSpacing.xs,
+            AppSpacing.xl,
+            AppSpacing.xl,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -92,17 +102,23 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                   physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: (i) => setState(() => _currentPage = i),
                   itemCount: _slides.length,
-                  itemBuilder: (_, i) => _Slide(slide: _slides[i], l10n: l10n),
+                  itemBuilder: (_, i) => _Slide(slide: _slides[i], l10n: l10n, textTheme: textTheme),
                 ),
               ),
-              const SizedBox(height: 24),
-              _DotIndicator(count: _slides.length, current: _currentPage),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
+              // Progress indicator — LinearProgressIndicator with AppColors.primary
+              LinearProgressIndicator(
+                value: (_currentPage + 1) / _slides.length,
+                valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                backgroundColor: AppColors.outline,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              const SizedBox(height: AppSpacing.xxl),
               SizedBox(
                 width: double.infinity,
-                child: _PrimaryPill(
-                  label: l10n.translate(isLastPage ? 'onboarding_got_it' : 'onboarding_next'),
-                  onTap: isLastPage ? _handleGotIt : _handleNext,
+                child: FilledButton(
+                  onPressed: isLastPage ? _handleGotIt : _handleNext,
+                  child: Text(l10n.translate(isLastPage ? 'onboarding_got_it' : 'onboarding_next')),
                 ),
               ),
             ],
@@ -116,7 +132,8 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
 class _Slide extends StatelessWidget {
   final _OnboardingSlide slide;
   final LocaleProvider l10n;
-  const _Slide({required this.slide, required this.l10n});
+  final TextTheme textTheme;
+  const _Slide({required this.slide, required this.l10n, required this.textTheme});
 
   @override
   Widget build(BuildContext context) {
@@ -124,92 +141,29 @@ class _Slide extends StatelessWidget {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               child: Image.asset(slide.imageAsset, fit: BoxFit.contain),
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           child: Text(
             l10n.translate(slide.textKey),
             textAlign: TextAlign.center,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
+            style: textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w500,
-              color: _accent,
+              color: AppColors.onSurface,
               height: 1.5,
-              letterSpacing: 0.1,
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _DotIndicator extends StatelessWidget {
-  final int count;
-  final int current;
-  const _DotIndicator({required this.count, required this.current});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(count, (i) {
-        final active = i == current;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: active ? 22 : 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: active ? _accent : _dotInactive,
-            borderRadius: BorderRadius.circular(999),
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _PrimaryPill extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _PrimaryPill({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: _accent,
-      borderRadius: BorderRadius.circular(999),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.white24,
-        highlightColor: Colors.white10,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Center(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
