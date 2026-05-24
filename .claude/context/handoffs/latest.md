@@ -1,58 +1,52 @@
 ---
 epic: redesign-ui
-task: 207
+task: 208
 status: completed
-created: 2026-05-24T09:34:05Z
-updated: 2026-05-24T09:34:05Z
+created: 2026-05-24T09:42:14Z
+updated: 2026-05-24T09:42:14Z
 ---
 
 ## What was done
 
-Migrated all 11 popup surfaces in `lib/components/popups/` to the redesign-ui design language.
+T9 — Three sub-tasks: onboarding step content polish, TestTab refactor, orphan/comment audit.
 
 **Files changed:**
-- `lib/components/popups/edit_record_popup.dart` — Dialog via theme, FilledButton save, TextButton cancel, themed InputDecoration, AppColors tokens throughout
-- `lib/components/popups/edit_source_popup.dart` — same pattern; Icons.delete_outline preserved (test-locked)
-- `lib/components/popups/transfer_popup.dart` — FilledButton confirm, TextButton cancel, themed dropdowns and fields
-- `lib/components/popups/transfer_info_popup.dart` — FilledButton.icon delete (error color), TextButton close, AppColors.primaryContainer icon background
-- `lib/components/popups/confirmation_dialog.dart` — AlertDialog via theme, ElevatedButton kept (NFR-2 test lock), TextButton cancel
-- `lib/components/popups/currency_selection_popup.dart` — themed Dialog, themed ListTile with AppColors.primaryContainer tileColor for selected
-- `lib/components/popups/add_source_popup.dart` — FilledButton save, TextButton cancel, themed fields
-- `lib/components/popups/category_form_dialog.dart` — FilledButton save, TextButton cancel, _TypeButton uses AppColors tokens + colorScheme.error
-- `lib/components/popups/add_sub_category_dialog.dart` — FilledButton save, TextButton cancel
-- `lib/components/popups/category_records_bottom_sheet.dart` — AppColors tokens for drag handle, header, section borders; AppSemanticColors for income/expense total color
-- `lib/components/popups/onboarding_dialog.dart` — Dialog via theme, FilledButton next/finish, LinearProgressIndicator with AppColors.primary, _DotIndicator replaced with LinearProgressIndicator (chrome migration only)
-- `.claude/epics/redesign-ui/8.md` — STATUS: open → completed
+- `lib/components/popups/onboarding_dialog.dart` — Removed leftover T8 dev comments (the `// Slide text color — T9 will migrate…` comment block and the `T8:` / `T9 scope:` lines from the class docstring). Slide content was already correctly using `textTheme.bodyMedium` + `AppColors.onSurface` from T8. No step header was present in the data model (`_OnboardingSlide` only has `imageAsset` + `textKey`); `IconSquare` not applicable (slides use `Image.asset`, not `CircleAvatar`/`Icon`).
+- `lib/screens/home/tabs/test_tab.dart` — Full hardcoded-literal sweep:
+  - Added `import 'package:wallet_ai/configs/app_theme.dart'`
+  - All `Color(0xFF...)` / `Color(0x...)` literals replaced with `AppColors.*` tokens
+  - `Colors.white` replaced with `AppColors.onPrimary`
+  - All `TextStyle(fontSize: N, ...)` replaced with `textTheme.titleLarge`, `textTheme.bodyMedium`, `textTheme.bodySmall` (with `.copyWith(...)` for weight/color)
+  - `FilledButton.styleFrom(backgroundColor: Color(0xFF6366F1), ...)` removed — now inherits theme default (`AppColors.primary`)
+  - `const EdgeInsets.all(24)` → `EdgeInsets.all(AppSpacing.xxl)`
+  - `BorderRadius.circular(12)` → `BorderRadius.circular(AppRadius.tile)`
+  - `TextButton.styleFrom(foregroundColor: Color(...))` removed — inherits theme default
+  - `padding: EdgeInsets.symmetric(vertical: 16)` inline style overrides removed from FilledButton.styleFrom calls
 
 ## Key decisions
 
-- **`ConfirmationDialog` destructive variant uses `ElevatedButton` (NFR-2 lock)**: `confirmation_dialog_test.dart` line 126 does `tester.widget(find.byType(ElevatedButton))` and then `expect(color, Colors.red.shade600)`. Cannot migrate to `FilledButton` — would break the test. Kept `ElevatedButton` with `Colors.red.shade600` for destructive and `AppColors.primary` for standard. All other popups use `FilledButton`.
-- **Standard (non-destructive) `ConfirmationDialog` primary button**: Uses `AppColors.primary` background instead of the old `Color(0xFF6366F1)` — semantically identical (both are the primary purple).
-- **`OnboardingDialog` chrome-only**: Replaced `_DotIndicator` (custom dot animation) with `LinearProgressIndicator(valueColor: AlwaysStoppedAnimation(AppColors.primary))` as specified. Slide content, `PageController`, `_slides` list, step count, and navigation callbacks (`_handleNext`, `_handleGotIt`) are byte-identical. The `_PrimaryPill` custom widget replaced with `FilledButton` via theme. T9 owns all content changes.
-- **Dropdowns use themed container pattern**: `DropdownButton` inside `Container(decoration: BoxDecoration(color: AppColors.surfaceContainerLow, border: Border.all(color: AppColors.outline), borderRadius: BorderRadius.circular(AppRadius.input)))` — the `InputDecorationTheme` doesn't apply to dropdowns so manual theming is needed.
-- **`CategoryRecordsBottomSheet` color for income/expense total**: Reads `AppSemanticColors` via `Theme.of(context).extension<AppSemanticColors>()` — falls back to `colorScheme.error`/`colorScheme.primary` if extension is null (bare test MaterialApp safety).
-- **`Colors.white` replaced with `AppColors.onPrimary`**: In `confirmation_dialog.dart` and `transfer_popup.dart` — same value, semantic token used.
+- **`onboarding_dialog.dart` slide content was already complete**: T8 had already applied `textTheme.bodyMedium` + `AppColors.onSurface` to the `_Slide` widget body text. No `CircleAvatar` or bare `Icon` illustration exists — slides use `Image.asset`. `IconSquare` was not applicable.
+- **`Colors.black.withValues(alpha: 0.55)` in `barrierColor` retained**: This is part of the dialog chrome (set up by T8), and `Colors.black` is semantically appropriate for a modal overlay. Not a style regression.
+- **`use_build_context_synchronously` info warnings in test_tab.dart**: These two pre-existing infos (lines for `_addDemoRecords` / `_addDemoMoneySources` async gaps) are unchanged by T9 — they are behavioral (not cosmetic) and would require logic refactoring outside T9 scope.
+- **Orphan audit**: Zero confirmed orphans. The simplified grep (`grep -rl "$base" lib/`) confirmed every component file is referenced by at least one other file (typically the barrel `components.dart` plus direct screen imports).
+- **Files deleted**: None.
+- **Commented-out pre-redesign blocks**: Zero found across `lib/components/` and `lib/screens/`.
 
-## Warnings for T9 (OnboardingDialog content + post-popup cleanup)
+## Warnings for T10 (Final verification)
 
-- **`OnboardingDialog._DotIndicator` removed**: T8 replaced the custom animated dot row with `LinearProgressIndicator`. T9 should be aware — if it wants to restore the animated dot indicator (for design reasons), it needs to add it back. Current chrome uses `LinearProgressIndicator` as specified.
-- **`onboarding_dialog.dart` slide content untouched**: `_slides` list (imageAsset, textKey), `PageController`, `NeverScrollableScrollPhysics`, `onPageChanged`, `_handleGotIt` (StorageService write) — ALL unchanged. T9 is safe to edit content without risk of breaking navigation.
-- **No `_PrimaryPill` class** in the new file — the custom Material+InkWell pill was replaced by `FilledButton`. If T9 needs custom InkWell behavior on the button (e.g., specific splash), use `FilledButton` with a custom `style`.
+- **`test_tab.dart` bodySmall for monospace text**: The result panel and stored-pattern panel use `textTheme.bodySmall` with `fontFamily: 'monospace'`. T10 should visually verify the monospace font override works at runtime — if the `PlusJakartaSans` theme family wins over `'monospace'`, the display may not be monospace. This is cosmetic only (TestTab is a dev screen).
+- **No new test failures**: Baseline is 228 pass / 14 fail. All 14 failures are pre-existing mock bugs (`MockStorageService.setString` returns null, unrelated to redesign).
 
 ## Test counts
 
-228 pass, 14 fail — exact pre-T8 baseline. No new failures.
-
-Failing tests (all pre-existing):
-- 5x `edit_source_popup_test.dart` — `MockStorageService.setString` null-return bug (unrelated to UI)
-- 2x `records_overview_test.dart` — same mock bug
-- 3x `verification_test.dart` — same mock bug
-- 4x `record_provider_test.dart` — same mock bug
+228 pass, 14 fail — exact pre-T9 baseline. No new failures.
 
 ## Verification snapshot
 
-- `fvm flutter analyze lib/components/popups/` → 1 info (pre-existing `use_build_context_synchronously` in `category_form_dialog.dart`), no errors, no warnings
+- `fvm flutter analyze lib/components/popups/onboarding_dialog.dart lib/screens/home/tabs/test_tab.dart` → 2 info (pre-existing `use_build_context_synchronously`), no errors, no warnings
 - `fvm flutter test` → 228 pass, 14 fail (same 14 pre-existing failures)
-- `Colors.red.shade600` only in `confirmation_dialog.dart` with NFR-2 inline comment
-- No `Color(0x...)` hex literals in any popup file
-- No `fontSize: N` numeric literals in any popup file
+- No `Color(0x...)` literals in `test_tab.dart` or `onboarding_dialog.dart`
+- No `fontSize: N` numeric literals in either file
+- No `Colors.` references except `Colors.black` in `barrierColor` (documented above)
+- Orphan audit: zero confirmed orphans
+- Commented-out pre-redesign blocks: zero
