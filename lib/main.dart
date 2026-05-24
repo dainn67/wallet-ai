@@ -60,31 +60,7 @@ class MyApp extends StatelessWidget {
         title: AppConfig().appName,
         scaffoldMessengerKey: ToastService.messengerKey,
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6366F1), // Indigo/Violet
-            primary: const Color(0xFF6366F1),
-            secondary: const Color(0xFF10B981), // Emerald
-            surface: const Color(0xFFF8FAFC),
-          ),
-          fontFamily: 'Poppins',
-          textTheme: const TextTheme().apply(fontFamily: 'Poppins'),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.transparent, // Disable Material 3 surface tint
-            scrolledUnderElevation: 0,
-            elevation: 0,
-            centerTitle: true,
-            titleTextStyle: TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
-            iconTheme: IconThemeData(color: Color(0xFF1E293B)),
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.dark, // For Android
-              statusBarBrightness: Brightness.light,    // For iOS
-            ),
-          ),
-        ),
+        theme: AppTheme.light(),
         home: const HomeScreen(),
       ),
     );
