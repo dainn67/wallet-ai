@@ -48,7 +48,7 @@ class _TransferInfoPopupState extends State<TransferInfoPopup> {
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1E293B),
-                fontFamily: 'Poppins',
+                fontFamily: 'PlusJakartaSans',
               ),
               textAlign: TextAlign.center,
             ),
@@ -88,7 +88,7 @@ class _TransferInfoPopupState extends State<TransferInfoPopup> {
                     ),
                     child: Text(
                       l10n.translate('popup_cancel'),
-                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                   ),
                 ),
@@ -99,7 +99,7 @@ class _TransferInfoPopupState extends State<TransferInfoPopup> {
                     icon: const Icon(Icons.delete_outline, size: 18),
                     label: Text(
                       l10n.translate('delete_button'),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade600,
@@ -124,14 +124,14 @@ class _TransferInfoPopupState extends State<TransferInfoPopup> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'PlusJakartaSans'),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             value.isEmpty ? '—' : value,
             textAlign: TextAlign.end,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B), fontFamily: 'Poppins'),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B), fontFamily: 'PlusJakartaSans'),
           ),
         ),
       ],

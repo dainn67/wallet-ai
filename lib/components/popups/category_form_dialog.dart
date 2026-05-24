@@ -74,7 +74,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
       title: Text(
         isEdit ? l10n.translate('edit_category_title') : l10n.translate('add_category_title'),
         style: const TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: 'PlusJakartaSans',
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Color(0xFF1E293B),
@@ -173,7 +173,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                         color: Colors.red,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        fontFamily: 'Poppins',
+                        fontFamily: 'PlusJakartaSans',
                       ),
                     ),
                     style: TextButton.styleFrom(
@@ -207,7 +207,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 child: Text(
                   l10n.translate('popup_cancel'),
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
+                    fontFamily: 'PlusJakartaSans',
                     color: Color(0xFF94A3B8),
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
@@ -247,7 +247,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 child: Text(
                   l10n.translate('save_button'),
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
+                    fontFamily: 'PlusJakartaSans',
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),

@@ -50,7 +50,7 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1E293B),
-                fontFamily: 'Poppins',
+                fontFamily: 'PlusJakartaSans',
               ),
               textAlign: TextAlign.center,
             ),
@@ -62,7 +62,7 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
               onChanged: (_) {
                 if (_nameError != null) setState(() => _nameError = null);
               },
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'PlusJakartaSans'),
               decoration: _buildInputDecoration(
                 hint: l10n.translate('source_name_hint'),
                 error: _nameError != null ? l10n.translate(_nameError!) : null,
@@ -78,7 +78,7 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                 if (_amountError != null) setState(() => _amountError = null);
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'PlusJakartaSans'),
               decoration: _buildInputDecoration(
                 hint: '0.00',
                 error: _amountError != null ? l10n.translate(_amountError!) : null,
@@ -96,7 +96,7 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                     ),
                     child: Text(
                       l10n.translate('popup_cancel'),
-                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                   ),
                 ),
@@ -113,7 +113,7 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
                     ),
                     child: Text(
                       l10n.translate('save_button'),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                   ),
                 ),
@@ -128,16 +128,16 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
   Widget _buildLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'PlusJakartaSans'),
     );
   }
 
   InputDecoration _buildInputDecoration({required String hint, String? error}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'PlusJakartaSans'),
       errorText: error,
-      errorStyle: const TextStyle(fontFamily: 'Poppins'),
+      errorStyle: const TextStyle(fontFamily: 'PlusJakartaSans'),
       filled: true,
       fillColor: const Color(0xFFF1F5F9),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
