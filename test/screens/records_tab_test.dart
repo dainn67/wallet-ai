@@ -132,7 +132,9 @@ void main() {
 
     await tester.pumpWidget(createRecordsTab());
     
-    expect(find.text('Fri, 15 Mar 2024'), findsOneWidget);
+    // SectionLabel uppercases the date string (per redesign-ui T6 — DateDivider
+    // now renders via SectionLabel which calls toUpperCase()).
+    expect(find.text('FRI, 15 MAR 2024'), findsOneWidget);
   });
 
   testWidgets('Records remain sorted descending within each month', (tester) async {
