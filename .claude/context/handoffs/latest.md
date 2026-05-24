@@ -1,52 +1,47 @@
 ---
 epic: redesign-ui
-task: 208
+task: 209
 status: completed
-created: 2026-05-24T09:42:14Z
-updated: 2026-05-24T09:42:14Z
+created: 2026-05-24T09:51:30Z
+updated: 2026-05-24T09:51:30Z
 ---
 
-## What was done
+## Epic Complete
 
-T9 — Three sub-tasks: onboarding step content polish, TestTab refactor, orphan/comment audit.
+The `redesign-ui` epic has been fully executed across 10 tasks (T1–T10). All tasks are closed. The verification report has been written. The epic branch `epic/redesign-ui` is ready for merge to `main` after the recommended pre-merge steps below.
 
-**Files changed:**
-- `lib/components/popups/onboarding_dialog.dart` — Removed leftover T8 dev comments (the `// Slide text color — T9 will migrate…` comment block and the `T8:` / `T9 scope:` lines from the class docstring). Slide content was already correctly using `textTheme.bodyMedium` + `AppColors.onSurface` from T8. No step header was present in the data model (`_OnboardingSlide` only has `imageAsset` + `textKey`); `IconSquare` not applicable (slides use `Image.asset`, not `CircleAvatar`/`Icon`).
-- `lib/screens/home/tabs/test_tab.dart` — Full hardcoded-literal sweep:
-  - Added `import 'package:wallet_ai/configs/app_theme.dart'`
-  - All `Color(0xFF...)` / `Color(0x...)` literals replaced with `AppColors.*` tokens
-  - `Colors.white` replaced with `AppColors.onPrimary`
-  - All `TextStyle(fontSize: N, ...)` replaced with `textTheme.titleLarge`, `textTheme.bodyMedium`, `textTheme.bodySmall` (with `.copyWith(...)` for weight/color)
-  - `FilledButton.styleFrom(backgroundColor: Color(0xFF6366F1), ...)` removed — now inherits theme default (`AppColors.primary`)
-  - `const EdgeInsets.all(24)` → `EdgeInsets.all(AppSpacing.xxl)`
-  - `BorderRadius.circular(12)` → `BorderRadius.circular(AppRadius.tile)`
-  - `TextButton.styleFrom(foregroundColor: Color(...))` removed — inherits theme default
-  - `padding: EdgeInsets.symmetric(vertical: 16)` inline style overrides removed from FilledButton.styleFrom calls
+## Verification Report Path
 
-## Key decisions
+`.claude/context/progress/redesign-ui-verify.md`
 
-- **`onboarding_dialog.dart` slide content was already complete**: T8 had already applied `textTheme.bodyMedium` + `AppColors.onSurface` to the `_Slide` widget body text. No `CircleAvatar` or bare `Icon` illustration exists — slides use `Image.asset`. `IconSquare` was not applicable.
-- **`Colors.black.withValues(alpha: 0.55)` in `barrierColor` retained**: This is part of the dialog chrome (set up by T8), and `Colors.black` is semantically appropriate for a modal overlay. Not a style regression.
-- **`use_build_context_synchronously` info warnings in test_tab.dart**: These two pre-existing infos (lines for `_addDemoRecords` / `_addDemoMoneySources` async gaps) are unchanged by T9 — they are behavioral (not cosmetic) and would require logic refactoring outside T9 scope.
-- **Orphan audit**: Zero confirmed orphans. The simplified grep (`grep -rl "$base" lib/`) confirmed every component file is referenced by at least one other file (typically the barrel `components.dart` plus direct screen imports).
-- **Files deleted**: None.
-- **Commented-out pre-redesign blocks**: Zero found across `lib/components/` and `lib/screens/`.
+Overall status: **PASS_WITH_DEVIATIONS**
 
-## Warnings for T10 (Final verification)
+## Known Deviations Carried Forward
 
-- **`test_tab.dart` bodySmall for monospace text**: The result panel and stored-pattern panel use `textTheme.bodySmall` with `fontFamily: 'monospace'`. T10 should visually verify the monospace font override works at runtime — if the `PlusJakartaSans` theme family wins over `'monospace'`, the display may not be monospace. This is cosmetic only (TestTab is a dev screen).
-- **No new test failures**: Baseline is 228 pass / 14 fail. All 14 failures are pre-existing mock bugs (`MockStorageService.setString` returns null, unrelated to redesign).
+1. **NFR-1 minor violation — `image_preview_strip.dart:71`:** `TextStyle(fontSize: 11, color: Colors.grey[500])` — no NFR-2 lock justifying this. A two-line fix (`textTheme.labelSmall?.copyWith(color: AppColors.onSurfaceVariant)`) was not applied during T10 (verification-only task). Recommend fixing before merge.
 
-## Test counts
+2. **NFR-1 accepted deviations (9 total):** All documented inline with comments:
+   - `record_widget.dart:144` — date text style locked by `record_widget_test.dart` contract (NFR-2 override).
+   - `confirmation_dialog.dart:70` — `Colors.red.shade600` locked by `confirmation_dialog_test.dart` line 128 (NFR-2 override).
+   - `image_viewer.dart` and `image_preview_strip.dart` overlay colors — media viewer context, semantically correct; no applicable token.
+   - `home_screen.dart` drawer header — translucent white overlays on dark gradient; no token for this context.
 
-228 pass, 14 fail — exact pre-T9 baseline. No new failures.
+3. **NFR-5 conditional — popup button label contrast:** `#FFFFFF` on `#8B5CF6` = 4.23:1, below 4.5:1 body threshold but above 3:1 large-text threshold. `labelLarge` SemiBold qualifies as large text under WCAG 2.1. Recommend device verification; if not large text at rendered size, lighten primary to `#7C3AED`.
 
-## Verification snapshot
+4. **NFR-4 not verified in CI:** Cold-start trace requires real-device measurement. See Audit 8 in the verification report.
 
-- `fvm flutter analyze lib/components/popups/onboarding_dialog.dart lib/screens/home/tabs/test_tab.dart` → 2 info (pre-existing `use_build_context_synchronously`), no errors, no warnings
-- `fvm flutter test` → 228 pass, 14 fail (same 14 pre-existing failures)
-- No `Color(0x...)` literals in `test_tab.dart` or `onboarding_dialog.dart`
-- No `fontSize: N` numeric literals in either file
-- No `Colors.` references except `Colors.black` in `barrierColor` (documented above)
-- Orphan audit: zero confirmed orphans
-- Commented-out pre-redesign blocks: zero
+## Test Baseline
+
+- 228 pass / 14 fail (14 pre-existing `MockStorageService.setString` failures in `edit_source_popup_test.dart`, unrelated to redesign).
+- Zero new test failures introduced by the epic.
+- 14 new test additions (coverage for `IconSquare`, `SectionLabel`, `AppTheme`).
+
+## Recommended Next Steps
+
+1. **Fix `image_preview_strip.dart:71`** — Replace `TextStyle(fontSize: 11, color: Colors.grey[500])` with themed equivalent. Two-line fix.
+2. **Run cold-start trace on device** — `flutter run --profile --trace-startup` vs `pre-redesign-ui` baseline tag.
+3. **Verify popup button contrast on device** — Confirm `FilledButton` label qualifies as large text; if not, adjust `AppColors.primary` to `#7C3AED`.
+4. **Tag `main` at `pre-redesign-ui`** — Before merging the epic branch, tag the current `main` HEAD for rollback reference.
+5. **SC-5 maker visual sign-off** — Screenshots of: (a) app bar wordmark in violet, (b) Plus Jakarta Sans on all text, (c) active nav pill, (d) tinted `IconSquare` on a category, (e) pill input bar. Provide to maker before final PR merge.
+6. **Merge `epic/redesign-ui` to `main`** — After items 1–5 are complete, create the PR and merge.
+7. **Fix `MockStorageService.setString` baseline bug** — The 14 pre-existing test failures in `edit_source_popup_test.dart` should be fixed in a separate PR (not part of this epic scope).
