@@ -5,9 +5,6 @@ import 'package:wallet_ai/configs/app_theme.dart';
 import 'package:wallet_ai/providers/locale_provider.dart';
 import 'package:wallet_ai/services/storage_service.dart';
 
-// Slide text color — T9 will migrate content; T8 migrates chrome only.
-// Using AppColors.onSurface instead of the old _accent (Color(0xFF0F172A)) — same visual intent.
-
 class _OnboardingSlide {
   final String imageAsset;
   final String textKey;
@@ -24,9 +21,6 @@ const _slides = <_OnboardingSlide>[
 ///
 /// Opens via [OnboardingDialog.show]. Resolves when the user taps the primary
 /// CTA on the last slide and the completion flag is written to [StorageService].
-///
-/// T8: chrome migration — themed Dialog container, FilledButton next/finish.
-/// T9 scope: step content, step count, navigation logic changes.
 class OnboardingDialog extends StatefulWidget {
   const OnboardingDialog({super.key});
 
