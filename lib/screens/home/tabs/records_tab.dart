@@ -14,92 +14,70 @@ class RecordsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
-    return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: Consumer<RecordProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.records.isEmpty && provider.moneySources.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return Consumer<RecordProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading && provider.records.isEmpty && provider.moneySources.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          final records = provider.filteredRecords;
-          final totalIncome = provider.filteredTotalIncome;
-          final totalExpense = provider.filteredTotalExpense;
-          final totalBalance = provider.totalBalance;
+        final records = provider.filteredRecords;
+        final totalIncome = provider.filteredTotalIncome;
+        final totalExpense = provider.filteredTotalExpense;
+        final totalBalance = provider.totalBalance;
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.md,
-                  AppSpacing.lg,
-                  0,
-                ),
-                child: RecordsOverview(
-                  totalBalance: totalBalance,
-                  totalIncome: totalIncome,
-                  totalExpense: totalExpense,
-                  sources: provider.moneySources,
-                  onSourceTap: (source) => _showEditSourceDialog(context, source),
-                ),
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: RecordsOverview(
+                totalBalance: totalBalance,
+                totalIncome: totalIncome,
+                totalExpense: totalExpense,
+                sources: provider.moneySources,
+                onSourceTap: (source) => _showEditSourceDialog(context, source),
               ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.md,
-                  ),
-                  children: [
-                    if (records.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.xxl * 2.5),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.receipt_long,
-                              size: AppSpacing.iconSquare,
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            Text(
-                              l10n.translate('no_records'),
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.onSurface,
-                                  ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              l10n.translate('no_records_subtitle'),
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else ...[
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: AppSpacing.xs,
-                          bottom: AppSpacing.xs,
-                        ),
-                        child: SectionLabel(l10n.translate('recent_records')),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
+                children: [
+                  if (records.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 60),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt_long, size: 40, color: Colors.grey.shade400),
+                          const SizedBox(height: 12),
+                          Text(
+                            l10n.translate('no_records'),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.translate('no_records_subtitle'),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          ),
+                        ],
                       ),
-                      ..._buildGroupedRecords(context, records, l10n),
-                    ],
+                    )
+                  else ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 4),
+                      child: Text(
+                        l10n.translate('recent_records'),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                      ),
+                    ),
+                    ..._buildGroupedRecords(context, records, l10n),
                   ],
-                ),
+                ],
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -120,7 +98,7 @@ class RecordsTab extends StatelessWidget {
 
       groupedWidgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm + AppSpacing.xs / 2),
+          padding: const EdgeInsets.only(bottom: 10),
           child: RecordWidget(record: record, isEditable: true, onEdit: () => _showEditRecordPopup(context, record)),
         ),
       );

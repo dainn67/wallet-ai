@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wallet_ai/configs/app_theme.dart';
 
 /// A reusable confirmation dialog for destructive or important actions.
 ///
@@ -25,40 +24,58 @@ class ConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return AlertDialog(
+      backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
       title: Text(
         title,
-        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        style: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1E293B),
+        ),
         textAlign: TextAlign.center,
       ),
       content: Text(
         content,
-        style: textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+        style: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 15,
+          fontWeight: FontWeight.normal,
+          color: Color(0xFF64748B),
+        ),
         textAlign: TextAlign.center,
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(
-        AppSpacing.xxl,
-        AppSpacing.sm,
-        AppSpacing.xxl,
-        AppSpacing.xxl,
-      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       actions: [
         Row(
           children: [
             Expanded(
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(cancelLabel),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  cancelLabel,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: 12),
             Expanded(
-              // NFR-2: confirmation_dialog_test.dart line 126 finds ElevatedButton and
-              // checks button.style?.backgroundColor == Colors.red.shade600 for
-              // isDestructive variant — must keep ElevatedButton + Colors.red.shade600.
               child: ElevatedButton(
                 key: const Key('confirm_elevated_button'),
                 onPressed: () {
@@ -67,20 +84,21 @@ class ConfirmationDialog extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isDestructive
-                      ? Colors.red.shade600 // NFR-2: locked by confirmation_dialog_test.dart line 128
-                      : AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg - AppSpacing.xs),
-                  elevation: AppElevation.none,
+                      ? Colors.red.shade600
+                      : const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: Text(
                   confirmLabel,
-                  style: textTheme.labelLarge?.copyWith(
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
                     fontWeight: FontWeight.w700,
-                    color: AppColors.onPrimary,
+                    fontSize: 15,
                   ),
                 ),
               ),

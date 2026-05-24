@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,14 +14,6 @@ import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/records_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/test_tab.dart';
 
-// Private data class: one entry per tab in the NavigationBar + PageView.
-class _TabConfig {
-  final IconData icon;
-  final String label;
-  final Widget page;
-  const _TabConfig({required this.icon, required this.label, required this.page});
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -30,29 +21,18 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final FocusNode _recordingFocusNode = FocusNode();
-  late final PageController _pageController;
-  int _currentIndex = 0;
+  late TabController _tabController;
 
-  // Stable page widget instances — built once so PageView children don't
-  // reconstruct on locale changes. Labels are resolved separately in build().
-  // kDebugMode is a compile-time constant: the `if (kDebugMode)` branch is
-  // eliminated by the compiler in release builds (AD-5).
-  late final List<Widget> _pages;
+  // Dev mode toggle logic
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
 
   @override
   void initState() {
     super.initState();
-
-    _pages = [
-      ChatTab(focusNode: _recordingFocusNode),
-      const RecordsTab(),
-      const CategoriesTab(),
-      if (kDebugMode) const TestTab(),
-    ];
-
-    _pageController = PageController(initialPage: 0);
+    _tabController = TabController(length: AppConfig().devMode ? 4 : 3, vsync: this, initialIndex: 0);
 
     // Check if the app was opened from a widget
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
@@ -74,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _tabController.dispose();
     _recordingFocusNode.dispose();
     super.dispose();
   }
@@ -82,133 +62,111 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleWidgetClick(Uri? uri) {
     debugPrint('Widget Clicked: $uri');
     if (uri?.host == 'record') {
-      // Switch to chat tab (index 0)
-      _pageController.animateToPage(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-      setState(() => _currentIndex = 0);
+      // Switch to chat tab
+      _tabController.animateTo(0);
 
-      // Wait for page animation to finish before requesting focus
+      // Wait for tab animation to finish before requesting focus
       Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted) _recordingFocusNode.requestFocus();
       });
     }
   }
 
-  // Build tab descriptors with live locale labels. Icons and page count mirror
-  // _pages (same kDebugMode gate) so indices always align.
-  List<_TabConfig> _buildTabs(LocaleProvider l10n) => [
-        _TabConfig(
-          icon: Icons.chat_bubble_outline,
-          label: l10n.translate('drawer_chat'),
-          page: _pages[0],
-        ),
-        _TabConfig(
-          icon: Icons.receipt_long_outlined,
-          label: l10n.translate('drawer_records'),
-          page: _pages[1],
-        ),
-        _TabConfig(
-          icon: Icons.category_outlined,
-          label: l10n.translate('drawer_categories'),
-          page: _pages[2],
-        ),
-        if (kDebugMode)
-          _TabConfig(
-            icon: Icons.science_outlined,
-            label: 'Test',
-            page: _pages[3],
+  void _handleTitleTap() {
+    final now = DateTime.now();
+    if (_lastTapTime == null || now.difference(_lastTapTime!) > const Duration(seconds: 5)) {
+      _tapCount = 1;
+    } else {
+      _tapCount++;
+    }
+    _lastTapTime = now;
+
+    if (_tapCount >= 10) {
+      _tapCount = 0;
+      final localeProvider = context.read<LocaleProvider>();
+      AppConfig().toggleDevMode().then((_) {
+        if (mounted) {
+          final oldIndex = _tabController.index;
+          _tabController.dispose();
+          _tabController = TabController(length: AppConfig().devMode ? 4 : 3, vsync: this, initialIndex: oldIndex.clamp(0, AppConfig().devMode ? 3 : 2));
+          setState(() {});
+          final message = AppConfig().devMode ? localeProvider.translate('dev_mode_enabled') : localeProvider.translate('dev_mode_disabled');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 2)));
+        }
+      });
+    }
+  }
+
+  Widget _buildAppBarTitle() {
+    return GestureDetector(
+      onTap: _handleTitleTap,
+      child: Column(
+        children: [
+          Text(AppConfig().appName, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            'Expense Tracker ${AppConfig().devMode ? "(dev)" : ""}',
+            style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w500),
           ),
-      ];
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
-    final tabs = _buildTabs(l10n);
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: const Color(0xFFF1F5F9), // Light blue-grey background
         appBar: AppBar(
           systemOverlayStyle: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-            statusBarBrightness: Brightness.light,
+            statusBarIconBrightness: Brightness.dark, // For Android
+            statusBarBrightness: Brightness.light, // For iOS (dark icons)
           ),
-          backgroundColor: colorScheme.surface,
-          elevation: AppElevation.none,
-          surfaceTintColor: Colors.transparent,
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+          title: _buildAppBarTitle(),
+          // actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
+          bottom: TabBar(
+            controller: _tabController,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+            tabs: [
+              Tab(icon: const Icon(Icons.chat_bubble_outline), text: l10n.translate('drawer_chat')),
+              Tab(icon: const Icon(Icons.receipt_long), text: l10n.translate('drawer_records')),
+              Tab(icon: const Icon(Icons.category_outlined), text: l10n.translate('drawer_categories')),
+              if (AppConfig().devMode) const Tab(icon: Icon(Icons.science_outlined), text: 'Test'),
+            ],
           ),
-          title: Text(
-            AppConfig().appName,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {}, // placeholder — v1 has no notification behavior
-            ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
         ),
-        drawer: _buildAppDrawer(l10n),
-        body: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: tabs.map((t) => t.page).toList(),
-        ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() => _currentIndex = index);
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          },
-          destinations: tabs
-              .map(
-                (t) => NavigationDestination(
-                  icon: Icon(t.icon),
-                  label: t.label,
-                ),
-              )
-              .toList(),
+        drawer: _buildAppDrawer(),
+        body: SafeArea(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              ChatTab(focusNode: _recordingFocusNode),
+              const RecordsTab(),
+              const CategoriesTab(),
+              if (AppConfig().devMode) const TestTab(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildAppDrawer(LocaleProvider l10n) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildAppDrawer() {
+    final l10n = context.watch<LocaleProvider>();
 
     return Drawer(
-      backgroundColor: colorScheme.surface,
       child: SafeArea(
         top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.secondary],
-                ),
-              ),
+              decoration: BoxDecoration(gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary])),
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Column(
@@ -216,78 +174,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(
-                      radius: AppSpacing.xxl,
+                      radius: 24,
                       backgroundColor: Colors.white.withValues(alpha: 0.15),
-                      child: const Icon(
-                        Icons.account_balance_wallet_rounded,
-                        color: Colors.white,
-                      ),
+                      child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white),
                     ),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: 12),
                     Text(
                       AppConfig().appName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
                     ),
-                    Text(
-                      l10n.translate('app_subtitle'),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                    ),
+                    Text(l10n.translate('app_subtitle'), style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
                   ],
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.sm,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                l10n.translate('settings_header'),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey, letterSpacing: 0.5),
               ),
-              child: SectionLabel(l10n.translate('settings_header')),
             ),
             ListTile(
-              leading: Icon(
-                Icons.language,
-                size: AppSpacing.xl,
-                color: AppColors.onSurface,
-              ),
-              title: Text(
-                l10n.translate('language_label'),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.onSurface),
-              ),
+              leading: const Icon(Icons.language, size: 20),
+              title: Text(l10n.translate('language_label')),
               trailing: Text(
                 l10n.language == AppLanguage.english ? 'English' : 'Tiếng Việt',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
               ),
               onTap: () {
                 final current = l10n.language;
                 showModalBottomSheet(
                   context: context,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(AppRadius.card),
-                    ),
-                  ),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
                   builder: (context) => SafeArea(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
                           title: const Text('English'),
-                          trailing: current == AppLanguage.english
-                              ? Icon(Icons.check, color: AppColors.primary)
-                              : null,
+                          trailing: current == AppLanguage.english ? const Icon(Icons.check, color: Colors.blue) : null,
                           onTap: () {
                             l10n.setLanguage(AppLanguage.english);
                             Navigator.pop(context);
@@ -295,9 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         ListTile(
                           title: const Text('Tiếng Việt'),
-                          trailing: current == AppLanguage.vietnamese
-                              ? Icon(Icons.check, color: AppColors.primary)
-                              : null,
+                          trailing: current == AppLanguage.vietnamese ? const Icon(Icons.check, color: Colors.blue) : null,
                           onTap: () {
                             l10n.setLanguage(AppLanguage.vietnamese);
                             Navigator.pop(context);
@@ -310,24 +234,11 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: Icon(
-                Icons.currency_exchange,
-                size: AppSpacing.xl,
-                color: AppColors.onSurface,
-              ),
-              title: Text(
-                l10n.translate('currency_label'),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.onSurface),
-              ),
+              leading: const Icon(Icons.currency_exchange, size: 20),
+              title: Text(l10n.translate('currency_label')),
               trailing: Text(
                 L10nConfig.currencyCodes[l10n.currency] ?? 'VND',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
               ),
               onTap: () async {
                 final localeProvider = context.read<LocaleProvider>();
@@ -336,16 +247,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 final currentCurrency = localeProvider.currency;
                 final currentCode = L10nConfig.currencyCodes[currentCurrency] ?? 'VND';
 
-                final selected = await showCurrencySelectionPopup(
-                  context: context,
-                  currentCurrency: currentCode,
-                );
+                final selected = await showCurrencySelectionPopup(context: context, currentCurrency: currentCode);
 
                 if (selected != null) {
-                  final newCurrency = AppCurrency.values.firstWhere(
-                    (e) => L10nConfig.currencyCodes[e] == selected,
-                    orElse: () => AppCurrency.vnd,
-                  );
+                  final newCurrency = AppCurrency.values.firstWhere((e) => L10nConfig.currencyCodes[e] == selected, orElse: () => AppCurrency.vnd);
 
                   if (newCurrency != currentCurrency) {
                     // ignore: use_build_context_synchronously
@@ -370,44 +275,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Builder(
               builder: (tileContext) => ListTile(
-                leading: Icon(
-                  Icons.share_outlined,
-                  size: AppSpacing.xl,
-                  color: AppColors.onSurface,
-                ),
-                title: Text(
-                  l10n.translate('share_app_label'),
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.onSurface),
-                ),
+                leading: const Icon(Icons.share_outlined, size: 20),
+                title: Text(l10n.translate('share_app_label')),
                 onTap: () {
                   final box = tileContext.findRenderObject() as RenderBox?;
-                  final origin =
-                      box != null && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
-                  final message = l10n
-                      .translate('share_app_message')
-                      .replaceAll('{android_url}', AppConfig.androidPlayStoreUrl);
+                  final origin = box != null && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+                  final message = l10n.translate('share_app_message').replaceAll('{android_url}', AppConfig.androidPlayStoreUrl);
                   Share.share(message, sharePositionOrigin: origin);
                 },
               ),
             ),
             const Spacer(),
-            const Divider(indent: AppSpacing.lg, endIndent: AppSpacing.lg),
+            const Divider(indent: 16, endIndent: 16),
             ListTile(
-              leading: Icon(
-                Icons.delete_forever,
-                size: AppSpacing.xl,
-                color: AppColors.error,
-              ),
-              title: Text(
-                l10n.translate('reset_all_data'),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.error),
-              ),
+              leading: const Icon(Icons.delete_forever, size: 20, color: Colors.red),
+              title: Text(l10n.translate('reset_all_data'), style: const TextStyle(color: Colors.red)),
               onTap: () {
                 showDialog(
                   context: context,
@@ -425,16 +307,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const Divider(indent: AppSpacing.lg, endIndent: AppSpacing.lg),
+            const Divider(indent: 16, endIndent: 16),
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(16.0),
               child: Text(
                 AppConfig().fullVersion,
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(color: AppColors.onSurfaceVariant),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ),
           ],

@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
-import 'package:wallet_ai/configs/app_theme.dart';
 
 import 'confirmation_dialog.dart';
 
@@ -13,6 +12,7 @@ import 'confirmation_dialog.dart';
 ///
 /// This dialog allows users to modify the amount, type, money source,
 /// category, and description of a record.
+/// It uses a dark theme style with specific border radiuses.
 class EditRecordPopup extends StatefulWidget {
   final Record record;
   final VoidCallback? onDeleted;
@@ -55,8 +55,6 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Consumer<RecordProvider>(
       builder: (context, provider, child) {
@@ -74,10 +72,13 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
         }
 
         return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.xxl),
+          backgroundColor: Colors.white,
+          shadowColor: Colors.black12,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500),
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -85,10 +86,15 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                 // Title — locked at top
                 Text(
                   l10n.translate('edit_record_title'),
-                  style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'Poppins',
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: 24),
 
                 // Scrollable form fields
                 Flexible(
@@ -96,139 +102,158 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Type Toggle
-                        _buildLabel(l10n.translate('type_label'), textTheme, colorScheme),
-                        const SizedBox(height: AppSpacing.sm),
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.xs),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(AppRadius.tile),
-                          ),
-                          child: Row(
-                            children: [
-                              _buildTypeOption(l10n.translate('income_label'), 'income', AppColors.primary, colorScheme),
-                              _buildTypeOption(l10n.translate('spent_label'), 'expense', colorScheme.error, colorScheme),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
+                  // Type Toggle
+                  _buildLabel(l10n.translate('type_label')),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildTypeOption(l10n.translate('income_label'), 'income', Colors.green),
+                        _buildTypeOption(l10n.translate('spent_label'), 'expense', Colors.red),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-                        // Amount
-                        _buildLabel(l10n.translate('income_label'), textTheme, colorScheme),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextField(
-                          controller: _amountController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: InputDecoration(
-                            hintText: '0.00',
-                            errorText: _amountError != null ? l10n.translate(_amountError!) : null,
-                          ),
-                          onChanged: (_) {
-                            if (_amountError != null) {
-                              setState(() => _amountError = null);
-                            }
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
+                  // Amount
+                  _buildLabel(l10n.translate('income_label')), // Reuse label? Or add amount_label
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 15,
+                      fontFamily: 'Poppins',
+                    ),
+                    decoration: _buildInputDecoration(
+                      hint: '0.00',
+                      error: _amountError != null ? l10n.translate(_amountError!) : null,
+                    ),
+                    onChanged: (_) {
+                      if (_amountError != null) {
+                        setState(() => _amountError = null);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
 
-                        // Money Source Dropdown
-                        _buildLabel(l10n.translate('money_source_label'), textTheme, colorScheme),
-                        const SizedBox(height: AppSpacing.sm),
-                        _buildDropdown<int>(
-                          colorScheme: colorScheme,
-                          value: _selectedSourceId,
-                          items: moneySources.map((s) => DropdownMenuItem(
-                            value: s.sourceId!,
-                            child: Text(s.sourceName, style: textTheme.bodyMedium),
-                          )).toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedSourceId = val);
-                            }
-                          },
+                  // Money Source Dropdown
+                  _buildLabel(l10n.translate('money_source_label')),
+                  const SizedBox(height: 8),
+                  _buildDropdown<int>(
+                    value: _selectedSourceId,
+                    items: moneySources.map((s) => DropdownMenuItem(
+                      value: s.sourceId!,
+                      child: Text(
+                        s.sourceName,
+                        style: const TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontFamily: 'Poppins',
+                          fontSize: 15,
                         ),
-                        const SizedBox(height: AppSpacing.xl),
+                      ),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _selectedSourceId = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
 
-                        // Category Dropdown
-                        _buildLabel(l10n.translate('category_label'), textTheme, colorScheme),
-                        const SizedBox(height: AppSpacing.sm),
-                        _buildDropdown<int>(
-                          colorScheme: colorScheme,
-                          value: _selectedCategoryId,
-                          items: categories
-                              .where((c) => c.type == _type)
-                              .map((c) => DropdownMenuItem(
-                            value: c.categoryId!,
+                  // Category Dropdown
+                  _buildLabel(l10n.translate('category_label')),
+                  const SizedBox(height: 8),
+                  _buildDropdown<int>(
+                    value: _selectedCategoryId,
+                    items: categories
+                        .where((c) => c.type == _type)
+                        .map((c) => DropdownMenuItem(
+                      value: c.categoryId!,
+                      child: Text(
+                        provider.getCategoryName(c.categoryId!),
+                        style: const TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontFamily: 'Poppins',
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _selectedCategoryId = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Description
+                  _buildLabel(l10n.translate('description_label')),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _descriptionController,
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 15,
+                      fontFamily: 'Poppins',
+                    ),
+                    decoration: _buildInputDecoration(
+                      hint: l10n.translate('description_hint'),
+                      error: _descriptionError != null ? l10n.translate(_descriptionError!) : null,
+                    ),
+                    onChanged: (_) {
+                      if (_descriptionError != null) {
+                        setState(() => _descriptionError = null);
+                      }
+                    },
+                    textCapitalization: TextCapitalization.sentences,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Event time
+                  _buildLabel(l10n.translate('occurred_at_label')),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: _pickOccurredAt,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.schedule, color: Color(0xFF64748B), size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
                             child: Text(
-                              provider.getCategoryName(c.categoryId!),
-                              style: textTheme.bodyMedium,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          )).toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedCategoryId = val);
-                            }
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
-
-                        // Description
-                        _buildLabel(l10n.translate('description_label'), textTheme, colorScheme),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextField(
-                          controller: _descriptionController,
-                          decoration: InputDecoration(
-                            hintText: l10n.translate('description_hint'),
-                            errorText: _descriptionError != null ? l10n.translate(_descriptionError!) : null,
-                          ),
-                          onChanged: (_) {
-                            if (_descriptionError != null) {
-                              setState(() => _descriptionError = null);
-                            }
-                          },
-                          textCapitalization: TextCapitalization.sentences,
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
-
-                        // Event time
-                        _buildLabel(l10n.translate('occurred_at_label'), textTheme, colorScheme),
-                        const SizedBox(height: AppSpacing.sm),
-                        InkWell(
-                          onTap: _pickOccurredAt,
-                          borderRadius: BorderRadius.circular(AppRadius.input),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg,
-                              vertical: AppSpacing.md,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(AppRadius.input),
-                              border: Border.all(color: AppColors.outline),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.schedule, color: AppColors.onSurfaceVariant, size: 18),
-                                const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
-                                Expanded(
-                                  child: Text(
-                                    DateFormat('dd/MM/yyyy  HH:mm').format(_occurredAt),
-                                    style: textTheme.bodyMedium,
-                                  ),
-                                ),
-                                Icon(Icons.keyboard_arrow_down, color: AppColors.onSurfaceVariant),
-                              ],
+                              DateFormat('dd/MM/yyyy  HH:mm').format(_occurredAt),
+                              style: const TextStyle(
+                                color: Color(0xFF1E293B),
+                                fontSize: 15,
+                                fontFamily: 'Poppins',
+                              ),
                             ),
                           ),
-                        ),
+                          const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
+                        ],
+                      ),
+                    ),
+                  ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: 24),
 
                 // Action Buttons — locked at bottom
                 Row(
@@ -236,25 +261,64 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text(l10n.translate('popup_cancel')),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.translate('popup_cancel'),
+                          style: const TextStyle(
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: FilledButton(
+                      child: ElevatedButton(
                         onPressed: () => _handleSave(provider),
-                        child: Text(l10n.translate('save_button')),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6366F1),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          l10n.translate('save_button'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: 8),
                 TextButton.icon(
                   onPressed: () => _handleDelete(l10n),
-                  icon: Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                  icon: Icon(Icons.delete_outline, color: Colors.red.shade600, size: 20),
                   label: Text(
                     l10n.translate('delete_button'),
-                    style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.red.shade600,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ],
@@ -265,27 +329,29 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
     );
   }
 
-  Widget _buildTypeOption(String label, String value, Color activeColor, ColorScheme colorScheme) {
+  Widget _buildTypeOption(String label, String value, Color activeColor) {
     final isSelected = _type == value;
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
             _type = value;
+            // Optionally reset category if it doesn't match the new type
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.tile),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant,
+              color: isSelected ? Colors.white : const Color(0xFF64748B),
               fontWeight: FontWeight.w600,
+              fontFamily: 'Poppins',
             ),
           ),
         ),
@@ -293,34 +359,45 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
     );
   }
 
-  Widget _buildLabel(String label, TextTheme textTheme, ColorScheme colorScheme) {
+  Widget _buildLabel(String label) {
     return Text(
       label,
-      style: textTheme.labelLarge?.copyWith(color: AppColors.onSurfaceVariant),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({required String hint, String? error}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+      errorText: error,
+      errorStyle: const TextStyle(fontFamily: 'Poppins'),
+      filled: true,
+      fillColor: const Color(0xFFF1F5F9),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
   Widget _buildDropdown<T>({
-    required ColorScheme colorScheme,
     required T value,
     required List<DropdownMenuItem<T>> items,
     required ValueChanged<T?> onChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadius.input),
-        border: Border.all(color: AppColors.outline),
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: value,
           items: items,
           onChanged: onChanged,
-          dropdownColor: AppColors.surface,
+          dropdownColor: Colors.white,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: AppColors.onSurfaceVariant),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
         ),
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wallet_ai/configs/app_theme.dart';
 
 Future<String?> showCurrencySelectionPopup({
   required BuildContext context,
@@ -8,27 +7,37 @@ Future<String?> showCurrencySelectionPopup({
   return showDialog<String>(
     context: context,
     builder: (context) {
-      final textTheme = Theme.of(context).textTheme;
       return Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.xxl,
-            horizontal: AppSpacing.sm,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'Select Currency',
-                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
+                  fontFamily: 'Poppins',
+                ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              _buildCurrencyOption(context, 'VND', 'Vietnamese Dong', currentCurrency, textTheme),
-              _buildCurrencyOption(context, 'USD', 'US Dollar', currentCurrency, textTheme),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: 16),
+              _buildCurrencyOption(context, 'VND', 'Vietnamese Dong', currentCurrency),
+              _buildCurrencyOption(context, 'USD', 'US Dollar', currentCurrency),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
               ),
             ],
           ),
@@ -38,42 +47,40 @@ Future<String?> showCurrencySelectionPopup({
   );
 }
 
-Widget _buildCurrencyOption(
-  BuildContext context,
-  String code,
-  String label,
-  String current,
-  TextTheme textTheme,
-) {
+Widget _buildCurrencyOption(BuildContext context, String code, String label, String current) {
   final isSelected = current == code;
   return ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-    tileColor: isSelected ? AppColors.primaryContainer : null,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
     leading: Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryContainer : AppColors.surfaceContainerLow,
+        color: isSelected ? const Color(0xFF6366F1).withValues(alpha: 0.1) : const Color(0xFFF1F5F9),
         shape: BoxShape.circle,
       ),
       child: Icon(
         Icons.payments_rounded,
-        color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+        color: isSelected ? const Color(0xFF6366F1) : const Color(0xFF64748B),
         size: 20,
       ),
     ),
     title: Text(
       code,
-      style: textTheme.bodyMedium?.copyWith(
+      style: TextStyle(
         fontWeight: FontWeight.w700,
-        color: isSelected ? AppColors.primary : AppColors.onSurface,
+        color: isSelected ? const Color(0xFF6366F1) : const Color(0xFF1E293B),
+        fontFamily: 'Poppins',
       ),
     ),
     subtitle: Text(
       label,
-      style: textTheme.labelMedium?.copyWith(color: AppColors.onSurfaceVariant),
+      style: const TextStyle(
+        fontSize: 12,
+        color: Color(0xFF64748B),
+        fontFamily: 'Poppins',
+      ),
     ),
     trailing: isSelected
-        ? Icon(Icons.check_circle_rounded, color: AppColors.primary)
+        ? const Icon(Icons.check_circle_rounded, color: Color(0xFF6366F1))
         : null,
     onTap: () => Navigator.pop(context, code),
   );

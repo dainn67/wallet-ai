@@ -4,11 +4,11 @@ import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
-import 'package:wallet_ai/configs/app_theme.dart';
 
 /// A popup dialog for adding a new [MoneySource].
 ///
 /// This dialog captures the source name and an initial balance.
+/// It uses a dark theme style with specific border radiuses.
 class AddSourcePopup extends StatefulWidget {
   const AddSourcePopup({super.key});
 
@@ -32,63 +32,89 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
-    final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+      backgroundColor: Colors.white,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               l10n.translate('add_source_title'),
-              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E293B),
+                fontFamily: 'Poppins',
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppSpacing.xxl),
-            _buildLabel(l10n.translate('source_name_label'), textTheme),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 24),
+            _buildLabel(l10n.translate('source_name_label')),
+            const SizedBox(height: 8),
             TextField(
               controller: _nameController,
               onChanged: (_) {
                 if (_nameError != null) setState(() => _nameError = null);
               },
-              decoration: InputDecoration(
-                hintText: l10n.translate('source_name_hint'),
-                errorText: _nameError != null ? l10n.translate(_nameError!) : null,
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              decoration: _buildInputDecoration(
+                hint: l10n.translate('source_name_hint'),
+                error: _nameError != null ? l10n.translate(_nameError!) : null,
               ),
               textCapitalization: TextCapitalization.sentences,
             ),
-            const SizedBox(height: AppSpacing.xl),
-            _buildLabel(l10n.translate('initial_amount_label'), textTheme),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 20),
+            _buildLabel(l10n.translate('initial_amount_label')),
+            const SizedBox(height: 8),
             TextField(
               controller: _amountController,
               onChanged: (_) {
                 if (_amountError != null) setState(() => _amountError = null);
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                hintText: '0.00',
-                errorText: _amountError != null ? l10n.translate(_amountError!) : null,
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              decoration: _buildInputDecoration(
+                hint: '0.00',
+                error: _amountError != null ? l10n.translate(_amountError!) : null,
               ),
             ),
-            const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
+            const SizedBox(height: 32),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text(l10n.translate('popup_cancel')),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      l10n.translate('popup_cancel'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                    ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton(
+                  child: ElevatedButton(
                     onPressed: () => _handleSave(l10n),
-                    child: Text(l10n.translate('save_button')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      l10n.translate('save_button'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                    ),
                   ),
                 ),
               ],
@@ -99,10 +125,23 @@ class _AddSourcePopupState extends State<AddSourcePopup> {
     );
   }
 
-  Widget _buildLabel(String label, TextTheme textTheme) {
+  Widget _buildLabel(String label) {
     return Text(
       label,
-      style: textTheme.labelLarge?.copyWith(color: AppColors.onSurfaceVariant),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({required String hint, String? error}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+      errorText: error,
+      errorStyle: const TextStyle(fontFamily: 'Poppins'),
+      filled: true,
+      fillColor: const Color(0xFFF1F5F9),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 

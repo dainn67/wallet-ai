@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
-import 'package:wallet_ai/configs/app_theme.dart';
 
 import 'confirmation_dialog.dart';
 
@@ -39,9 +38,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
     final recordProvider = context.read<RecordProvider>();
     final l10n = context.read<LocaleProvider>();
     final categoryId = widget.category!.categoryId!;
-
+    
     final count = await recordProvider.getRecordCountByCategoryId(categoryId);
-
+    
     if (!mounted) return;
 
     // ignore: use_build_context_synchronously
@@ -65,16 +64,21 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
     final recordProvider = context.read<RecordProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final isEdit = widget.category != null;
 
     return AlertDialog(
+      backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Text(
         isEdit ? l10n.translate('edit_category_title') : l10n.translate('add_category_title'),
-        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        style: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1E293B),
+        ),
         textAlign: TextAlign.center,
       ),
       content: SizedBox(
@@ -82,112 +86,138 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.translate('category_name_label'),
-                  style: textTheme.labelLarge?.copyWith(color: AppColors.onSurfaceVariant),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.translate('category_name_label'),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                TextFormField(
-                  controller: _nameController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: l10n.translate('category_name_hint'),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _nameController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: l10n.translate('category_name_hint'),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return l10n.translate('name_required_error');
-                    }
-
-                    final exists = recordProvider.categories.any((c) =>
-                      c.name.trim().toLowerCase() == value.trim().toLowerCase() &&
-                      c.categoryId != widget.category?.categoryId
-                    );
-
-                    if (exists) {
-                      return l10n.translate('category_already_exists');
-                    }
-
-                    return null;
-                  },
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  l10n.translate('type_label'),
-                  style: textTheme.labelLarge?.copyWith(color: AppColors.onSurfaceVariant),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return l10n.translate('name_required_error');
+                  }
+                  
+                  final exists = recordProvider.categories.any((c) => 
+                    c.name.trim().toLowerCase() == value.trim().toLowerCase() && 
+                    c.categoryId != widget.category?.categoryId
+                  );
+                  
+                  if (exists) {
+                    return l10n.translate('category_already_exists');
+                  }
+                  
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.translate('type_label'),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _TypeButton(
-                        label: l10n.translate('spent_label'),
-                        isSelected: _selectedType == 'expense',
-                        activeColor: colorScheme.error,
-                        onTap: () => setState(() => _selectedType = 'expense'),
-                      ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TypeButton(
+                      label: l10n.translate('spent_label'),
+                      isSelected: _selectedType == 'expense',
+                      color: Colors.red,
+                      onTap: () => setState(() => _selectedType = 'expense'),
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: _TypeButton(
-                        label: l10n.translate('income_label'),
-                        isSelected: _selectedType == 'income',
-                        activeColor: AppColors.primary,
-                        onTap: () => setState(() => _selectedType = 'income'),
-                      ),
-                    ),
-                  ],
-                ),
-                if (isEdit) ...[
-                  const SizedBox(height: AppSpacing.xxl),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton.icon(
-                      onPressed: () => _handleDelete(context),
-                      icon: Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
-                      label: Text(
-                        l10n.translate('delete_button'),
-                        style: textTheme.labelLarge?.copyWith(
-                          color: colorScheme.error,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                          side: BorderSide(color: colorScheme.error.withValues(alpha: 0.5)),
-                        ),
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _TypeButton(
+                      label: l10n.translate('income_label'),
+                      isSelected: _selectedType == 'income',
+                      color: Colors.green,
+                      onTap: () => setState(() => _selectedType = 'income'),
                     ),
                   ),
                 ],
+              ),
+              if (isEdit) ...[
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () => _handleDelete(context),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    label: Text(
+                      l10n.translate('delete_button'),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
+                      ),
+                    ),
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(
-        AppSpacing.xxl,
-        AppSpacing.sm,
-        AppSpacing.xxl,
-        AppSpacing.xxl,
-      ),
+    ),
+    actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       actions: [
         Row(
           children: [
             Expanded(
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(l10n.translate('popup_cancel')),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l10n.translate('popup_cancel'),
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
+              child: ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final newCategory = Category(
@@ -195,17 +225,33 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                       name: _nameController.text.trim(),
                       type: _selectedType,
                     );
-
+                    
                     if (isEdit) {
                       recordProvider.updateCategory(newCategory);
                     } else {
                       recordProvider.addCategory(newCategory);
                     }
-
+                    
                     Navigator.of(context).pop();
                   }
                 },
-                child: Text(l10n.translate('save_button')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l10n.translate('save_button'),
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
               ),
             ),
           ],
@@ -218,38 +264,37 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
 class _TypeButton extends StatelessWidget {
   final String label;
   final bool isSelected;
-  final Color activeColor;
+  final Color color;
   final VoidCallback onTap;
 
   const _TypeButton({
     required this.label,
     required this.isSelected,
-    required this.activeColor,
+    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.tile),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.1) : AppColors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppRadius.tile),
+          color: isSelected ? color.withOpacity(0.1) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? activeColor : Colors.transparent,
+            color: isSelected ? color : Colors.transparent,
             width: 2,
           ),
         ),
         child: Center(
           child: Text(
             label,
-            style: textTheme.labelLarge?.copyWith(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: isSelected ? activeColor : AppColors.onSurfaceVariant,
+              color: isSelected ? color : const Color(0xFF64748B),
             ),
           ),
         ),

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
-import 'package:wallet_ai/configs/app_theme.dart';
 
 import 'confirmation_dialog.dart';
 
@@ -26,79 +25,89 @@ class _TransferInfoPopupState extends State<TransferInfoPopup> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<LocaleProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final formattedDate = DateFormat('dd/MM/yyyy  HH:mm')
         .format(DateTime.fromMillisecondsSinceEpoch(widget.record.occurredAt));
     final from = widget.record.sourceName ?? '—';
     final to = widget.record.targetSourceName ?? '—';
 
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xxl,
-        vertical: AppSpacing.xxl,
-      ),
+      backgroundColor: Colors.white,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500),
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xxl,
-          AppSpacing.xxl,
-          AppSpacing.xxl,
-          AppSpacing.lg,
-        ),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               l10n.translate('transfer_title'),
-              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E293B),
+                fontFamily: 'Poppins',
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 8),
             Center(
               child: Container(
-                padding: const EdgeInsets.all(AppSpacing.lg - AppSpacing.xs),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.swap_horiz, color: AppColors.primary, size: 28),
+                child: const Icon(Icons.swap_horiz, color: Color(0xFF6366F1), size: 28),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            _row(l10n.translate('transfer_from_label'), from, textTheme),
-            const SizedBox(height: AppSpacing.md),
-            _row(l10n.translate('transfer_to_label'), to, textTheme),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 16),
+            _row(l10n.translate('transfer_from_label'), from),
+            const SizedBox(height: 12),
+            _row(l10n.translate('transfer_to_label'), to),
+            const SizedBox(height: 12),
             _row(
               l10n.translate('transfer_amount_label'),
               '${widget.record.amount.toStringAsFixed(0)} ${widget.record.currency}',
-              textTheme,
             ),
-            const SizedBox(height: AppSpacing.md),
-            _row(l10n.translate('transfer_note_label'), widget.record.description, textTheme),
-            const SizedBox(height: AppSpacing.md),
-            _row(l10n.translate('occurred_at_label'), formattedDate, textTheme),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: 12),
+            _row(l10n.translate('transfer_note_label'), widget.record.description),
+            const SizedBox(height: 12),
+            _row(l10n.translate('occurred_at_label'), formattedDate),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text(l10n.translate('popup_cancel')),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      l10n.translate('popup_cancel'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                    ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () => _handleDelete(l10n),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.error,
-                      foregroundColor: colorScheme.onError,
-                    ),
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: Text(l10n.translate('delete_button')),
+                    label: Text(
+                      l10n.translate('delete_button'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
                   ),
                 ),
               ],
@@ -109,20 +118,20 @@ class _TransferInfoPopupState extends State<TransferInfoPopup> {
     );
   }
 
-  Widget _row(String label, String value, TextTheme textTheme) {
+  Widget _row(String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: textTheme.labelMedium?.copyWith(color: AppColors.onSurfaceVariant),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
         ),
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(width: 12),
         Expanded(
           child: Text(
             value.isEmpty ? '—' : value,
             textAlign: TextAlign.end,
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B), fontFamily: 'Poppins'),
           ),
         ),
       ],
