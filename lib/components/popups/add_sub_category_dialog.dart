@@ -21,7 +21,7 @@ Future<void> showAddSubCategoryDialog({
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Text(
         l10n.translate('add_sub_category'),
-        style: const TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+        style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         textAlign: TextAlign.center,
       ),
       content: TextField(
@@ -43,7 +43,7 @@ Future<void> showAddSubCategoryDialog({
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   l10n.translate('popup_cancel'),
-                  style: const TextStyle(fontFamily: 'Poppins', color: Color(0xFF94A3B8), fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontFamily: 'PlusJakartaSans', color: Color(0xFF94A3B8), fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -64,7 +64,7 @@ Future<void> showAddSubCategoryDialog({
                 ),
                 child: Text(
                   l10n.translate('save_button'),
-                  style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700),
+                  style: const TextStyle(fontFamily: 'PlusJakartaSans', fontWeight: FontWeight.w700),
                 ),
               ),
             ),

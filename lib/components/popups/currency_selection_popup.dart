@@ -21,7 +21,7 @@ Future<String?> showCurrencySelectionPopup({
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1E293B),
-                  fontFamily: 'Poppins',
+                  fontFamily: 'PlusJakartaSans',
                 ),
               ),
               const SizedBox(height: 16),
@@ -35,7 +35,7 @@ Future<String?> showCurrencySelectionPopup({
                   style: TextStyle(
                     color: Color(0xFF64748B),
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'Poppins',
+                    fontFamily: 'PlusJakartaSans',
                   ),
                 ),
               ),
@@ -68,7 +68,7 @@ Widget _buildCurrencyOption(BuildContext context, String code, String label, Str
       style: TextStyle(
         fontWeight: FontWeight.w700,
         color: isSelected ? const Color(0xFF6366F1) : const Color(0xFF1E293B),
-        fontFamily: 'Poppins',
+        fontFamily: 'PlusJakartaSans',
       ),
     ),
     subtitle: Text(
@@ -76,7 +76,7 @@ Widget _buildCurrencyOption(BuildContext context, String code, String label, Str
       style: const TextStyle(
         fontSize: 12,
         color: Color(0xFF64748B),
-        fontFamily: 'Poppins',
+        fontFamily: 'PlusJakartaSans',
       ),
     ),
     trailing: isSelected

@@ -60,7 +60,7 @@ class _TransferPopupState extends State<TransferPopup> {
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1E293B),
-                fontFamily: 'Poppins',
+                fontFamily: 'PlusJakartaSans',
               ),
               textAlign: TextAlign.center,
             ),
@@ -84,7 +84,7 @@ class _TransferPopupState extends State<TransferPopup> {
               const SizedBox(height: 6),
               Text(
                 l10n.translate(_toError!),
-                style: const TextStyle(color: Colors.red, fontSize: 12, fontFamily: 'Poppins'),
+                style: const TextStyle(color: Colors.red, fontSize: 12, fontFamily: 'PlusJakartaSans'),
               ),
             ],
             const SizedBox(height: 16),
@@ -97,7 +97,7 @@ class _TransferPopupState extends State<TransferPopup> {
                 if (_amountError != null) setState(() => _amountError = null);
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'PlusJakartaSans'),
               decoration: _inputDecoration(
                 hint: '0.00',
                 error: _amountError != null ? l10n.translate(_amountError!) : null,
@@ -110,7 +110,7 @@ class _TransferPopupState extends State<TransferPopup> {
             TextField(
               controller: _descriptionController,
               textCapitalization: TextCapitalization.sentences,
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'PlusJakartaSans'),
               decoration: _inputDecoration(hint: l10n.translate('description_hint')),
             ),
             const SizedBox(height: 32),
@@ -126,7 +126,7 @@ class _TransferPopupState extends State<TransferPopup> {
                     ),
                     child: Text(
                       l10n.translate('popup_cancel'),
-                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                   ),
                 ),
@@ -149,7 +149,7 @@ class _TransferPopupState extends State<TransferPopup> {
                           )
                         : Text(
                             l10n.translate('transfer_button'),
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                           ),
                   ),
                 ),
@@ -163,7 +163,7 @@ class _TransferPopupState extends State<TransferPopup> {
 
   Widget _label(String text) => Text(
         text,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'PlusJakartaSans'),
       );
 
   Widget _readOnlyField(String text, {bool isError = false}) => Container(
@@ -177,16 +177,16 @@ class _TransferPopupState extends State<TransferPopup> {
           style: TextStyle(
             color: isError ? Colors.red : const Color(0xFF1E293B),
             fontSize: 15,
-            fontFamily: 'Poppins',
+            fontFamily: 'PlusJakartaSans',
           ),
         ),
       );
 
   InputDecoration _inputDecoration({required String hint, String? error}) => InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'PlusJakartaSans'),
         errorText: error,
-        errorStyle: const TextStyle(fontFamily: 'Poppins'),
+        errorStyle: const TextStyle(fontFamily: 'PlusJakartaSans'),
         filled: true,
         fillColor: const Color(0xFFF1F5F9),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -210,7 +210,7 @@ class _TransferPopupState extends State<TransferPopup> {
           isExpanded: true,
           hint: Text(
             context.read<LocaleProvider>().translate('transfer_select_to_hint'),
-            style: const TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Poppins', fontSize: 15),
+            style: const TextStyle(color: Color(0xFF94A3B8), fontFamily: 'PlusJakartaSans', fontSize: 15),
           ),
           dropdownColor: Colors.white,
           icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
@@ -220,7 +220,7 @@ class _TransferPopupState extends State<TransferPopup> {
                   value: s.sourceId!,
                   child: Text(
                     s.sourceName,
-                    style: const TextStyle(color: Color(0xFF1E293B), fontFamily: 'Poppins', fontSize: 15),
+                    style: const TextStyle(color: Color(0xFF1E293B), fontFamily: 'PlusJakartaSans', fontSize: 15),
                   ),
                 ),
               )

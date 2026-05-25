@@ -247,8 +247,9 @@ class _ChatTabState extends State<ChatTab> {
     final isStreaming = context.watch<ChatProvider>().isStreaming;
     final l10n = context.watch<LocaleProvider>();
     final canSend = !isStreaming && (_controller.text.trim().isNotEmpty || _pendingImages.isNotEmpty);
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0 + bottomInset),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],

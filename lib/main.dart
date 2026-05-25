@@ -68,15 +68,15 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFF10B981), // Emerald
             surface: const Color(0xFFF8FAFC),
           ),
-          fontFamily: 'Poppins',
-          textTheme: const TextTheme().apply(fontFamily: 'Poppins'),
+          fontFamily: 'PlusJakartaSans',
+          textTheme: const TextTheme().apply(fontFamily: 'PlusJakartaSans'),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent, // Disable Material 3 surface tint
             scrolledUnderElevation: 0,
             elevation: 0,
             centerTitle: true,
-            titleTextStyle: TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+            titleTextStyle: TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'PlusJakartaSans'),
             iconTheme: IconThemeData(color: Color(0xFF1E293B)),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,

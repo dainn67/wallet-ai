@@ -90,7 +90,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1E293B),
-                    fontFamily: 'Poppins',
+                    fontFamily: 'PlusJakartaSans',
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -129,7 +129,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     style: const TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 15,
-                      fontFamily: 'Poppins',
+                      fontFamily: 'PlusJakartaSans',
                     ),
                     decoration: _buildInputDecoration(
                       hint: '0.00',
@@ -154,7 +154,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                         s.sourceName,
                         style: const TextStyle(
                           color: Color(0xFF1E293B),
-                          fontFamily: 'Poppins',
+                          fontFamily: 'PlusJakartaSans',
                           fontSize: 15,
                         ),
                       ),
@@ -180,7 +180,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                         provider.getCategoryName(c.categoryId!),
                         style: const TextStyle(
                           color: Color(0xFF1E293B),
-                          fontFamily: 'Poppins',
+                          fontFamily: 'PlusJakartaSans',
                           fontSize: 15,
                         ),
                         maxLines: 1,
@@ -203,7 +203,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                     style: const TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 15,
-                      fontFamily: 'Poppins',
+                      fontFamily: 'PlusJakartaSans',
                     ),
                     decoration: _buildInputDecoration(
                       hint: l10n.translate('description_hint'),
@@ -240,7 +240,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                               style: const TextStyle(
                                 color: Color(0xFF1E293B),
                                 fontSize: 15,
-                                fontFamily: 'Poppins',
+                                fontFamily: 'PlusJakartaSans',
                               ),
                             ),
                           ),
@@ -273,7 +273,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                             color: Color(0xFF64748B),
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
-                            fontFamily: 'Poppins',
+                            fontFamily: 'PlusJakartaSans',
                           ),
                         ),
                       ),
@@ -296,7 +296,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 15,
-                            fontFamily: 'Poppins',
+                            fontFamily: 'PlusJakartaSans',
                           ),
                         ),
                       ),
@@ -313,7 +313,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
                       color: Colors.red.shade600,
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      fontFamily: 'Poppins',
+                      fontFamily: 'PlusJakartaSans',
                     ),
                   ),
                   style: TextButton.styleFrom(
@@ -351,7 +351,7 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
             style: TextStyle(
               color: isSelected ? Colors.white : const Color(0xFF64748B),
               fontWeight: FontWeight.w600,
-              fontFamily: 'Poppins',
+              fontFamily: 'PlusJakartaSans',
             ),
           ),
         ),
@@ -362,16 +362,16 @@ class _EditRecordPopupState extends State<EditRecordPopup> {
   Widget _buildLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'PlusJakartaSans'),
     );
   }
 
   InputDecoration _buildInputDecoration({required String hint, String? error}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'PlusJakartaSans'),
       errorText: error,
-      errorStyle: const TextStyle(fontFamily: 'Poppins'),
+      errorStyle: const TextStyle(fontFamily: 'PlusJakartaSans'),
       filled: true,
       fillColor: const Color(0xFFF1F5F9),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

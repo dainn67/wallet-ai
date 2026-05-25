@@ -62,7 +62,7 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1E293B),
-                      fontFamily: 'Poppins',
+                      fontFamily: 'PlusJakartaSans',
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -77,7 +77,7 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
             const SizedBox(height: 24),
             Text(
               l10n.translate('update_amount_label'),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'Poppins'),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), fontFamily: 'PlusJakartaSans'),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -86,12 +86,12 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                 if (_amountError != null) setState(() => _amountError = null);
               },
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'Poppins'),
+              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 15, fontFamily: 'PlusJakartaSans'),
               decoration: InputDecoration(
                 hintText: '0.00',
-                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'Poppins'),
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15, fontFamily: 'PlusJakartaSans'),
                 errorText: _amountError != null ? l10n.translate(_amountError!) : null,
-                errorStyle: const TextStyle(fontFamily: 'Poppins'),
+                errorStyle: const TextStyle(fontFamily: 'PlusJakartaSans'),
                 filled: true,
                 fillColor: const Color(0xFFF1F5F9),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -110,7 +110,7 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                     ),
                     child: Text(
                       l10n.translate('popup_cancel'),
-                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                   ),
                 ),
@@ -127,7 +127,7 @@ class _EditSourcePopupState extends State<EditSourcePopup> {
                     ),
                     child: Text(
                       l10n.translate('save_button'),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'Poppins'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, fontFamily: 'PlusJakartaSans'),
                     ),
                   ),
                 ),

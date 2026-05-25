@@ -33,7 +33,7 @@ class ConfirmationDialog extends StatelessWidget {
       title: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: 'PlusJakartaSans',
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Color(0xFF1E293B),
@@ -43,7 +43,7 @@ class ConfirmationDialog extends StatelessWidget {
       content: Text(
         content,
         style: const TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: 'PlusJakartaSans',
           fontSize: 15,
           fontWeight: FontWeight.normal,
           color: Color(0xFF64748B),
@@ -66,7 +66,7 @@ class ConfirmationDialog extends StatelessWidget {
                 child: Text(
                   cancelLabel,
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
+                    fontFamily: 'PlusJakartaSans',
                     color: Color(0xFF94A3B8),
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
@@ -96,7 +96,7 @@ class ConfirmationDialog extends StatelessWidget {
                 child: Text(
                   confirmLabel,
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
+                    fontFamily: 'PlusJakartaSans',
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),

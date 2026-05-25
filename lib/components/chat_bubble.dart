@@ -134,13 +134,27 @@ class ChatBubble extends StatelessWidget {
                             ),
                           ],
                         )
-                      : Text(
-                          message.content.trim(),
-                          style: TextStyle(
-                            color: isUser ? Colors.white : const Color(0xFF1E293B),
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              message.content.trim(),
+                              style: TextStyle(
+                                color: isUser ? Colors.white : const Color(0xFF1E293B),
+                                fontSize: 14,
+                                height: 1.5,
+                              ),
+                            ),
+                            ...?message.records
+                                ?.where((r) => r.suggestedCategory != null && r.categoryId == -1)
+                                .map((record) => SuggestionBanner(
+                                      record: record,
+                                      messageId: message.id,
+                                      suggestion: record.suggestedCategory!,
+                                      onConfirm: () => _handleConfirm(context, record, message.id),
+                                      onCancel: () => _handleCancel(context, record, message.id),
+                                    )),
+                          ],
                         ),
                 ),
                 if (message.records != null && message.records!.isNotEmpty) ...[
@@ -150,32 +164,14 @@ class ChatBubble extends StatelessWidget {
                     final record = entry.value;
                     final isLast = index == message.records!.length - 1;
 
-                    final List<Widget> groupWidgets = [
+                    return [
                       RecordWidget(
                         record: record,
                         isEditable: true,
                         onEdit: () => _handleEdit(context, record, message.id),
                       ),
+                      if (!isLast) const SizedBox(height: 16),
                     ];
-
-                    if (record.suggestedCategory != null && record.categoryId == -1) {
-                      groupWidgets.add(const SizedBox(height: 8));
-                      groupWidgets.add(
-                        SuggestionBanner(
-                          record: record,
-                          messageId: message.id,
-                          suggestion: record.suggestedCategory!,
-                          onConfirm: () => _handleConfirm(context, record, message.id),
-                          onCancel: () => _handleCancel(context, record, message.id),
-                        ),
-                      );
-                    }
-
-                    if (!isLast) {
-                      groupWidgets.add(const SizedBox(height: 16));
-                    }
-
-                    return groupWidgets;
                   }),
                 ],
               ],

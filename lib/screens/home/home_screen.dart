@@ -42,11 +42,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     // Listen for clicks while the app is in the background
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
 
-    // Show onboarding dialog on first launch — or always when dev mode is on
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final notDone = StorageService().getBool(StorageService.keyOnboardingComplete) != true;
-      if (notDone || AppConfig().devMode) {
+      if (notDone) {
         OnboardingDialog.show(context);
       }
     });
@@ -142,6 +141,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         drawer: _buildAppDrawer(),
         body: SafeArea(
+          bottom: false,
           child: TabBarView(
             controller: _tabController,
             children: [
