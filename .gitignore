@@ -55,3 +55,4 @@ GEMINI.md
 .fvmtask-*
 .claude/designs/
 .claude/qa/evidence/
+.claude/worktrees/
