@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
+import 'package:wallet_ai/helpers/emoji_helper.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
@@ -19,18 +20,23 @@ class CategoryFormDialog extends StatefulWidget {
 class _CategoryFormDialogState extends State<CategoryFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _emojiController;
   late String _selectedType;
+
+  bool get _isUncategorized => widget.category?.categoryId == 1;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
+    _emojiController = TextEditingController(text: widget.category?.emoji ?? '🏷️');
     _selectedType = widget.category?.type ?? 'expense';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _emojiController.dispose();
     super.dispose();
   }
 
@@ -38,9 +44,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
     final recordProvider = context.read<RecordProvider>();
     final l10n = context.read<LocaleProvider>();
     final categoryId = widget.category!.categoryId!;
-    
+
     final count = await recordProvider.getRecordCountByCategoryId(categoryId);
-    
+
     if (!mounted) return;
 
     // ignore: use_build_context_synchronously
@@ -116,18 +122,60 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                   if (value == null || value.trim().isEmpty) {
                     return l10n.translate('name_required_error');
                   }
-                  
-                  final exists = recordProvider.categories.any((c) => 
-                    c.name.trim().toLowerCase() == value.trim().toLowerCase() && 
+
+                  final exists = recordProvider.categories.any((c) =>
+                    c.name.trim().toLowerCase() == value.trim().toLowerCase() &&
                     c.categoryId != widget.category?.categoryId
                   );
-                  
+
                   if (exists) {
                     return l10n.translate('category_already_exists');
                   }
-                  
+
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              // Emoji field
+              const Text(
+                'Emoji',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _emojiController,
+                    builder: (_, __) => Text(
+                      _emojiController.text.isEmpty ? '🏷️' : _emojiController.text,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _emojiController,
+                      enabled: !_isUncategorized,
+                      maxLength: 8,
+                      decoration: const InputDecoration(
+                        labelText: 'Emoji',
+                        counterText: '',
+                        hintText: '🏷️',
+                        filled: true,
+                        fillColor: Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Text(
@@ -220,18 +268,20 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
               child: ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
+                    final coercedEmoji = coerceEmoji(_emojiController.text);
                     final newCategory = Category(
                       categoryId: widget.category?.categoryId,
                       name: _nameController.text.trim(),
                       type: _selectedType,
+                      emoji: coercedEmoji,
                     );
-                    
+
                     if (isEdit) {
                       recordProvider.updateCategory(newCategory);
                     } else {
                       recordProvider.addCategory(newCategory);
                     }
-                    
+
                     Navigator.of(context).pop();
                   }
                 },
