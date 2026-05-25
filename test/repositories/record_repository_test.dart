@@ -3,6 +3,74 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/repositories/record_repository.dart';
 
+/// Helper: build a v10 in-memory DB that mirrors _onCreate + _seedDatabase.
+/// Uses singleInstance: false so each call gets a truly independent DB.
+Future<Database> _buildV10Db() async {
+  return openDatabase(
+    inMemoryDatabasePath,
+    version: 10,
+    singleInstance: false,
+    onCreate: (db, version) async {
+      await db.execute('''
+        CREATE TABLE Category (
+          category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          parent_id INTEGER NOT NULL DEFAULT -1,
+          emoji TEXT NOT NULL DEFAULT '🏷️'
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE MoneySource (
+          source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          source_name TEXT NOT NULL,
+          amount REAL NOT NULL DEFAULT 0
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE Record (
+          record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          money_source_id INTEGER NOT NULL,
+          target_source_id INTEGER,
+          category_id INTEGER NOT NULL DEFAULT 1,
+          amount REAL NOT NULL,
+          currency TEXT NOT NULL,
+          description TEXT,
+          type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'transfer')),
+          last_updated INTEGER NOT NULL,
+          occurred_at INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (money_source_id) REFERENCES MoneySource (source_id),
+          FOREIGN KEY (target_source_id) REFERENCES MoneySource (source_id),
+          FOREIGN KEY (category_id) REFERENCES Category (category_id)
+        )
+      ''');
+
+      // Seed parents
+      await db.insert('Category', {'name': 'Uncategorized', 'type': 'expense', 'parent_id': -1, 'emoji': '🏷️'}); // 1
+      await db.insert('Category', {'name': 'Food',          'type': 'expense', 'parent_id': -1, 'emoji': '🍔'});  // 2
+      await db.insert('Category', {'name': 'Transport',     'type': 'expense', 'parent_id': -1, 'emoji': '🚗'});  // 3
+      await db.insert('Category', {'name': 'Entertainment', 'type': 'expense', 'parent_id': -1, 'emoji': '🎬'});  // 4
+      await db.insert('Category', {'name': 'Salary',        'type': 'income',  'parent_id': -1, 'emoji': '💰'});  // 5
+      await db.insert('Category', {'name': 'Rent',          'type': 'expense', 'parent_id': -1, 'emoji': '🏠'});  // 6
+      await db.insert('Category', {'name': 'Health',        'type': 'expense', 'parent_id': -1, 'emoji': '🏥'});  // 7
+      await db.insert('Category', {'name': 'Shopping',      'type': 'expense', 'parent_id': -1, 'emoji': '🛍️'}); // 8
+      await db.insert('Category', {'name': 'Transfer',      'type': 'transfer','parent_id': -1, 'emoji': '🔄'});  // 9
+      // Seed subs
+      await db.insert('Category', {'name': 'Groceries',   'type': 'expense', 'parent_id': 2, 'emoji': '🛒'});
+      await db.insert('Category', {'name': 'Dining Out',  'type': 'expense', 'parent_id': 2, 'emoji': '🍽️'});
+      await db.insert('Category', {'name': 'Taxi',        'type': 'expense', 'parent_id': 3, 'emoji': '🚕'});
+      await db.insert('Category', {'name': 'Fuel',        'type': 'expense', 'parent_id': 3, 'emoji': '⛽'});
+      await db.insert('Category', {'name': 'Cinema',      'type': 'expense', 'parent_id': 4, 'emoji': '🎥'});
+      await db.insert('Category', {'name': 'Streaming',   'type': 'expense', 'parent_id': 4, 'emoji': '📺'});
+      await db.insert('Category', {'name': 'Clothes',     'type': 'expense', 'parent_id': 8, 'emoji': '👕'});
+      await db.insert('Category', {'name': 'Electronics', 'type': 'expense', 'parent_id': 8, 'emoji': '📱'});
+
+      await db.insert('MoneySource', {'source_name': 'Wallet', 'amount': 0});
+      await db.insert('MoneySource', {'source_name': 'Bank',   'amount': 0});
+    },
+  );
+}
+
 void main() {
   // Initialize sqflite for ffi
   sqfliteFfiInit();
@@ -13,13 +81,15 @@ void main() {
 
   setUp(() async {
     db = await openDatabase(inMemoryDatabasePath, version: 9,
+        singleInstance: false,
         onCreate: (Database db, int version) async {
       await db.execute('''
         CREATE TABLE Category (
           category_id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           type TEXT NOT NULL,
-          parent_id INTEGER NOT NULL DEFAULT -1
+          parent_id INTEGER NOT NULL DEFAULT -1,
+          emoji TEXT NOT NULL DEFAULT '🏷️'
         )
       ''');
 
@@ -327,7 +397,7 @@ void main() {
       // 1. Setup: Ensure we have some data
       // Add a money source (ID: 1 already exists from setUp, but let's add another)
       final sourceId = await repository.createMoneySource(MoneySource(sourceName: 'Test Bank', amount: 1000.0));
-      
+
       // Add a record
       await repository.createRecord(Record(
         moneySourceId: sourceId,
@@ -341,7 +411,7 @@ void main() {
       // Verify current state
       var sources = await repository.getAllMoneySources();
       expect(sources.length, 2); // Wallet (from setUp) and Test Bank
-      
+
       var records = await repository.getAllRecords();
       expect(records.length, greaterThan(0));
 
@@ -357,6 +427,65 @@ void main() {
       for (var source in sources) {
         expect(source.amount, 0.0);
       }
+    });
+  });
+
+  // --- v10 emoji tests (use a standalone v10 in-memory DB) ---
+
+  group('Category v10 emoji — fresh install', () {
+    late Database v10db;
+
+    setUp(() async {
+      v10db = await _buildV10Db();
+      RecordRepository.setMockDatabase(v10db);
+    });
+
+    tearDown(() async {
+      await v10db.close();
+    });
+
+    test('fresh-install seed: every parent carries the AD-5 emoji', () async {
+      final repo = RecordRepository();
+      final categories = await repo.getAllCategories();
+
+      String emojiFor(String name) =>
+          categories.firstWhere((c) => c.name == name).emoji;
+
+      expect(emojiFor('Uncategorized'), '🏷️');
+      expect(emojiFor('Food'),          '🍔');
+      expect(emojiFor('Transport'),     '🚗');
+      expect(emojiFor('Entertainment'), '🎬');
+      expect(emojiFor('Salary'),        '💰');
+      expect(emojiFor('Rent'),          '🏠');
+      expect(emojiFor('Health'),        '🏥');
+      expect(emojiFor('Shopping'),      '🛍️');
+      expect(emojiFor('Transfer'),      '🔄');
+    });
+
+    test('fresh-install seed: every sub-category carries the AD-5 emoji', () async {
+      final repo = RecordRepository();
+      final categories = await repo.getAllCategories();
+
+      String emojiFor(String name) =>
+          categories.firstWhere((c) => c.name == name).emoji;
+
+      expect(emojiFor('Groceries'),   '🛒');
+      expect(emojiFor('Dining Out'),  '🍽️');
+      expect(emojiFor('Taxi'),        '🚕');
+      expect(emojiFor('Fuel'),        '⛽');
+      expect(emojiFor('Cinema'),      '🎥');
+      expect(emojiFor('Streaming'),   '📺');
+      expect(emojiFor('Clothes'),     '👕');
+      expect(emojiFor('Electronics'), '📱');
+    });
+
+    test('user-created Category without emoji defaults to 🏷️ on readback', () async {
+      final repo = RecordRepository();
+      // Insert using raw DB to simulate a Category created without emoji field.
+      await v10db.insert('Category', {'name': 'Custom', 'type': 'expense', 'parent_id': -1});
+      final categories = await repo.getAllCategories();
+      final custom = categories.firstWhere((c) => c.name == 'Custom');
+      expect(custom.emoji, '🏷️');
     });
   });
 }
