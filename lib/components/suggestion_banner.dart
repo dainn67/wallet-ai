@@ -42,6 +42,9 @@ class _SuggestionBannerState extends State<SuggestionBanner> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(height: 20, color: Color(0xFFE2E8F0)),
+        // The server includes the suggested emoji inline in `message`
+        // (e.g., "Should I create a new one called 🚌 'Commute'?").
+        // See epic AD-1 / task 212 for the contract.
         Text(
           widget.suggestion.message,
           style: const TextStyle(
