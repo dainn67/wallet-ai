@@ -168,6 +168,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
               ),
               const SizedBox(height: 8),
               TextField(
+                key: const Key('emoji_field'),
                 controller: _emojiController,
                 enabled: !_isUncategorized,
                 maxLength: 8,
