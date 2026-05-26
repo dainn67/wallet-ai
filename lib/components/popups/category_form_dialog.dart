@@ -25,16 +25,37 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
 
   bool get _isUncategorized => widget.category?.categoryId == 1;
 
+  bool get _isEmojiValid {
+    final text = _emojiController.text.trim();
+    if (text.isEmpty) return true;
+    return text.runes.any(isEmojiCodepoint);
+  }
+
+  bool get _hasChanges {
+    if (widget.category == null) return _nameController.text.trim().isNotEmpty;
+    return _nameController.text.trim() != widget.category!.name ||
+        coerceEmoji(_emojiController.text) != widget.category!.emoji ||
+        _selectedType != widget.category!.type;
+  }
+
+  bool get _canSave => _nameController.text.trim().isNotEmpty && _isEmojiValid && _hasChanges;
+
+  void _onChanged() => setState(() {});
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
     _emojiController = TextEditingController(text: widget.category?.emoji ?? '🏷️');
     _selectedType = widget.category?.type ?? 'expense';
+    _nameController.addListener(_onChanged);
+    _emojiController.addListener(_onChanged);
   }
 
   @override
   void dispose() {
+    _nameController.removeListener(_onChanged);
+    _emojiController.removeListener(_onChanged);
     _nameController.dispose();
     _emojiController.dispose();
     super.dispose();
@@ -146,36 +167,22 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  AnimatedBuilder(
-                    animation: _emojiController,
-                    builder: (_, __) => Text(
-                      _emojiController.text.isEmpty ? '🏷️' : _emojiController.text,
-                      style: const TextStyle(fontSize: 24),
-                    ),
+              TextField(
+                controller: _emojiController,
+                enabled: !_isUncategorized,
+                maxLength: 8,
+                style: const TextStyle(fontSize: 22),
+                decoration: const InputDecoration(
+                  counterText: '',
+                  hintText: '🏷️',
+                  filled: true,
+                  fillColor: Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide.none,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _emojiController,
-                      enabled: !_isUncategorized,
-                      maxLength: 8,
-                      decoration: const InputDecoration(
-                        labelText: 'Emoji',
-                        counterText: '',
-                        hintText: '🏷️',
-                        filled: true,
-                        fillColor: Color(0xFFF8FAFC),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -266,25 +273,24 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final coercedEmoji = coerceEmoji(_emojiController.text);
-                    final newCategory = Category(
-                      categoryId: widget.category?.categoryId,
-                      name: _nameController.text.trim(),
-                      type: _selectedType,
-                      emoji: coercedEmoji,
-                    );
-
-                    if (isEdit) {
-                      recordProvider.updateCategory(newCategory);
-                    } else {
-                      recordProvider.addCategory(newCategory);
-                    }
-
-                    Navigator.of(context).pop();
-                  }
-                },
+                onPressed: _canSave
+                    ? () {
+                        if (_formKey.currentState!.validate()) {
+                          final newCategory = Category(
+                            categoryId: widget.category?.categoryId,
+                            name: _nameController.text.trim(),
+                            type: _selectedType,
+                            emoji: coerceEmoji(_emojiController.text),
+                          );
+                          if (isEdit) {
+                            recordProvider.updateCategory(newCategory);
+                          } else {
+                            recordProvider.addCategory(newCategory);
+                          }
+                          Navigator.of(context).pop();
+                        }
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6366F1),
                   foregroundColor: Colors.white,
