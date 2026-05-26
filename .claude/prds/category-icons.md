@@ -1,11 +1,11 @@
 ---
 name: category-icons
 description: Add a per-category emoji (AI-assigned for new categories, user-editable, generic fallback for existing) rendered everywhere a category is shown.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-05-24T17:50:25Z
-updated: null
+updated: 2026-05-26T04:57:17Z
 ---
 
 # PRD: category-icons
