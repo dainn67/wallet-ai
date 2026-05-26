@@ -60,5 +60,60 @@ void main() {
       final category = Category(name: 'Food', type: 'expense', parentId: -1);
       expect(category.toString(), contains('parentId: -1'));
     });
+
+    // --- emoji field tests ---
+
+    test('default emoji is 🏷️', () {
+      final category = Category(name: 'Food', type: 'expense');
+      expect(category.emoji, '🏷️');
+    });
+
+    test('toMap serializes emoji', () {
+      final category = Category(name: 'X', type: 'expense', emoji: '🍕');
+      expect(category.toMap()['emoji'], '🍕');
+    });
+
+    test('fromMap without emoji key defaults to 🏷️', () {
+      final map = {'category_id': 1, 'name': 'Food', 'type': 'expense', 'parent_id': -1};
+      final category = Category.fromMap(map);
+      expect(category.emoji, '🏷️');
+    });
+
+    test('fromMap with null emoji defaults to 🏷️', () {
+      final map = {'category_id': 1, 'name': 'Food', 'type': 'expense', 'parent_id': -1, 'emoji': null};
+      final category = Category.fromMap(map);
+      expect(category.emoji, '🏷️');
+    });
+
+    test('fromMap with empty string emoji defaults to 🏷️', () {
+      final map = {'category_id': 1, 'name': 'Food', 'type': 'expense', 'parent_id': -1, 'emoji': ''};
+      final category = Category.fromMap(map);
+      expect(category.emoji, '🏷️');
+    });
+
+    test('copyWith(emoji) updates emoji and preserves other fields', () {
+      final category = Category(categoryId: 5, name: 'Food', type: 'expense', parentId: -1, emoji: '🏷️');
+      final updated = category.copyWith(emoji: '🍕');
+      expect(updated.emoji, '🍕');
+      expect(updated.categoryId, 5);
+      expect(updated.name, 'Food');
+      expect(updated.type, 'expense');
+      expect(updated.parentId, -1);
+    });
+
+    test('fromMap(toMap()) round-trip preserves all fields including emoji', () {
+      final original = Category(categoryId: 3, name: 'Transport', type: 'expense', parentId: -1, emoji: '🚗');
+      final roundTripped = Category.fromMap(original.toMap());
+      expect(roundTripped.categoryId, original.categoryId);
+      expect(roundTripped.name, original.name);
+      expect(roundTripped.type, original.type);
+      expect(roundTripped.parentId, original.parentId);
+      expect(roundTripped.emoji, original.emoji);
+    });
+
+    test('toString includes emoji', () {
+      final category = Category(name: 'Food', type: 'expense', emoji: '🍔');
+      expect(category.toString(), contains('emoji: 🍔'));
+    });
   });
 }

@@ -34,7 +34,6 @@ class CategoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpense = category.type == 'expense';
     final color = isExpense ? Colors.red : Colors.green;
-    final backgroundColor = color.withValues(alpha: 0.1);
     final isUncategorized = category.categoryId == 1;
 
     Widget content = Container(
@@ -50,13 +49,19 @@ class CategoryWidget extends StatelessWidget {
           : null,
       child: Row(
         children: [
-          // Icon Container
+          // Emoji
           Container(
+            margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
-            child: Icon(isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded, color: color, size: 16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              category.emoji,
+              style: const TextStyle(fontSize: 20),
+            ),
           ),
-          const SizedBox(width: 12),
 
           // Name and Subtitle
           Expanded(

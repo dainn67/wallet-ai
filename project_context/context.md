@@ -55,6 +55,10 @@ For returning users, the adaptive greeting may include a `suggestedPrompts` JSON
 
 When a record has `category_id: -1` and the server returns a `suggested_category` object, `ChatProvider._handleStream` parses the suggestion into a transient `Record.suggestedCategory` field. The `ChatBubble` widget renders a `SuggestionBanner` beneath the unclassified record card. Confirming calls `RecordProvider.resolveCategoryByNameOrCreate`, updates the record in DB, and clears the banner. Cancelling clears the suggestion from in-memory state only. The suggestion is never persisted — app restart removes all banners. See `docs/features/suggest-category.md`.
 
+### Category Icons (Emoji)
+
+Every `Category` carries a non-null `emoji` field (default `'🏷️'`). Added in schema v9 → v10 via `RecordMigrationService.addEmojiColumn`. Emojis are set by AI suggestion, user input (TextField + OS keyboard), or a curated 17-entry seed map. The emoji renders as a leading `Text(fontSize: 20)` in `CategoryWidget` (CategoriesTab rows), as a prefix to the category-name in `RecordWidget`'s subtitle (e.g., `🍔 Food • Cash`), and inline in `SuggestionBanner` via the server-controlled `suggestion.message` string. See `docs/features/category-icons.md`.
+
 ### AI Pattern Analysis & Adaptive Greeting
 
 1. **Background Pattern Sync**: On app launch, `AiPatternService` checks the last update time. If an update is due, it collects recent transaction context (Latest vs. Momentum) and sends it to the AI for high-level behavior analysis.

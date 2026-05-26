@@ -4,6 +4,32 @@ import 'package:sqflite/sqflite.dart';
 ///
 /// Kept separate from `RecordRepository` so migration logic can evolve
 /// without cluttering the main repository file.
+
+// AD-5 curated seed emoji map for parent categories (keyed by category_id).
+const Map<int, String> _seedParentEmojis = {
+  1: '🏷️', // Uncategorized
+  2: '🍔', // Food
+  3: '🚗', // Transport
+  4: '🎬', // Entertainment
+  5: '💰', // Salary
+  6: '🏠', // Rent
+  7: '🏥', // Health
+  8: '🛍️', // Shopping
+  9: '🔄', // Transfer
+};
+
+// AD-5 curated seed emoji map for sub-categories (keyed by name; matched with parent_id != -1).
+const Map<String, String> _seedSubEmojis = {
+  'Groceries': '🛒',
+  'Dining Out': '🍽️',
+  'Taxi': '🚕',
+  'Fuel': '⛽',
+  'Cinema': '🎥',
+  'Streaming': '📺',
+  'Clothes': '👕',
+  'Electronics': '📱',
+};
+
 class RecordMigrationService {
   /// Adds `occurred_at INTEGER NOT NULL`, backfilled from `last_updated`.
   ///
@@ -86,5 +112,40 @@ class RecordMigrationService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS idx_record_target_source_id ON Record(target_source_id)',
     );
+  }
+
+  /// v9 → v10: adds `emoji TEXT NOT NULL DEFAULT '🏷️'` to the `Category` table
+  /// and backfills the AD-5 curated seed emoji for each seed category.
+  ///
+  /// Idempotent: the PRAGMA column-existence check skips the ALTER on an
+  /// already-migrated DB; the `WHERE emoji = '🏷️'` guard on each UPDATE
+  /// ensures only default-valued rows are touched, so user-assigned emojis
+  /// are never overwritten.
+  static Future<void> addEmojiColumn(DatabaseExecutor db) async {
+    final columns = await db.rawQuery('PRAGMA table_info(Category)');
+    final hasColumn = columns.any((c) => c['name'] == 'emoji');
+
+    if (!hasColumn) {
+      await db.execute(
+        "ALTER TABLE Category ADD COLUMN emoji TEXT NOT NULL DEFAULT '🏷️'",
+      );
+    }
+
+    // Backfill parent categories by category_id.
+    for (final entry in _seedParentEmojis.entries) {
+      await db.rawUpdate(
+        "UPDATE Category SET emoji = ? WHERE category_id = ? AND emoji = '🏷️'",
+        [entry.value, entry.key],
+      );
+    }
+
+    // Backfill sub-categories by name (parent_id != -1 guards against edge case
+    // where a user-created parent category happens to share a sub-category name).
+    for (final entry in _seedSubEmojis.entries) {
+      await db.rawUpdate(
+        "UPDATE Category SET emoji = ? WHERE name = ? AND parent_id != -1 AND emoji = '🏷️'",
+        [entry.value, entry.key],
+      );
+    }
   }
 }

@@ -26,6 +26,7 @@ class ChatBubble extends StatelessWidget {
       suggestion.name,
       suggestion.type,
       suggestion.parentId,
+      emoji: suggestion.emoji,
     );
 
     if (newId == null) return;

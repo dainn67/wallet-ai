@@ -66,7 +66,7 @@ class RecordRepository {
     }
   }
 
-  static const int _dbVersion = 9;
+  static const int _dbVersion = 10;
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
@@ -74,7 +74,8 @@ class RecordRepository {
         category_id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
-        parent_id INTEGER NOT NULL DEFAULT -1
+        parent_id INTEGER NOT NULL DEFAULT -1,
+        emoji TEXT NOT NULL DEFAULT '🏷️'
       )
     ''');
 
@@ -116,30 +117,30 @@ class RecordRepository {
   }
 
   static Future<void> _seedDatabase(Database db) async {
-    // Seed Parent Categories (IDs 1-8)
-    await db.insert('Category', {'name': 'Uncategorized', 'type': 'expense', 'parent_id': -1}); // 1
-    await db.insert('Category', {'name': 'Food', 'type': 'expense', 'parent_id': -1});          // 2
-    await db.insert('Category', {'name': 'Transport', 'type': 'expense', 'parent_id': -1});     // 3
-    await db.insert('Category', {'name': 'Entertainment', 'type': 'expense', 'parent_id': -1}); // 4
-    await db.insert('Category', {'name': 'Salary', 'type': 'income', 'parent_id': -1});         // 5
-    await db.insert('Category', {'name': 'Rent', 'type': 'expense', 'parent_id': -1});          // 6
-    await db.insert('Category', {'name': 'Health', 'type': 'expense', 'parent_id': -1});        // 7
-    await db.insert('Category', {'name': 'Shopping', 'type': 'expense', 'parent_id': -1});      // 8
-    await db.insert('Category', {'name': 'Transfer', 'type': 'transfer', 'parent_id': -1});    // 9
+    // Seed Parent Categories (IDs 1-9) — emoji per AD-5 map
+    await db.insert('Category', {'name': 'Uncategorized', 'type': 'expense', 'parent_id': -1, 'emoji': '🏷️'}); // 1
+    await db.insert('Category', {'name': 'Food', 'type': 'expense', 'parent_id': -1, 'emoji': '🍔'});           // 2
+    await db.insert('Category', {'name': 'Transport', 'type': 'expense', 'parent_id': -1, 'emoji': '🚗'});      // 3
+    await db.insert('Category', {'name': 'Entertainment', 'type': 'expense', 'parent_id': -1, 'emoji': '🎬'});  // 4
+    await db.insert('Category', {'name': 'Salary', 'type': 'income', 'parent_id': -1, 'emoji': '💰'});          // 5
+    await db.insert('Category', {'name': 'Rent', 'type': 'expense', 'parent_id': -1, 'emoji': '🏠'});           // 6
+    await db.insert('Category', {'name': 'Health', 'type': 'expense', 'parent_id': -1, 'emoji': '🏥'});         // 7
+    await db.insert('Category', {'name': 'Shopping', 'type': 'expense', 'parent_id': -1, 'emoji': '🛍️'});      // 8
+    await db.insert('Category', {'name': 'Transfer', 'type': 'transfer', 'parent_id': -1, 'emoji': '🔄'});      // 9
 
-    // Seed Sub-Categories
+    // Seed Sub-Categories — emoji per AD-5 map
     // Food
-    await db.insert('Category', {'name': 'Groceries', 'type': 'expense', 'parent_id': 2});
-    await db.insert('Category', {'name': 'Dining Out', 'type': 'expense', 'parent_id': 2});
+    await db.insert('Category', {'name': 'Groceries', 'type': 'expense', 'parent_id': 2, 'emoji': '🛒'});
+    await db.insert('Category', {'name': 'Dining Out', 'type': 'expense', 'parent_id': 2, 'emoji': '🍽️'});
     // Transport
-    await db.insert('Category', {'name': 'Taxi', 'type': 'expense', 'parent_id': 3});
-    await db.insert('Category', {'name': 'Fuel', 'type': 'expense', 'parent_id': 3});
+    await db.insert('Category', {'name': 'Taxi', 'type': 'expense', 'parent_id': 3, 'emoji': '🚕'});
+    await db.insert('Category', {'name': 'Fuel', 'type': 'expense', 'parent_id': 3, 'emoji': '⛽'});
     // Entertainment
-    await db.insert('Category', {'name': 'Cinema', 'type': 'expense', 'parent_id': 4});
-    await db.insert('Category', {'name': 'Streaming', 'type': 'expense', 'parent_id': 4});
+    await db.insert('Category', {'name': 'Cinema', 'type': 'expense', 'parent_id': 4, 'emoji': '🎥'});
+    await db.insert('Category', {'name': 'Streaming', 'type': 'expense', 'parent_id': 4, 'emoji': '📺'});
     // Shopping
-    await db.insert('Category', {'name': 'Clothes', 'type': 'expense', 'parent_id': 8});
-    await db.insert('Category', {'name': 'Electronics', 'type': 'expense', 'parent_id': 8});
+    await db.insert('Category', {'name': 'Clothes', 'type': 'expense', 'parent_id': 8, 'emoji': '👕'});
+    await db.insert('Category', {'name': 'Electronics', 'type': 'expense', 'parent_id': 8, 'emoji': '📱'});
 
     // Seed MoneySources
     await db.insert('MoneySource', {'source_name': 'Wallet', 'amount': 0});
@@ -189,6 +190,9 @@ class RecordRepository {
       if (existing.isEmpty) {
         await db.insert('Category', {'name': 'Transfer', 'type': 'transfer', 'parent_id': -1});
       }
+    }
+    if (oldVersion < 10) {
+      await RecordMigrationService.addEmojiColumn(db);
     }
   }
 

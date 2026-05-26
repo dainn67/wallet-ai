@@ -1,0 +1,179 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+import 'package:wallet_ai/components/popups/category_form_dialog.dart';
+import 'package:wallet_ai/models/models.dart';
+import 'package:wallet_ai/providers/providers.dart';
+import 'package:wallet_ai/repositories/record_repository.dart';
+
+class MockRecordRepository extends Mock implements RecordRepository {}
+
+class MockLocaleProvider extends Mock implements LocaleProvider {}
+
+void main() {
+  late MockRecordRepository mockRepository;
+  late RecordProvider recordProvider;
+  late MockLocaleProvider mockLocaleProvider;
+
+  setUpAll(() {
+    registerFallbackValue(Category(name: 'fallback', type: 'expense'));
+  });
+
+  setUp(() {
+    mockRepository = MockRecordRepository();
+    recordProvider = RecordProvider(repository: mockRepository);
+    mockLocaleProvider = MockLocaleProvider();
+
+    when(() => mockLocaleProvider.translate(any())).thenAnswer((invocation) {
+      final key = invocation.positionalArguments[0] as String;
+      return switch (key) {
+        'edit_category_title' => 'Edit Category',
+        'add_category_title' => 'Add Category',
+        'category_name_label' => 'Name',
+        'category_name_hint' => 'Category name',
+        'type_label' => 'Type',
+        'spent_label' => 'Expense',
+        'income_label' => 'Income',
+        'popup_cancel' => 'Cancel',
+        'save_button' => 'Save',
+        'name_required_error' => 'Name is required',
+        'category_already_exists' => 'Already exists',
+        'delete_button' => 'Delete',
+        'delete_category_confirm_title' => 'Delete?',
+        'delete_category_confirm_content' => 'Delete {count} records?',
+        _ => key,
+      };
+    });
+
+    when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
+      Category(categoryId: 2, name: 'Food', type: 'expense', emoji: '🍔'),
+    ]);
+    when(() => mockRepository.getAllRecords()).thenAnswer((_) async => []);
+    when(() => mockRepository.getAllMoneySources()).thenAnswer((_) async => []);
+    when(() => mockRepository.getCategoryTotals()).thenAnswer((_) async => {});
+  });
+
+  Widget buildDialog(Category? category) {
+    return MaterialApp(
+      home: Scaffold(
+        body: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<RecordProvider>.value(value: recordProvider),
+            ChangeNotifierProvider<LocaleProvider>.value(value: mockLocaleProvider),
+          ],
+          child: CategoryFormDialog(category: category),
+        ),
+      ),
+    );
+  }
+
+  final emojiFieldFinder = find.byKey(const Key('emoji_field'));
+
+  group('CategoryFormDialog — emoji field', () {
+    testWidgets('opens with existing emoji shown in field', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await recordProvider.loadAll();
+
+      final category = Category(categoryId: 2, name: 'Food', type: 'expense', emoji: '🍔');
+      await tester.pumpWidget(buildDialog(category));
+      await tester.pumpAndSettle();
+
+      expect(find.text('🍔'), findsWidgets);
+    });
+
+    testWidgets('type new emoji + Save → repository called with new emoji', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await recordProvider.loadAll();
+
+      Category? savedCategory;
+      when(() => mockRepository.updateCategory(any())).thenAnswer((invocation) async {
+        savedCategory = invocation.positionalArguments[0] as Category;
+        return 1;
+      });
+
+      final category = Category(categoryId: 2, name: 'Food', type: 'expense', emoji: '🍔');
+      await tester.pumpWidget(buildDialog(category));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(emojiFieldFinder, '🍕');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(savedCategory, isNotNull);
+      expect(savedCategory!.emoji, equals('🍕'));
+    });
+
+    testWidgets('clear emoji field + Save → repository called with fallback emoji', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await recordProvider.loadAll();
+
+      Category? savedCategory;
+      when(() => mockRepository.updateCategory(any())).thenAnswer((invocation) async {
+        savedCategory = invocation.positionalArguments[0] as Category;
+        return 1;
+      });
+
+      final category = Category(categoryId: 2, name: 'Food', type: 'expense', emoji: '🍔');
+      await tester.pumpWidget(buildDialog(category));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(emojiFieldFinder, '');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(savedCategory, isNotNull);
+      expect(savedCategory!.emoji, equals('🏷️'));
+    });
+
+    testWidgets('plain text input disables Save button', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await recordProvider.loadAll();
+
+      final category = Category(categoryId: 2, name: 'Food', type: 'expense', emoji: '🍔');
+      await tester.pumpWidget(buildDialog(category));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(emojiFieldFinder, 'food');
+      await tester.pumpAndSettle();
+
+      final saveButton = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Save'),
+      );
+      expect(saveButton.onPressed, isNull);
+    });
+
+    testWidgets('categoryId == 1 (Uncategorized) — emoji field is disabled', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await recordProvider.loadAll();
+
+      final category = Category(categoryId: 1, name: 'Uncategorized', type: 'expense', emoji: '🏷️');
+      await tester.pumpWidget(buildDialog(category));
+      await tester.pumpAndSettle();
+
+      if (emojiFieldFinder.evaluate().isNotEmpty) {
+        final widget = tester.widget<TextField>(emojiFieldFinder);
+        expect(widget.enabled, isFalse);
+      }
+    });
+  });
+}

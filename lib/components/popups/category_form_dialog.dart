@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
+import 'package:wallet_ai/helpers/emoji_helper.dart';
 import 'package:wallet_ai/models/models.dart';
 import 'package:wallet_ai/providers/providers.dart';
 
@@ -19,18 +20,44 @@ class CategoryFormDialog extends StatefulWidget {
 class _CategoryFormDialogState extends State<CategoryFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _emojiController;
   late String _selectedType;
+
+  bool get _isUncategorized => widget.category?.categoryId == 1;
+
+  bool get _isEmojiValid {
+    final text = _emojiController.text.trim();
+    if (text.isEmpty) return true;
+    return text.runes.any(isEmojiCodepoint);
+  }
+
+  bool get _hasChanges {
+    if (widget.category == null) return _nameController.text.trim().isNotEmpty;
+    return _nameController.text.trim() != widget.category!.name ||
+        coerceEmoji(_emojiController.text) != widget.category!.emoji ||
+        _selectedType != widget.category!.type;
+  }
+
+  bool get _canSave => _nameController.text.trim().isNotEmpty && _isEmojiValid && _hasChanges;
+
+  void _onChanged() => setState(() {});
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
+    _emojiController = TextEditingController(text: widget.category?.emoji ?? '🏷️');
     _selectedType = widget.category?.type ?? 'expense';
+    _nameController.addListener(_onChanged);
+    _emojiController.addListener(_onChanged);
   }
 
   @override
   void dispose() {
+    _nameController.removeListener(_onChanged);
+    _emojiController.removeListener(_onChanged);
     _nameController.dispose();
+    _emojiController.dispose();
     super.dispose();
   }
 
@@ -38,9 +65,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
     final recordProvider = context.read<RecordProvider>();
     final l10n = context.read<LocaleProvider>();
     final categoryId = widget.category!.categoryId!;
-    
+
     final count = await recordProvider.getRecordCountByCategoryId(categoryId);
-    
+
     if (!mounted) return;
 
     // ignore: use_build_context_synchronously
@@ -116,18 +143,47 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                   if (value == null || value.trim().isEmpty) {
                     return l10n.translate('name_required_error');
                   }
-                  
-                  final exists = recordProvider.categories.any((c) => 
-                    c.name.trim().toLowerCase() == value.trim().toLowerCase() && 
+
+                  final exists = recordProvider.categories.any((c) =>
+                    c.name.trim().toLowerCase() == value.trim().toLowerCase() &&
                     c.categoryId != widget.category?.categoryId
                   );
-                  
+
                   if (exists) {
                     return l10n.translate('category_already_exists');
                   }
-                  
+
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              // Emoji field
+              const Text(
+                'Emoji',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const Key('emoji_field'),
+                controller: _emojiController,
+                enabled: !_isUncategorized,
+                maxLength: 8,
+                style: const TextStyle(fontSize: 22),
+                decoration: const InputDecoration(
+                  counterText: '',
+                  hintText: '🏷️',
+                  filled: true,
+                  fillColor: Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -218,23 +274,24 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final newCategory = Category(
-                      categoryId: widget.category?.categoryId,
-                      name: _nameController.text.trim(),
-                      type: _selectedType,
-                    );
-                    
-                    if (isEdit) {
-                      recordProvider.updateCategory(newCategory);
-                    } else {
-                      recordProvider.addCategory(newCategory);
-                    }
-                    
-                    Navigator.of(context).pop();
-                  }
-                },
+                onPressed: _canSave
+                    ? () {
+                        if (_formKey.currentState!.validate()) {
+                          final newCategory = Category(
+                            categoryId: widget.category?.categoryId,
+                            name: _nameController.text.trim(),
+                            type: _selectedType,
+                            emoji: coerceEmoji(_emojiController.text),
+                          );
+                          if (isEdit) {
+                            recordProvider.updateCategory(newCategory);
+                          } else {
+                            recordProvider.addCategory(newCategory);
+                          }
+                          Navigator.of(context).pop();
+                        }
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6366F1),
                   foregroundColor: Colors.white,

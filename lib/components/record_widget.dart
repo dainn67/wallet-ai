@@ -123,16 +123,21 @@ class RecordWidget extends StatelessWidget {
     }
 
     final isExpense = record.type == 'expense';
+    final provider = context.read<RecordProvider>();
     final parts = <String>[];
 
-    // Add category if available
-    final categoryName = context.read<RecordProvider>().getCategoryName(record.categoryId);
+    // Resolve category emoji and name
+    final categories = provider.categories;
+    final category = categories.where((c) => c.categoryId == record.categoryId).firstOrNull;
+    final emoji = category?.emoji ?? '🏷️';
+    final categoryName = provider.getCategoryName(record.categoryId);
+
     if (categoryName != 'Unknown') {
-      parts.add(categoryName);
+      parts.add('$emoji $categoryName');
     } else if (record.categoryName != null && record.categoryName!.isNotEmpty) {
-      parts.add(record.categoryName!);
+      parts.add('$emoji ${record.categoryName!}');
     } else {
-      parts.add(isExpense ? 'Expense' : 'Income');
+      parts.add('$emoji ${isExpense ? 'Expense' : 'Income'}');
     }
 
     // Add source if available
