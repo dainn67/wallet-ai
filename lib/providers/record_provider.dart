@@ -336,7 +336,7 @@ class RecordProvider extends ChangeNotifier {
 
   /// Finds an existing category by name (case-insensitive) + parentId, or creates it.
   /// Returns the categoryId in both cases, or null if creation fails.
-  Future<int?> resolveCategoryByNameOrCreate(String name, String type, int parentId) async {
+  Future<int?> resolveCategoryByNameOrCreate(String name, String type, int parentId, {String emoji = '🏷️'}) async {
     final trimmedName = name.trim();
 
     // 1. Search in-memory cache (case-insensitive)
@@ -360,7 +360,7 @@ class RecordProvider extends ChangeNotifier {
     // 3. Create and return new id
     try {
       final newId = await _repository.createCategory(
-        Category(name: trimmedName, type: type, parentId: resolvedParentId),
+        Category(name: trimmedName, type: type, parentId: resolvedParentId, emoji: emoji),
       );
       // Refresh categories cache
       _categories = await _repository.getAllCategories();

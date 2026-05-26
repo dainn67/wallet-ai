@@ -26,11 +26,8 @@ void main() {
       );
       await tester.pumpWidget(_wrap(category));
 
-      // Emoji text is present
       expect(find.text('🍔'), findsOneWidget);
-
-      // Direction icon is still present (complementary signal)
-      expect(find.byIcon(Icons.arrow_outward_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_outward_rounded), findsNothing);
     });
 
     testWidgets('renders leading emoji Text when emoji is 🏷️', (WidgetTester tester) async {
@@ -45,7 +42,7 @@ void main() {
       expect(find.text('🏷️'), findsOneWidget);
     });
 
-    testWidgets('emoji Text appears before the direction icon in the Row', (WidgetTester tester) async {
+    testWidgets('emoji appears left of the category name', (WidgetTester tester) async {
       final category = Category(
         categoryId: 3,
         name: 'Travel',
@@ -54,16 +51,9 @@ void main() {
       );
       await tester.pumpWidget(_wrap(category));
 
-      final emojiText = find.text('🍔');
-      final directionIcon = find.byIcon(Icons.call_received_rounded);
-
-      expect(emojiText, findsOneWidget);
-      expect(directionIcon, findsOneWidget);
-
-      // The emoji widget should appear before (left of) the direction icon.
-      final emojiPos = tester.getTopLeft(emojiText);
-      final iconPos = tester.getTopLeft(directionIcon);
-      expect(emojiPos.dx, lessThan(iconPos.dx));
+      final emojiPos = tester.getTopLeft(find.text('🍔'));
+      final namePos = tester.getTopLeft(find.text('Travel'));
+      expect(emojiPos.dx, lessThan(namePos.dx));
     });
   });
 }

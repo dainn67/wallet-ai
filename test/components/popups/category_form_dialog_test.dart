@@ -68,8 +68,10 @@ void main() {
     );
   }
 
+  final emojiFieldFinder = find.byKey(const Key('emoji_field'));
+
   group('CategoryFormDialog — emoji field', () {
-    testWidgets('opens with existing emoji shown in preview and field', (tester) async {
+    testWidgets('opens with existing emoji shown in field', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -80,7 +82,6 @@ void main() {
       await tester.pumpWidget(buildDialog(category));
       await tester.pumpAndSettle();
 
-      // Live preview shows initial emoji
       expect(find.text('🍔'), findsWidgets);
     });
 
@@ -101,10 +102,7 @@ void main() {
       await tester.pumpWidget(buildDialog(category));
       await tester.pumpAndSettle();
 
-      // The emoji TextField is the second TextField (after name).
-      // Find it by label 'Emoji'.
-      final emojiField = find.widgetWithText(TextField, 'Emoji');
-      await tester.enterText(emojiField, '🍕');
+      await tester.enterText(emojiFieldFinder, '🍕');
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Save'));
@@ -131,8 +129,7 @@ void main() {
       await tester.pumpWidget(buildDialog(category));
       await tester.pumpAndSettle();
 
-      final emojiField = find.widgetWithText(TextField, 'Emoji');
-      await tester.enterText(emojiField, '');
+      await tester.enterText(emojiFieldFinder, '');
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Save'));
@@ -142,32 +139,24 @@ void main() {
       expect(savedCategory!.emoji, equals('🏷️'));
     });
 
-    testWidgets('plain text input + Save → repository called with fallback emoji', (tester) async {
+    testWidgets('plain text input disables Save button', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
       await recordProvider.loadAll();
 
-      Category? savedCategory;
-      when(() => mockRepository.updateCategory(any())).thenAnswer((invocation) async {
-        savedCategory = invocation.positionalArguments[0] as Category;
-        return 1;
-      });
-
       final category = Category(categoryId: 2, name: 'Food', type: 'expense', emoji: '🍔');
       await tester.pumpWidget(buildDialog(category));
       await tester.pumpAndSettle();
 
-      final emojiField = find.widgetWithText(TextField, 'Emoji');
-      await tester.enterText(emojiField, 'food');
+      await tester.enterText(emojiFieldFinder, 'food');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(savedCategory, isNotNull);
-      expect(savedCategory!.emoji, equals('🏷️'));
+      final saveButton = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Save'),
+      );
+      expect(saveButton.onPressed, isNull);
     });
 
     testWidgets('categoryId == 1 (Uncategorized) — emoji field is disabled', (tester) async {
@@ -181,13 +170,10 @@ void main() {
       await tester.pumpWidget(buildDialog(category));
       await tester.pumpAndSettle();
 
-      // Find the emoji TextField (labeled 'Emoji') and assert it is disabled.
-      final emojiField = find.widgetWithText(TextField, 'Emoji');
-      if (emojiField.evaluate().isNotEmpty) {
-        final widget = tester.widget<TextField>(emojiField);
+      if (emojiFieldFinder.evaluate().isNotEmpty) {
+        final widget = tester.widget<TextField>(emojiFieldFinder);
         expect(widget.enabled, isFalse);
       }
-      // If the field is absent entirely, the test passes by not finding it.
     });
   });
 }

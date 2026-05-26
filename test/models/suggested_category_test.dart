@@ -88,5 +88,52 @@ void main() {
       );
       expect(SuggestedCategory.fromJson({'name': 'X', 'type': 123, 'parent_id': 'bad'}), isNull);
     });
+
+    test('valid emoji is parsed correctly', () {
+      final result = SuggestedCategory.fromJson({
+        'name': 'Commute',
+        'type': 'expense',
+        'parent_id': -1,
+        'message': 'Create it?',
+        'emoji': '🚌',
+      });
+      expect(result, isNotNull);
+      expect(result!.emoji, '🚌');
+    });
+
+    test('missing emoji key falls back to 🏷️', () {
+      final result = SuggestedCategory.fromJson({
+        'name': 'Food',
+        'type': 'expense',
+        'parent_id': -1,
+        'message': 'x',
+      });
+      expect(result, isNotNull);
+      expect(result!.emoji, '🏷️');
+    });
+
+    test('null emoji falls back to 🏷️', () {
+      final result = SuggestedCategory.fromJson({
+        'name': 'Food',
+        'type': 'expense',
+        'parent_id': -1,
+        'message': 'x',
+        'emoji': null,
+      });
+      expect(result, isNotNull);
+      expect(result!.emoji, '🏷️');
+    });
+
+    test('empty string emoji falls back to 🏷️', () {
+      final result = SuggestedCategory.fromJson({
+        'name': 'Food',
+        'type': 'expense',
+        'parent_id': -1,
+        'message': 'x',
+        'emoji': '',
+      });
+      expect(result, isNotNull);
+      expect(result!.emoji, '🏷️');
+    });
   });
 }

@@ -1,8 +1,8 @@
 ---
 name: category-icons
-status: backlog
+status: completed
 created: 2026-05-25T02:25:41Z
-updated: 2026-05-25T16:16:38Z
+updated: 2026-05-26T04:39:06Z
 progress: 0%
 priority: P1
 prd: .claude/prds/category-icons.md
