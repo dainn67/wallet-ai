@@ -76,8 +76,8 @@ void main() {
       await tester.pumpWidget(createWidgetWrapper(testRecord));
 
       expect(find.text('Lunch at Cafe'), findsOneWidget);
-      // Since categories are empty, it will fall back to record.categoryName
-      expect(find.text('Food • Cash'), findsOneWidget);
+      // Since categories are empty, falls back to record.categoryName with default emoji
+      expect(find.textContaining('🏷️ Food'), findsOneWidget);
     });
 
     testWidgets('renders hierarchical category name correctly', (WidgetTester tester) async {
@@ -90,7 +90,29 @@ void main() {
       final hierarchicalRecord = testRecord.copyWith(categoryId: 2);
       await tester.pumpWidget(createWidgetWrapper(hierarchicalRecord));
 
-      expect(find.text('Dining - Lunch • Cash'), findsOneWidget);
+      expect(find.textContaining('🏷️ Dining - Lunch'), findsOneWidget);
+    });
+
+    testWidgets('subtitle shows emoji from category when category has custom emoji', (WidgetTester tester) async {
+      when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
+        Category(categoryId: 1, name: 'Food', type: 'expense', emoji: '🍔'),
+      ]);
+      await recordProvider.loadAll();
+
+      await tester.pumpWidget(createWidgetWrapper(testRecord));
+
+      expect(find.textContaining('🍔 Food'), findsOneWidget);
+    });
+
+    testWidgets('subtitle shows emoji 🏷️ when category emoji is default', (WidgetTester tester) async {
+      when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
+        Category(categoryId: 1, name: 'Food', type: 'expense', emoji: '🏷️'),
+      ]);
+      await recordProvider.loadAll();
+
+      await tester.pumpWidget(createWidgetWrapper(testRecord));
+
+      expect(find.textContaining('🏷️'), findsWidgets);
     });
   });
 }

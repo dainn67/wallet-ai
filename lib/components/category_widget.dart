@@ -50,6 +50,15 @@ class CategoryWidget extends StatelessWidget {
           : null,
       child: Row(
         children: [
+          // Emoji
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(
+              category.emoji,
+              style: const TextStyle(fontSize: 20),
+            ),
+          ),
+
           // Icon Container
           Container(
             padding: const EdgeInsets.all(8),
