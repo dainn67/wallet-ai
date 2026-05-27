@@ -26,7 +26,11 @@
       "Bash(mv /Users/nguyendai/StudioProjects/wallet-ai/.claude/epics/category-filter /Users/nguyendai/StudioProjects/wallet-ai/.claude/epics/.archived/)",
       "Bash(mv .claude/context/epics/onboarding.md .claude/context/epics/.archive/)",
       "Bash(sed '1,/^---$/d; 1,/^---$/d' .claude/epics/redesign-ui/epic.md)",
-      "Bash(gh issue create --repo dainn67/wallet-ai --title 'Epic: redesign-ui — Complete UI redesign with Plus Jakarta Sans + AppTheme token system' --body ' *)"
+      "Bash(gh issue create --repo dainn67/wallet-ai --title 'Epic: redesign-ui — Complete UI redesign with Plus Jakarta Sans + AppTheme token system' --body ' *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(mkdir -p .claude/epics/.archived/)",
+      "Bash(mv .claude/epics/category-icons .claude/epics/.archived/category-icons)"
     ],
     "deny": [
       "Bash(rm -rf /)",
