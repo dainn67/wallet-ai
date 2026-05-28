@@ -52,7 +52,9 @@ class CategoryWidget extends StatelessWidget {
           // Emoji
           Container(
             margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(8),
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),

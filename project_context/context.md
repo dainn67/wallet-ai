@@ -57,7 +57,7 @@ When a record has `category_id: -1` and the server returns a `suggested_category
 
 ### Category Icons (Emoji)
 
-Every `Category` carries a non-null `emoji` field (default `'🏷️'`). Added in schema v9 → v10 via `RecordMigrationService.addEmojiColumn`. Emojis are set by AI suggestion, user input (TextField + OS keyboard), or a curated 17-entry seed map. The emoji renders as a leading `Text(fontSize: 20)` in `CategoryWidget` (CategoriesTab rows), as a prefix to the category-name in `RecordWidget`'s subtitle (e.g., `🍔 Food • Cash`), and inline in `SuggestionBanner` via the server-controlled `suggestion.message` string. See `docs/features/category-icons.md`.
+Every `Category` carries a non-null `emoji` field (default `'🏷️'`). Added in schema v9 → v10 via `RecordMigrationService.addEmojiColumn`. Emojis are set by AI suggestion, user input (a 64×64 square TextField in `CategoryFormDialog`), or a curated 17-entry seed map. The emoji renders as a leading `Text(fontSize: 20)` in `CategoryWidget` (CategoriesTab rows), as the leading 36×36 circular badge in `RecordWidget` (replacing the prior direction glyph; subtitle is plain text like `Food • Cash`), and inline in `SuggestionBanner` via the server-controlled `suggestion.message` string. See `docs/features/category-icons.md`.
 
 ### AI Pattern Analysis & Adaptive Greeting
 

@@ -16,8 +16,8 @@ The fallback value is `'🏷️'`, applied both in the `Category` constructor de
 ### 1. Categories Tab (`CategoryWidget`)
 `lib/components/category_widget.dart` — the leading element in the category row is now `Text(category.emoji, style: TextStyle(fontSize: 20))`, placed before the income/expense direction icon. The directional arrow remains because it conveys transaction direction (in/out), not category identity — the two signals are complementary.
 
-### 2. Record Card Subtitle (`RecordWidget`)
-`lib/components/record_widget.dart` — `_buildSubtitle` prefixes the category name with `'${emoji} '`, producing strings like `🍔 Food & Drink • Cash`. The emoji is resolved from `RecordProvider.categories` by `categoryId`; if the category is not found in cache (e.g., during initial load), the fallback `'🏷️'` is used.
+### 2. Record Card Leading Icon (`RecordWidget`)
+`lib/components/record_widget.dart` — the leading 36×36 circular badge renders the category emoji as `Text(emoji, style: TextStyle(fontSize: 18))`, replacing the prior direction glyph (`Icons.arrow_outward_rounded` / `Icons.call_received_rounded` / `Icons.swap_horiz`). The badge's tint still encodes direction (red expense / green income / indigo transfer). Transfer rows naturally show `🔄` from the seeded Transfer category. `_buildSubtitle` no longer prefixes the emoji (e.g., `Food • Cash`) since it's now displayed alongside as the leading icon. The emoji is resolved from `RecordProvider.categories` by `categoryId`; if the category is not found in cache (e.g., during initial load), the fallback `'🏷️'` is used.
 
 ### 3. Suggestion Banner (`SuggestionBanner`)
 `lib/components/suggestion_banner.dart` — **no client-side change**. The server includes the suggested emoji inline in `suggestion.message` (e.g., `"Should I create a new one called 🚌 'Commute'?"`). The banner renders `widget.suggestion.message` verbatim, so the emoji appears automatically. See epic AD-1 / task 212 for the server-side contract.

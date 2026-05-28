@@ -76,8 +76,9 @@ void main() {
       await tester.pumpWidget(createWidgetWrapper(testRecord));
 
       expect(find.text('Lunch at Cafe'), findsOneWidget);
-      // Since categories are empty, falls back to record.categoryName with default emoji
-      expect(find.textContaining('🏷️ Food'), findsOneWidget);
+      // Subtitle no longer prefixes emoji — leading icon shows it instead.
+      expect(find.textContaining('Food'), findsOneWidget);
+      expect(find.text('🏷️'), findsOneWidget);
     });
 
     testWidgets('renders hierarchical category name correctly', (WidgetTester tester) async {
@@ -90,10 +91,10 @@ void main() {
       final hierarchicalRecord = testRecord.copyWith(categoryId: 2);
       await tester.pumpWidget(createWidgetWrapper(hierarchicalRecord));
 
-      expect(find.textContaining('🏷️ Dining - Lunch'), findsOneWidget);
+      expect(find.textContaining('Dining - Lunch'), findsOneWidget);
     });
 
-    testWidgets('subtitle shows emoji from category when category has custom emoji', (WidgetTester tester) async {
+    testWidgets('leading icon shows category emoji when category has custom emoji', (WidgetTester tester) async {
       when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
         Category(categoryId: 1, name: 'Food', type: 'expense', emoji: '🍔'),
       ]);
@@ -101,10 +102,11 @@ void main() {
 
       await tester.pumpWidget(createWidgetWrapper(testRecord));
 
-      expect(find.textContaining('🍔 Food'), findsOneWidget);
+      expect(find.text('🍔'), findsOneWidget);
+      expect(find.textContaining('Food'), findsOneWidget);
     });
 
-    testWidgets('subtitle shows emoji 🏷️ when category emoji is default', (WidgetTester tester) async {
+    testWidgets('leading icon shows 🏷️ when category emoji is default', (WidgetTester tester) async {
       when(() => mockRepository.getAllCategories()).thenAnswer((_) async => [
         Category(categoryId: 1, name: 'Food', type: 'expense', emoji: '🏷️'),
       ]);
@@ -112,7 +114,7 @@ void main() {
 
       await tester.pumpWidget(createWidgetWrapper(testRecord));
 
-      expect(find.textContaining('🏷️'), findsWidgets);
+      expect(find.text('🏷️'), findsOneWidget);
     });
   });
 }

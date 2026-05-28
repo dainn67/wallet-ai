@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
 
@@ -22,14 +23,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
   late TextEditingController _nameController;
   late TextEditingController _emojiController;
   late String _selectedType;
+  String? _emojiError;
 
   bool get _isUncategorized => widget.category?.categoryId == 1;
-
-  bool get _isEmojiValid {
-    final text = _emojiController.text.trim();
-    if (text.isEmpty) return true;
-    return text.runes.any(isEmojiCodepoint);
-  }
 
   bool get _hasChanges {
     if (widget.category == null) return _nameController.text.trim().isNotEmpty;
@@ -38,9 +34,46 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
         _selectedType != widget.category!.type;
   }
 
-  bool get _canSave => _nameController.text.trim().isNotEmpty && _isEmojiValid && _hasChanges;
+  bool get _canSave => _nameController.text.trim().isNotEmpty && _hasChanges;
 
   void _onChanged() => setState(() {});
+
+  /// Allows only emoji codepoints, caps at 1 emoji (replacing previous), and
+  /// sets [_emojiError] when the user types a non-emoji character.
+  TextEditingValue _filterEmojiInput(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
+    if (text.isEmpty) {
+      _setEmojiError(null);
+      return newValue;
+    }
+
+    final hasInvalid = text.runes.any((cp) => !isEmojiCodepoint(cp) && !isEmojiModifier(cp));
+    if (hasInvalid) {
+      _setEmojiError(context.read<LocaleProvider>().translate('emoji_only_input_error'));
+      return oldValue;
+    }
+
+    _setEmojiError(null);
+    final groups = splitEmojiGroups(text);
+    if (groups.isEmpty) return newValue;
+
+    // Keep only the last emoji group so the previous emoji is replaced.
+    final last = String.fromCharCodes(groups.last);
+    if (last == text) return newValue;
+    return TextEditingValue(
+      text: last,
+      selection: TextSelection.collapsed(offset: last.length),
+    );
+  }
+
+  void _setEmojiError(String? message) {
+    if (_emojiError == message) return;
+    // Defer setState to avoid mutating state while the formatter pipeline runs.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _emojiError = message);
+    });
+  }
 
   @override
   void initState() {
@@ -171,18 +204,20 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 key: const Key('emoji_field'),
                 controller: _emojiController,
                 enabled: !_isUncategorized,
-                maxLength: 8,
                 style: const TextStyle(fontSize: 22),
-                decoration: const InputDecoration(
+                inputFormatters: [
+                  TextInputFormatter.withFunction(_filterEmojiInput),
+                ],
+                decoration: InputDecoration(
                   counterText: '',
-                  hintText: '🏷️',
+                  errorText: _emojiError,
                   filled: true,
-                  fillColor: Color(0xFFF8FAFC),
+                  fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
               const SizedBox(height: 16),
@@ -340,7 +375,7 @@ class _TypeButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : const Color(0xFFF8FAFC),
+          color: isSelected ? color.withValues(alpha: 0.1) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? color : Colors.transparent,

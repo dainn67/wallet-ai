@@ -34,9 +34,9 @@ class RecordWidget extends StatelessWidget {
         ? const Color(0xFF6366F1)
         : (isExpense ? Colors.red : Colors.green);
     final backgroundColor = recordColor.withValues(alpha: 0.1);
-    final IconData iconData = isTransfer
-        ? Icons.swap_horiz
-        : (isExpense ? Icons.arrow_outward_rounded : Icons.call_received_rounded);
+    final categories = context.read<RecordProvider>().categories;
+    final category = categories.where((c) => c.categoryId == record.categoryId).firstOrNull;
+    final String emoji = category?.emoji ?? '🏷️';
     final String amountPrefix = isTransfer ? '' : (isExpense ? '-' : '+');
     final formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(record.occurredAt));
 
@@ -54,11 +54,13 @@ class RecordWidget extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon Container
+            // Category emoji
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
               decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
-              child: Icon(iconData, color: recordColor, size: 16),
+              child: Text(emoji, style: const TextStyle(fontSize: 18)),
             ),
             const SizedBox(width: 12),
 
@@ -126,21 +128,15 @@ class RecordWidget extends StatelessWidget {
     final provider = context.read<RecordProvider>();
     final parts = <String>[];
 
-    // Resolve category emoji and name
-    final categories = provider.categories;
-    final category = categories.where((c) => c.categoryId == record.categoryId).firstOrNull;
-    final emoji = category?.emoji ?? '🏷️';
     final categoryName = provider.getCategoryName(record.categoryId);
-
     if (categoryName != 'Unknown') {
-      parts.add('$emoji $categoryName');
+      parts.add(categoryName);
     } else if (record.categoryName != null && record.categoryName!.isNotEmpty) {
-      parts.add('$emoji ${record.categoryName!}');
+      parts.add(record.categoryName!);
     } else {
-      parts.add('$emoji ${isExpense ? 'Expense' : 'Income'}');
+      parts.add(isExpense ? 'Expense' : 'Income');
     }
 
-    // Add source if available
     if (record.sourceName != null && record.sourceName!.isNotEmpty) {
       parts.add(record.sourceName!);
     }
