@@ -174,12 +174,8 @@ void main() {
 
     await tester.pumpWidget(_wrapChatTab(mockChat, mockLocale));
 
-    // Open attachment sheet.
-    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
-    await tester.pumpAndSettle();
-
-    // Tap "Choose from library".
-    await tester.tap(find.text('choose_from_library'));
+    // Tap the gallery icon directly (camera + gallery are inline buttons now).
+    await tester.tap(find.byIcon(Icons.photo_library_outlined));
     await tester.pumpAndSettle();
 
     // Thumbnails should now be visible (Image widgets in preview strip).
@@ -217,9 +213,7 @@ void main() {
 
     await tester.pumpWidget(_wrapChatTab(mockChat, mockLocale));
 
-    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('choose_from_library'));
+    await tester.tap(find.byIcon(Icons.photo_library_outlined));
     await tester.pumpAndSettle();
 
     expect(find.byType(SnackBar), findsOneWidget);
@@ -259,9 +253,7 @@ void main() {
 
     await tester.pumpWidget(_wrapChatTab(mockChat, mockLocale));
 
-    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('choose_from_library'));
+    await tester.tap(find.byIcon(Icons.photo_library_outlined));
     await tester.pumpAndSettle();
 
     // Leave caption empty, tap send.
@@ -312,9 +304,7 @@ void main() {
 
     await tester.pumpWidget(_wrapChatTab(mockChat, mockLocale));
 
-    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('choose_from_library'));
+    await tester.tap(find.byIcon(Icons.photo_library_outlined));
     await tester.pumpAndSettle();
 
     // Send.

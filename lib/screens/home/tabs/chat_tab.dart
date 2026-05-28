@@ -78,45 +78,11 @@ class _ChatTabState extends State<ChatTab> {
     provider.selectAction();
   }
 
-  Future<void> _showAttachmentSheet() async {
+  Future<void> _pickFromCamera() async {
     if (_pendingImages.length >= _maxImages) {
       _showSnackBar('Maximum 5 images per message');
       return;
     }
-    final l10n = context.read<LocaleProvider>();
-    await showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: Text(l10n.translate('take_photo')),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickFromCamera();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: Text(l10n.translate('choose_from_library')),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickFromGallery();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickFromCamera() async {
-    if (_pendingImages.length >= _maxImages) return;
     final file = await ImagePickerService().pickFromCamera();
     if (!mounted || file == null) return;
     await _processAndAdd([file]);
@@ -124,7 +90,10 @@ class _ChatTabState extends State<ChatTab> {
 
   Future<void> _pickFromGallery() async {
     final remaining = _maxImages - _pendingImages.length;
-    if (remaining <= 0) return;
+    if (remaining <= 0) {
+      _showSnackBar('Maximum 5 images per message');
+      return;
+    }
     final files = await ImagePickerService().pickFromGallery(maxCount: remaining);
     if (!mounted || files.isEmpty) return;
     await _processAndAdd(files);
@@ -276,9 +245,15 @@ class _ChatTabState extends State<ChatTab> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.add_photo_alternate_outlined, color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
-                    onPressed: isStreaming ? null : _showAttachmentSheet,
-                    tooltip: 'Attach image',
+                    icon: Icon(Icons.camera_alt_outlined, color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
+                    onPressed: isStreaming ? null : _pickFromCamera,
+                    tooltip: 'Take photo',
+                    splashRadius: 20,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.photo_library_outlined, color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
+                    onPressed: isStreaming ? null : _pickFromGallery,
+                    tooltip: 'Choose from library',
                     splashRadius: 20,
                   ),
                 ],
