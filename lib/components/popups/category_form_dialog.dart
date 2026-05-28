@@ -281,6 +281,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                             categoryId: widget.category?.categoryId,
                             name: _nameController.text.trim(),
                             type: _selectedType,
+                            parentId: widget.category?.parentId ?? -1,
                             emoji: coerceEmoji(_emojiController.text),
                           );
                           if (isEdit) {
