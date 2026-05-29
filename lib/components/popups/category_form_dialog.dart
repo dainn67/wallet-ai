@@ -23,15 +23,20 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
   late TextEditingController _nameController;
   late TextEditingController _emojiController;
   late String _selectedType;
+  late int _selectedParentId; // -1 = top-level
   String? _emojiError;
 
   bool get _isUncategorized => widget.category?.categoryId == 1;
+  int get _originalParentId => widget.category?.parentId ?? -1;
 
   bool get _hasChanges {
-    if (widget.category == null) return _nameController.text.trim().isNotEmpty;
+    if (widget.category == null) {
+      return _nameController.text.trim().isNotEmpty;
+    }
     return _nameController.text.trim() != widget.category!.name ||
         coerceEmoji(_emojiController.text) != widget.category!.emoji ||
-        _selectedType != widget.category!.type;
+        _selectedType != widget.category!.type ||
+        _selectedParentId != _originalParentId;
   }
 
   bool get _canSave => _nameController.text.trim().isNotEmpty && _hasChanges;
@@ -75,12 +80,91 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
     });
   }
 
+  void _onTypeChanged(String newType) {
+    if (newType == _selectedType) return;
+    setState(() {
+      _selectedType = newType;
+      // The selected parent (if any) must share the new type; otherwise drop it.
+      if (_selectedParentId != -1) {
+        final provider = context.read<RecordProvider>();
+        final parent = provider.categories
+            .where((c) => c.categoryId == _selectedParentId)
+            .firstOrNull;
+        if (parent == null || parent.type != newType) {
+          _selectedParentId = -1;
+        }
+      }
+    });
+  }
+
+  /// Roots of the currently selected type that are valid parents for this
+  /// category (excludes self, Uncategorized, and any non-root category).
+  List<Category> _eligibleParents(RecordProvider provider) {
+    final editingId = widget.category?.categoryId;
+    return provider.categories.where((c) {
+      if (c.categoryId == 1) return false; // Uncategorized never acts as parent
+      if (c.categoryId == editingId) return false; // can't parent self
+      if (c.parentId != -1) return false; // only roots
+      return c.type == _selectedType;
+    }).toList();
+  }
+
+  /// How many of the edited category's current sub-categories will be moved
+  /// when the user saves a re-parent. Zero unless the category is becoming a
+  /// sub (new parent != -1) AND it currently has children.
+  int _cascadingSubCount(RecordProvider provider) {
+    final id = widget.category?.categoryId;
+    if (id == null) return 0;
+    if (_selectedParentId == -1) return 0;
+    if (_selectedParentId == _originalParentId) return 0;
+    return provider.getSubCategories(id).length;
+  }
+
+  Widget _buildParentDropdown(RecordProvider provider, LocaleProvider l10n) {
+    final eligible = _eligibleParents(provider);
+    final eligibleIds = eligible.map((c) => c.categoryId).toSet();
+    final value = (_selectedParentId == -1 || eligibleIds.contains(_selectedParentId))
+        ? _selectedParentId
+        : -1;
+
+    return DropdownButtonFormField<int>(
+      value: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+      items: [
+        DropdownMenuItem<int>(
+          value: -1,
+          child: Text(l10n.translate('parent_top_level')),
+        ),
+        ...eligible.map(
+          (c) => DropdownMenuItem<int>(
+            value: c.categoryId,
+            child: Text('${c.emoji}  ${c.name}'),
+          ),
+        ),
+      ],
+      onChanged: (next) {
+        if (next == null) return;
+        setState(() => _selectedParentId = next);
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
     _emojiController = TextEditingController(text: widget.category?.emoji ?? '🏷️');
     _selectedType = widget.category?.type ?? 'expense';
+    _selectedParentId = widget.category?.parentId ?? -1;
     _nameController.addListener(_onChanged);
     _emojiController.addListener(_onChanged);
   }
@@ -237,7 +321,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                       label: l10n.translate('spent_label'),
                       isSelected: _selectedType == 'expense',
                       color: Colors.red,
-                      onTap: () => setState(() => _selectedType = 'expense'),
+                      onTap: () => _onTypeChanged('expense'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -246,11 +330,37 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                       label: l10n.translate('income_label'),
                       isSelected: _selectedType == 'income',
                       color: Colors.green,
-                      onTap: () => setState(() => _selectedType = 'income'),
+                      onTap: () => _onTypeChanged('income'),
                     ),
                   ),
                 ],
               ),
+              if (!_isUncategorized) ...[
+                const SizedBox(height: 16),
+                Text(
+                  l10n.translate('parent_category_label'),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildParentDropdown(recordProvider, l10n),
+                if (_cascadingSubCount(recordProvider) > 0) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.translate('reparent_cascade_hint').replaceFirst(
+                          '{count}',
+                          _cascadingSubCount(recordProvider).toString(),
+                        ),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
+              ],
               if (isEdit) ...[
                 const SizedBox(height: 24),
                 SizedBox(
@@ -316,11 +426,18 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                             categoryId: widget.category?.categoryId,
                             name: _nameController.text.trim(),
                             type: _selectedType,
-                            parentId: widget.category?.parentId ?? -1,
+                            parentId: _selectedParentId,
                             emoji: coerceEmoji(_emojiController.text),
                           );
                           if (isEdit) {
-                            recordProvider.updateCategory(newCategory);
+                            if (_selectedParentId != _originalParentId) {
+                              recordProvider.updateCategoryAndReparent(
+                                newCategory,
+                                _originalParentId,
+                              );
+                            } else {
+                              recordProvider.updateCategory(newCategory);
+                            }
                           } else {
                             recordProvider.addCategory(newCategory);
                           }

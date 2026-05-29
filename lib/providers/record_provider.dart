@@ -379,6 +379,19 @@ class RecordProvider extends ChangeNotifier {
 
   Future<void> updateCategory(Category category) => _performOperation(() => _repository.updateCategory(category), showToastOnError: true, updateWidget: false);
 
+  /// Updates [category] and, when its `parentId` changed to a non-root, also
+  /// re-parents the edited category's current sub-categories to share the new
+  /// parent (kept single-level / flat).
+  Future<void> updateCategoryAndReparent(Category category, int oldParentId) =>
+      _performOperation(
+        () => _repository.updateCategoryAndReparent(
+          category: category,
+          oldParentId: oldParentId,
+        ),
+        showToastOnError: true,
+        updateWidget: false,
+      );
+
   Future<void> deleteCategory(int id) => _performOperation(() => _repository.deleteCategory(id), showToastOnError: true, updateWidget: false);
 
   /// Lightweight record creation for batch use (e.g., ChatProvider).

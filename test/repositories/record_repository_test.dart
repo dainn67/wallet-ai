@@ -298,6 +298,70 @@ void main() {
       expect(() => repository.deleteCategory(1), throwsArgumentError);
     });
 
+    test('updateCategoryAndReparent(top-level → sub) cascades existing children to the new parent', () async {
+      // Setup: Food (id 2, root) with two children.
+      final lifestyleId = await repository.createCategory(
+        Category(name: 'Lifestyle', type: 'expense'),
+      );
+      final groceriesId = await repository.createCategory(
+        Category(name: 'Groceries', type: 'expense', parentId: 2),
+      );
+      final diningId = await repository.createCategory(
+        Category(name: 'Dining', type: 'expense', parentId: 2),
+      );
+
+      // Demote Food under Lifestyle.
+      await repository.updateCategoryAndReparent(
+        category: Category(categoryId: 2, name: 'Food', type: 'expense', parentId: lifestyleId, emoji: '🍔'),
+        oldParentId: -1,
+      );
+
+      final categories = await repository.getAllCategories();
+      Category byId(int id) => categories.firstWhere((c) => c.categoryId == id);
+
+      expect(byId(2).parentId, lifestyleId, reason: 'Food now sub of Lifestyle');
+      expect(byId(groceriesId).parentId, lifestyleId, reason: 'Groceries cascaded');
+      expect(byId(diningId).parentId, lifestyleId, reason: 'Dining cascaded');
+    });
+
+    test('updateCategoryAndReparent(sub → top-level) does not touch other rows', () async {
+      // Setup: Food (root), Groceries (sub of Food).
+      final groceriesId = await repository.createCategory(
+        Category(name: 'Groceries', type: 'expense', parentId: 2),
+      );
+      final unrelatedId = await repository.createCategory(
+        Category(name: 'Transport', type: 'expense'),
+      );
+
+      // Promote Groceries to top-level.
+      await repository.updateCategoryAndReparent(
+        category: Category(categoryId: groceriesId, name: 'Groceries', type: 'expense', parentId: -1, emoji: '🛒'),
+        oldParentId: 2,
+      );
+
+      final categories = await repository.getAllCategories();
+      expect(categories.firstWhere((c) => c.categoryId == groceriesId).parentId, -1);
+      expect(categories.firstWhere((c) => c.categoryId == 2).parentId, -1, reason: 'Food untouched');
+      expect(categories.firstWhere((c) => c.categoryId == unrelatedId).parentId, -1, reason: 'unrelated untouched');
+    });
+
+    test('updateCategoryAndReparent rejects self-as-parent and Uncategorized', () async {
+      expect(
+        () => repository.updateCategoryAndReparent(
+          category: Category(categoryId: 1, name: 'Uncategorized', type: 'expense', parentId: -1),
+          oldParentId: -1,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => repository.updateCategoryAndReparent(
+          category: Category(categoryId: 2, name: 'Food', type: 'expense', parentId: 2),
+          oldParentId: -1,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('deleteCategory moves records to ID 1 and deletes category (5 records)', () async {
       // 1. Setup: Category (ID 2: Food) and 5 records
       for (int i = 0; i < 5; i++) {

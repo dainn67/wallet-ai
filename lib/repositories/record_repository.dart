@@ -490,6 +490,39 @@ class RecordRepository {
     }
   }
 
+  /// Updates [category] and, when its `parent_id` is changing to a non-root
+  /// value (i.e., it's becoming a sub of someone), moves any current children
+  /// of [category] to share the same new parent so the hierarchy stays flat
+  /// (single-level). All writes happen in one transaction.
+  Future<void> updateCategoryAndReparent({
+    required Category category,
+    required int oldParentId,
+  }) async {
+    if (category.categoryId == 1) {
+      throw ArgumentError("Cannot update Uncategorized category");
+    }
+    if (category.categoryId == category.parentId) {
+      throw ArgumentError("Category cannot be its own parent");
+    }
+    await database.transaction((txn) async {
+      final newParentId = category.parentId;
+      if (newParentId != oldParentId && newParentId != -1) {
+        await txn.update(
+          'Category',
+          {'parent_id': newParentId},
+          where: 'parent_id = ?',
+          whereArgs: [category.categoryId],
+        );
+      }
+      await txn.update(
+        'Category',
+        category.toMap(),
+        where: 'category_id = ?',
+        whereArgs: [category.categoryId],
+      );
+    });
+  }
+
   Future<int> deleteCategory(int id) async {
     try {
       if (id == 1) {
