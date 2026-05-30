@@ -10,6 +10,8 @@ class StorageService {
   static const String keyLastPatternUpdateTime = 'last_pattern_update_time';
   static const String keyOnboardingComplete = 'onboarding_complete';
   static const String keyUserPattern = 'user_pattern';
+  static const String keyRemindersEnabled = 'reminders_enabled';
+  static const String keyRemindersPermissionAsked = 'reminders_permission_asked';
 
   factory StorageService() => _instance;
 

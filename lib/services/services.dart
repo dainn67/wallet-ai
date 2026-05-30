@@ -5,5 +5,6 @@ export 'api_service.dart';
 export 'chat_api_service.dart';
 export 'image_picker_service.dart';
 export 'image_processing_service.dart';
+export 'notification_service.dart';
 export 'storage_service.dart';
 export 'toast_service.dart';

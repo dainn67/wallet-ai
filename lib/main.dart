@@ -24,13 +24,31 @@ void main() async {
   // Initialize HomeWidget
   await HomeWidget.setAppGroupId('com.leslie.wallyai');
 
+  // Local notifications: init plugin + one-shot first-launch permission ask.
+  await NotificationService().init();
+  await _maybeAskNotificationPermissionOnce();
+
   // Update the user pattern from AI based on record history (fire-and-forget)
   AiPatternService().updateUserPattern();
-  
+
   // Ensure the system status bar and navigation bar are visible
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
 
   runApp(const MyApp());
+}
+
+/// First-launch only: surface the OS permission prompt once. If the user
+/// allows, flip the Reminders toggle on by default so they get the value
+/// right away. If they deny, leave it off — they can flip it later from the
+/// drawer (which routes through system settings).
+Future<void> _maybeAskNotificationPermissionOnce() async {
+  final storage = StorageService();
+  final alreadyAsked = storage.getBool(StorageService.keyRemindersPermissionAsked) ?? false;
+  if (alreadyAsked) return;
+
+  final granted = await NotificationService().requestPermission();
+  await storage.setBool(StorageService.keyRemindersPermissionAsked, true);
+  await storage.setBool(StorageService.keyRemindersEnabled, granted);
 }
 
 class MyApp extends StatelessWidget {
@@ -53,6 +71,15 @@ class MyApp extends StatelessWidget {
             return (chatProvider ?? ChatProvider())
               ..recordProvider = recordProvider
               ..localeProvider = localeProvider;
+          },
+        ),
+        ChangeNotifierProxyProvider2<RecordProvider, LocaleProvider, NotificationProvider>(
+          create: (ctx) => NotificationProvider(Provider.of<StorageService>(ctx, listen: false)),
+          update: (_, recordProvider, localeProvider, notificationProvider) {
+            final np = notificationProvider ??
+                NotificationProvider(StorageService());
+            np.attach(records: recordProvider, locale: localeProvider);
+            return np;
           },
         ),
       ],
