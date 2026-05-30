@@ -77,13 +77,14 @@ class NotificationService {
   }
 
   /// Cancels any pending reminders and schedules a fresh ladder of nudges
-  /// computed from [lastRecordAt]. Past fire times are silently skipped so
+  /// computed from [lastActivityAt] (the user's most recent app activity, e.g.
+  /// the latest `Record.lastUpdated`). Past fire times are silently skipped so
   /// scheduling at 9 PM doesn't emit a "day 1" nudge that should have fired
   /// an hour ago.
   ///
   /// Caller is expected to gate this behind the user's "Reminders" toggle.
   Future<void> scheduleInactivityReminders({
-    required DateTime lastRecordAt,
+    required DateTime lastActivityAt,
     required String Function(String key) translate,
   }) async {
     if (!_initialised) await init();
@@ -92,7 +93,7 @@ class NotificationService {
     final now = tz.TZDateTime.now(tz.local);
 
     for (final r in NotificationConfig.inactivityReminders) {
-      final fireAt = _fireTimeFor(lastRecordAt, r.daysAfterLastRecord);
+      final fireAt = _fireTimeFor(lastActivityAt, r.daysAfterLastRecord);
       if (!fireAt.isAfter(now)) continue;
 
       await _plugin.zonedSchedule(
@@ -109,15 +110,19 @@ class NotificationService {
     }
   }
 
+  /// Cancels only the inactivity-reminder ladder, leaving any future
+  /// non-reminder notifications (e.g. budget alerts) untouched.
   Future<void> cancelAllReminders() async {
     if (!_initialised) await init();
-    await _plugin.cancelAll();
+    for (final r in NotificationConfig.inactivityReminders) {
+      await _plugin.cancel(r.id.hashCode);
+    }
   }
 
   // ---------- internal ----------
 
-  tz.TZDateTime _fireTimeFor(DateTime lastRecordAt, int daysAfter) {
-    final local = tz.TZDateTime.from(lastRecordAt, tz.local);
+  tz.TZDateTime _fireTimeFor(DateTime lastActivityAt, int daysAfter) {
+    final local = tz.TZDateTime.from(lastActivityAt, tz.local);
     return tz.TZDateTime(
       tz.local,
       local.year,

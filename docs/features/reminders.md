@@ -39,6 +39,16 @@ Tone is first-person from "Wally" (the AI assistant), conversational, no guilt-t
 2. Add the matching `notif_dayN_title` + `notif_dayN_body` keys to both languages in `L10nConfig.translations`.
 3. No service or provider changes needed — `NotificationService` iterates the list.
 
+## Activity anchor
+
+The schedule is computed from the **latest `Record.lastUpdated`**, not `occurredAt`. `lastUpdated` is the row's audit timestamp (when it was written); `occurredAt` is user-editable event time. Anchoring on `lastUpdated` means back-dating a record (logging an old expense) does NOT collapse the reminder cadence — the user just engaged with the app, so the next nudge waits a full day.
+
+## Known UX edge cases (v1)
+
+- **Re-enabling after revoke**: if the user denies in OS settings, returns to the app, and taps the toggle ON, our dialog routes them to system settings. After enabling permission they must **return to the app and tap the toggle again** — we don't auto-re-check on app resume in v1.
+- **App open without logging**: opening the app is NOT treated as activity. Only writing a record resets the cadence. This matches the user spec ("days since last *record*").
+- **Latency**: scheduling uses `inexactAllowWhileIdle` → fire window is ~±15 min around 20:00 local. Acceptable for an end-of-day nudge; intentionally avoided to stay off Play Store's alarm-app allowlist.
+
 ## Triggers for re-scheduling
 
 `NotificationProvider._reapply()` runs whenever any of these change:

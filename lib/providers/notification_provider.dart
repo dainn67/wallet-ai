@@ -32,15 +32,6 @@ class NotificationProvider with ChangeNotifier {
 
   bool get enabled => _enabled;
 
-  /// Whether the OS permission prompt has been shown once. Used by `main()`
-  /// to fire the prompt exactly once on first launch.
-  bool get permissionAlreadyAsked =>
-      _storageService.getBool(StorageService.keyRemindersPermissionAsked) ?? false;
-
-  Future<void> markPermissionAsked() async {
-    await _storageService.setBool(StorageService.keyRemindersPermissionAsked, true);
-  }
-
   /// Called from `main.dart`'s proxy-provider update. Stores references and
   /// re-applies the reminder schedule.
   void attach({RecordProvider? records, LocaleProvider? locale}) {
@@ -72,12 +63,16 @@ class NotificationProvider with ChangeNotifier {
       return;
     }
 
-    final latestOccurredAt = records
-        .map((r) => r.occurredAt)
+    // Anchor on `lastUpdated` (audit timestamp — when the row was written),
+    // NOT `occurredAt` (user-editable event time). Otherwise back-dating a
+    // record would immediately collapse the reminder cadence even though the
+    // user just engaged with the app.
+    final lastActivityMs = records
+        .map((r) => r.lastUpdated)
         .reduce((a, b) => a > b ? a : b);
 
     await NotificationService().scheduleInactivityReminders(
-      lastRecordAt: DateTime.fromMillisecondsSinceEpoch(latestOccurredAt),
+      lastActivityAt: DateTime.fromMillisecondsSinceEpoch(lastActivityMs),
       translate: locale.translate,
     );
   }
