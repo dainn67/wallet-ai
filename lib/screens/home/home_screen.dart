@@ -48,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (notDone) {
         OnboardingDialog.show(context);
       }
+      _maybeAskNotificationPermission();
     });
   }
 
@@ -56,6 +57,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _tabController.dispose();
     _recordingFocusNode.dispose();
     super.dispose();
+  }
+
+  /// First-launch only: surface the OS notification permission prompt 2 seconds
+  /// after the home screen is ready. If granted, flips the Reminders toggle on.
+  Future<void> _maybeAskNotificationPermission() async {
+    final storage = StorageService();
+    final alreadyAsked = storage.getBool(StorageService.keyRemindersPermissionAsked) ?? false;
+    if (alreadyAsked) return;
+
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final granted = await NotificationService().requestPermission();
+    await storage.setBool(StorageService.keyRemindersPermissionAsked, true);
+    await storage.setBool(StorageService.keyRemindersEnabled, granted);
+
+    if (mounted) {
+      // ignore: use_build_context_synchronously
+      context.read<NotificationProvider>().setEnabled(granted);
+    }
   }
 
   /// Toggle handler for the drawer "Reminders" switch. When the user tries to

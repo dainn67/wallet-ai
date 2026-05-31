@@ -24,9 +24,8 @@ void main() async {
   // Initialize HomeWidget
   await HomeWidget.setAppGroupId('com.leslie.wallyai');
 
-  // Local notifications: init plugin + one-shot first-launch permission ask.
+  // Local notifications: init plugin only — permission ask happens in HomeScreen.
   await NotificationService().init();
-  await _maybeAskNotificationPermissionOnce();
 
   // Update the user pattern from AI based on record history (fire-and-forget)
   AiPatternService().updateUserPattern();
@@ -37,19 +36,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-/// First-launch only: surface the OS permission prompt once. If the user
-/// allows, flip the Reminders toggle on by default so they get the value
-/// right away. If they deny, leave it off — they can flip it later from the
-/// drawer (which routes through system settings).
-Future<void> _maybeAskNotificationPermissionOnce() async {
-  final storage = StorageService();
-  final alreadyAsked = storage.getBool(StorageService.keyRemindersPermissionAsked) ?? false;
-  if (alreadyAsked) return;
-
-  final granted = await NotificationService().requestPermission();
-  await storage.setBool(StorageService.keyRemindersPermissionAsked, true);
-  await storage.setBool(StorageService.keyRemindersEnabled, granted);
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
