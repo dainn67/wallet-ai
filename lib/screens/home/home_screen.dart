@@ -42,11 +42,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     // Listen for clicks while the app is in the background
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final notDone = StorageService().getBool(StorageService.keyOnboardingComplete) != true;
       if (notDone) {
-        OnboardingDialog.show(context);
+        // ignore: use_build_context_synchronously
+        await OnboardingDialog.show(context);
       }
       _maybeAskNotificationPermission();
     });
