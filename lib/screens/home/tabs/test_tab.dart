@@ -81,10 +81,10 @@ class _TestTabState extends State<TestTab> {
         }
         return;
       }
-      await NotificationService().showTestNotification(translate: locale.translate);
+      await NotificationService().scheduleTestReminders(translate: locale.translate);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Test notification sent'), behavior: SnackBarBehavior.floating),
+          const SnackBar(content: Text('Scheduled: day 1→1s, 3→3s, 5→5s, 7→7s'), behavior: SnackBarBehavior.floating),
         );
       }
     } finally {
@@ -153,14 +153,14 @@ class _TestTabState extends State<TestTab> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
         const SizedBox(height: 8),
-        const Text('Fire an immediate test notification to verify permissions and channel setup.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+        const Text('Schedules the full reminder ladder in seconds: day 1→1s, day 3→3s, day 5→5s, day 7→7s.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 24),
         FilledButton.icon(
           onPressed: _notifLoading ? null : _testNotification,
           icon: _notifLoading
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : const Icon(Icons.notifications_active),
-          label: Text(_notifLoading ? 'Sending...' : 'Send test notification'),
+          label: Text(_notifLoading ? 'Scheduling...' : 'Test reminder flow'),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF0EA5E9),
             padding: const EdgeInsets.symmetric(vertical: 16),

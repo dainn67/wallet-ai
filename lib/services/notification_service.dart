@@ -114,21 +114,31 @@ class NotificationService {
     }
   }
 
-  /// Posts a test notification immediately.
-  /// Useful from TestTab to verify the notification pipeline (permissions,
-  /// channel, receivers) without waiting for the real 8 PM schedule.
-  Future<void> showTestNotification({
+  /// Schedules the full reminder ladder using seconds instead of days.
+  /// Mirrors the real inactivity flow so the scheduling pipeline (AlarmManager
+  /// → ScheduledNotificationReceiver → NotificationManager) is fully exercised.
+  /// Day-1/3/5/7 reminders fire at +1s / +3s / +5s / +7s from now.
+  Future<void> scheduleTestReminders({
     required String Function(String key) translate,
   }) async {
     if (!_initialised) await init();
-    final config = NotificationConfig.inactivityReminders.first;
-    await _plugin.show(
-      NotificationConfig.testNotificationId,
-      translate(config.titleKey),
-      translate(config.bodyKey),
-      _notificationDetails(),
-      payload: 'test_notification',
-    );
+    await cancelAllReminders();
+
+    final now = tz.TZDateTime.now(tz.local);
+    for (final r in NotificationConfig.inactivityReminders) {
+      final fireAt = now.add(Duration(seconds: r.daysAfterLastRecord));
+      await _plugin.zonedSchedule(
+        r.notificationId,
+        translate(r.titleKey),
+        translate(r.bodyKey),
+        fireAt,
+        _notificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: r.id,
+      );
+    }
   }
 
   /// Cancels only the inactivity-reminder ladder, leaving any future
