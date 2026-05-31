@@ -110,6 +110,33 @@ class NotificationService {
     }
   }
 
+  /// Fires a single test notification in [delaySeconds] seconds.
+  /// Useful from TestTab to verify the notification pipeline works without
+  /// waiting for the real 8 PM / multi-day schedule.
+  Future<void> scheduleTestNotification({
+    required String Function(String key) translate,
+    int delaySeconds = 5,
+  }) async {
+    if (!_initialised) await init();
+    const testId = 'test_notification';
+    await _plugin.cancel(testId.hashCode);
+
+    final fireAt = tz.TZDateTime.now(tz.local).add(Duration(seconds: delaySeconds));
+    final config = NotificationConfig.inactivityReminders.first;
+
+    await _plugin.zonedSchedule(
+      testId.hashCode,
+      translate(config.titleKey),
+      translate(config.bodyKey),
+      fireAt,
+      _notificationDetails(),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: testId,
+    );
+  }
+
   /// Cancels only the inactivity-reminder ladder, leaving any future
   /// non-reminder notifications (e.g. budget alerts) untouched.
   Future<void> cancelAllReminders() async {
