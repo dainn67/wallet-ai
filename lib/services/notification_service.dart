@@ -38,8 +38,8 @@ class NotificationService {
 
     tz_data.initializeTimeZones();
     try {
-      final localName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(localName));
+      final tzInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
     } catch (e) {
       debugPrint('[NotificationService] Failed to detect local TZ: $e');
     }
