@@ -101,7 +101,7 @@ class NotificationService {
       if (!fireAt.isAfter(now)) continue;
 
       await _plugin.zonedSchedule(
-        r.id.hashCode,
+        r.notificationId,
         translate(r.titleKey),
         translate(r.bodyKey),
         fireAt,
@@ -114,30 +114,20 @@ class NotificationService {
     }
   }
 
-  /// Fires a single test notification in [delaySeconds] seconds.
-  /// Useful from TestTab to verify the notification pipeline works without
-  /// waiting for the real 8 PM / multi-day schedule.
-  Future<void> scheduleTestNotification({
+  /// Posts a test notification immediately.
+  /// Useful from TestTab to verify the notification pipeline (permissions,
+  /// channel, receivers) without waiting for the real 8 PM schedule.
+  Future<void> showTestNotification({
     required String Function(String key) translate,
-    int delaySeconds = 5,
   }) async {
     if (!_initialised) await init();
-    const testId = 'test_notification';
-    await _plugin.cancel(testId.hashCode);
-
-    final fireAt = tz.TZDateTime.now(tz.local).add(Duration(seconds: delaySeconds));
     final config = NotificationConfig.inactivityReminders.first;
-
-    await _plugin.zonedSchedule(
-      testId.hashCode,
+    await _plugin.show(
+      NotificationConfig.testNotificationId,
       translate(config.titleKey),
       translate(config.bodyKey),
-      fireAt,
       _notificationDetails(),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: testId,
+      payload: 'test_notification',
     );
   }
 
@@ -146,7 +136,7 @@ class NotificationService {
   Future<void> cancelAllReminders() async {
     if (!_initialised) await init();
     for (final r in NotificationConfig.inactivityReminders) {
-      await _plugin.cancel(r.id.hashCode);
+      await _plugin.cancel(r.notificationId);
     }
   }
 
