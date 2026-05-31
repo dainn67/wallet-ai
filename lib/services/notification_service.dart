@@ -51,6 +51,10 @@ class NotificationService {
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
+      // Show notifications while the app is in the foreground.
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
+      defaultPresentSound: true,
     );
     await _plugin.initialize(
       const InitializationSettings(android: androidInit, iOS: iosInit),
@@ -165,10 +169,15 @@ class NotificationService {
       NotificationConfig.channelId,
       NotificationConfig.channelName,
       channelDescription: NotificationConfig.channelDescription,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      // High importance = heads-up banner on Android; default only shows in shade.
+      importance: Importance.high,
+      priority: Priority.high,
     );
-    const ios = DarwinNotificationDetails();
+    const ios = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
     return const NotificationDetails(android: android, iOS: ios);
   }
 }
