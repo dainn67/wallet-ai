@@ -17,6 +17,7 @@ class _TestTabState extends State<TestTab> {
   static const int _demoSourceId = 1; // Wallet (default from DB)
   String? _apiResult;
   bool _isLoading = false;
+  bool _notifLoading = false;
   String? _storedPattern;
   DateTime? _lastUpdateTime;
 
@@ -64,6 +65,30 @@ class _TestTabState extends State<TestTab> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added 2 demo money sources'), behavior: SnackBarBehavior.floating));
+    }
+  }
+
+  Future<void> _testNotification() async {
+    final locale = context.read<LocaleProvider>();
+    setState(() => _notifLoading = true);
+    try {
+      final granted = await NotificationService().isPermissionGranted();
+      if (!granted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification permission not granted'), behavior: SnackBarBehavior.floating),
+          );
+        }
+        return;
+      }
+      await NotificationService().scheduleTestReminders(translate: locale.translate);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Scheduled: day 1→1s, 3→3s, 5→5s, 7→7s'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _notifLoading = false);
     }
   }
 
@@ -118,6 +143,26 @@ class _TestTabState extends State<TestTab> {
           icon: const Icon(Icons.account_balance_wallet),
           label: const Text('Add demo money sources'),
           style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(height: 32),
+        const Text(
+          'Notifications',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+        ),
+        const SizedBox(height: 8),
+        const Text('Schedules the full reminder ladder in seconds: day 1→1s, day 3→3s, day 5→5s, day 7→7s.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          onPressed: _notifLoading ? null : _testNotification,
+          icon: _notifLoading
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Icon(Icons.notifications_active),
+          label: Text(_notifLoading ? 'Scheduling...' : 'Test reminder flow'),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF0EA5E9),
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(fontWeight: FontWeight.w600),
           ),

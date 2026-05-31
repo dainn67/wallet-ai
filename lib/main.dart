@@ -24,14 +24,18 @@ void main() async {
   // Initialize HomeWidget
   await HomeWidget.setAppGroupId('com.leslie.wallyai');
 
+  // Local notifications: init plugin only — permission ask happens in HomeScreen.
+  await NotificationService().init();
+
   // Update the user pattern from AI based on record history (fire-and-forget)
   AiPatternService().updateUserPattern();
-  
+
   // Ensure the system status bar and navigation bar are visible
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
 
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -53,6 +57,15 @@ class MyApp extends StatelessWidget {
             return (chatProvider ?? ChatProvider())
               ..recordProvider = recordProvider
               ..localeProvider = localeProvider;
+          },
+        ),
+        ChangeNotifierProxyProvider2<RecordProvider, LocaleProvider, NotificationProvider>(
+          create: (ctx) => NotificationProvider(Provider.of<StorageService>(ctx, listen: false)),
+          update: (_, recordProvider, localeProvider, notificationProvider) {
+            final np = notificationProvider ??
+                NotificationProvider(StorageService());
+            np.attach(records: recordProvider, locale: localeProvider);
+            return np;
           },
         ),
       ],

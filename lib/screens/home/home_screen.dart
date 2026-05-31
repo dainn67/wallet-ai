@@ -8,7 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:wallet_ai/components/components.dart';
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/providers/providers.dart';
-import 'package:wallet_ai/services/storage_service.dart';
+import 'package:wallet_ai/services/services.dart';
 import 'package:wallet_ai/screens/home/tabs/categories_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/chat_tab.dart';
 import 'package:wallet_ai/screens/home/tabs/records_tab.dart';
@@ -42,12 +42,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     // Listen for clicks while the app is in the background
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final notDone = StorageService().getBool(StorageService.keyOnboardingComplete) != true;
       if (notDone) {
-        OnboardingDialog.show(context);
+        // ignore: use_build_context_synchronously
+        await OnboardingDialog.show(context);
       }
+      _maybeAskNotificationPermission();
     });
   }
 
@@ -56,6 +58,69 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _tabController.dispose();
     _recordingFocusNode.dispose();
     super.dispose();
+  }
+
+  /// First-launch only: surface the OS notification permission prompt 2 seconds
+  /// after the home screen is ready. If granted, flips the Reminders toggle on.
+  Future<void> _maybeAskNotificationPermission() async {
+    final storage = StorageService();
+    final alreadyAsked = storage.getBool(StorageService.keyRemindersPermissionAsked) ?? false;
+    if (alreadyAsked) return;
+
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final granted = await NotificationService().requestPermission();
+    await storage.setBool(StorageService.keyRemindersPermissionAsked, true);
+    await storage.setBool(StorageService.keyRemindersEnabled, granted);
+
+    if (mounted) {
+      // ignore: use_build_context_synchronously
+      context.read<NotificationProvider>().setEnabled(granted);
+    }
+  }
+
+  /// Toggle handler for the drawer "Reminders" switch. When the user tries to
+  /// turn it ON, we re-check the OS permission first — if it was revoked from
+  /// system settings, we surface the existing [ConfirmationDialog] to send
+  /// them to the OS settings page instead of silently flipping a useless
+  /// toggle. When turning OFF, just persist + cancel pending notifications.
+  Future<void> _handleRemindersToggle(
+    bool nextValue,
+    NotificationProvider notifProvider,
+  ) async {
+    if (!nextValue) {
+      await notifProvider.setEnabled(false);
+      return;
+    }
+
+    // Capture l10n strings BEFORE the await so we don't reach back into
+    // BuildContext after the async gap.
+    final l10n = context.read<LocaleProvider>();
+    final title = l10n.translate('reminders_permission_denied_title');
+    final content = l10n.translate('reminders_permission_denied_content');
+    final confirmLabel = l10n.translate('open_settings_button');
+    final cancelLabel = l10n.translate('popup_cancel');
+
+    final granted = await NotificationService().isPermissionGranted();
+    if (!mounted) return;
+    if (granted) {
+      await notifProvider.setEnabled(true);
+      return;
+    }
+
+    // Denied — guide the user to system settings instead.
+    // ignore: use_build_context_synchronously
+    showDialog(
+      context: context,
+      builder: (_) => ConfirmationDialog(
+        title: title,
+        content: content,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+        onConfirm: () => NotificationService().openSystemSettings(),
+      ),
+    );
   }
 
   void _handleWidgetClick(Uri? uri) {
@@ -283,6 +348,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   final message = l10n.translate('share_app_message').replaceAll('{android_url}', AppConfig.androidPlayStoreUrl);
                   Share.share(message, sharePositionOrigin: origin);
                 },
+              ),
+            ),
+            Consumer<NotificationProvider>(
+              builder: (_, notifProvider, __) => SwitchListTile(
+                secondary: const Icon(Icons.notifications_outlined, size: 20),
+                title: Text(l10n.translate('reminders_label')),
+                value: notifProvider.enabled,
+                activeThumbColor: const Color(0xFF6366F1),
+                onChanged: (next) => _handleRemindersToggle(next, notifProvider),
               ),
             ),
             const Spacer(),

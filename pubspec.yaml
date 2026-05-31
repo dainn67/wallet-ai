@@ -2,7 +2,7 @@ name: wallet_ai
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.2.5+31
+version: 1.2.6+32
 
 environment:
   sdk: ^3.9.2
@@ -29,6 +29,10 @@ dependencies:
   flutter_image_compress: ^2.3.0
   image_picker: ^1.1.2
   share_plus: ^10.1.4
+  flutter_local_notifications: ^17.2.4
+  timezone: ^0.9.4
+  permission_handler: ^11.3.1
+  flutter_timezone: ^5.1.0
 
 dev_dependencies:
   flutter_test:

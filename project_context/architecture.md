@@ -22,7 +22,7 @@
 ## Services & Singletons
 - **Pattern**: Static `_instance` with a private constructor and a factory.
 - **Initialization**: Async init methods (e.g., `StorageService.init()`) called in `main()` before `runApp`.
-- **Services**: `ApiService` (HTTP), `ChatApiService` (Chat payload), `StorageService` (SharedPreferences), `HomeWidget` (Widget integration).
+- **Services**: `ApiService` (HTTP), `ChatApiService` (Chat payload), `StorageService` (SharedPreferences), `HomeWidget` (Widget integration), `NotificationService` (local notifications — wraps `flutter_local_notifications` + `permission_handler`; inexact 8 PM scheduling so the app stays off Android's alarm-app allowlist).
 
 ## Data Layer (Repositories)
 - **RecordRepository**: Singleton managing the SQLite `data.db`.
