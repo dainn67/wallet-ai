@@ -47,46 +47,51 @@ class AppWidget : GlanceAppWidget() {
             val incomeColor = Color(0xFF10B981)
             val spentColor = Color(0xFFEF4444)
 
+            // FR-5: root clickable as fallback — inner clickables (bar, icons) win because
+            // Glance's hit-test resolves leaf-to-root, so they are declared first inside
+            // the layout composables, and the root .clickable is applied last here.
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
                     .background(bgColor)
                     .appWidgetBackground()
                     .cornerRadius(28.dp)
+                    .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://open")))
             ) {
-                // Determine layout based on size
-                when {
-                    // Small / Wide layouts (1x1 to 4x1) - Just the chat-style record bar
-                    size.height < 100.dp -> RecordBarOnlyLayout(context, surfaceColor, accentColor, textColorSecondary, size.width < 100.dp)
-                    
-                    // Vertical tall layout (1x2, 1x3, 1x4)
-                    size.width < 130.dp -> VerticalDashboard(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary)
-                    
-                    // Medium/Square layout (2x2)
-                    size.height < 200.dp -> MediumDashboard(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary, incomeColor, spentColor)
-                    
-                    // Large wide/full dashboard
-                    else -> LargeDashboard(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary, incomeColor, spentColor)
+                val iconOnly = size.width <= 80.dp
+                when (size) {
+                    SMALL  -> SmallLayout(context, surfaceColor, accentColor, textColorSecondary)
+                    TALL   -> TallLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary)
+                    WIDE   -> WideLayout(context, surfaceColor, accentColor, textColorSecondary)
+                    MEDIUM -> MediumLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary, incomeColor, spentColor)
+                    else   -> LargeLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary, incomeColor, spentColor)
                 }
             }
         }
     }
 
+    // ─── Breakpoint Layouts ───────────────────────────────────────────────────
+
     @Composable
-    private fun RecordBarOnlyLayout(context: Context, surfaceColor: Color, accentColor: Color, textColor: Color, isCompact: Boolean) {
+    private fun SmallLayout(
+        context: Context,
+        surfaceColor: Color,
+        accentColor: Color,
+        textColor: Color
+    ) {
         Box(
             modifier = GlanceModifier.fillMaxSize().padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            QuickRecordBar(context, surfaceColor, accentColor, textColor, "Add record", isCompact)
+            QuickRecordBar(context, surfaceColor, accentColor, textColor, iconOnly = true)
         }
     }
 
     @Composable
-    private fun VerticalDashboard(
-        context: Context, 
-        prefs: android.content.SharedPreferences, 
-        surfaceColor: Color, 
+    private fun TallLayout(
+        context: Context,
+        prefs: android.content.SharedPreferences,
+        surfaceColor: Color,
         accentColor: Color,
         textPrimary: Color,
         textSecondary: Color
@@ -98,7 +103,6 @@ class AppWidget : GlanceAppWidget() {
             modifier = GlanceModifier.fillMaxSize().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Minimal Balance Section
             Text("Balance", style = TextStyle(fontSize = 11.sp, color = ColorProvider(textSecondary)))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(balance, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ColorProvider(textPrimary)))
@@ -108,31 +112,30 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.defaultWeight())
 
-            // Compact Record Button for tall narrow widgets
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .height(44.dp)
-                    .background(surfaceColor)
-                    .cornerRadius(22.dp)
-                    .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_menu_edit), 
-                    contentDescription = null, 
-                    modifier = GlanceModifier.size(18.dp),
-                    colorFilter = ColorFilter.tint(ColorProvider(accentColor))
-                )
-            }
+            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, iconOnly = true)
         }
     }
 
     @Composable
-    private fun MediumDashboard(
-        context: Context, 
-        prefs: android.content.SharedPreferences, 
-        surfaceColor: Color, 
+    private fun WideLayout(
+        context: Context,
+        surfaceColor: Color,
+        accentColor: Color,
+        textColor: Color
+    ) {
+        Box(
+            modifier = GlanceModifier.fillMaxSize().padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            QuickRecordBar(context, surfaceColor, accentColor, textColor, iconOnly = false)
+        }
+    }
+
+    @Composable
+    private fun MediumLayout(
+        context: Context,
+        prefs: android.content.SharedPreferences,
+        surfaceColor: Color,
         accentColor: Color,
         textPrimary: Color,
         textSecondary: Color,
@@ -146,7 +149,6 @@ class AppWidget : GlanceAppWidget() {
         val month = prefs.getString("current_month", "") ?: ""
 
         Column(modifier = GlanceModifier.fillMaxSize().padding(16.dp)) {
-            // Balance Detail
             val label = if (month.isNotEmpty()) "Available Balance ($month)" else "Available Balance"
             Text(label, style = TextStyle(fontSize = 10.sp, color = ColorProvider(textSecondary)))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -157,7 +159,6 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.height(12.dp))
 
-            // Quick Stats
             Row(modifier = GlanceModifier.fillMaxWidth()) {
                 StatItem("Income", income, currency, incomeColor, textSecondary, GlanceModifier.defaultWeight())
                 StatItem("Spent", spend, currency, spentColor, textSecondary, GlanceModifier.defaultWeight())
@@ -165,15 +166,20 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.defaultWeight())
 
-            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, "Add record")
+            // ActionIconRow applied before the bar so inner clickables are leaf-most
+            ActionIconRow(context, surfaceColor, accentColor)
+
+            Spacer(GlanceModifier.height(8.dp))
+
+            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, iconOnly = false)
         }
     }
 
     @Composable
-    private fun LargeDashboard(
-        context: Context, 
-        prefs: android.content.SharedPreferences, 
-        surfaceColor: Color, 
+    private fun LargeLayout(
+        context: Context,
+        prefs: android.content.SharedPreferences,
+        surfaceColor: Color,
         accentColor: Color,
         textPrimary: Color,
         textSecondary: Color,
@@ -187,7 +193,7 @@ class AppWidget : GlanceAppWidget() {
         val month = prefs.getString("current_month", "") ?: ""
 
         Column(modifier = GlanceModifier.fillMaxSize().padding(20.dp)) {
-            // Header with App Name/Icon style
+            // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(GlanceModifier.size(4.dp, 12.dp).background(accentColor).cornerRadius(2.dp)) {}
                 Spacer(GlanceModifier.width(8.dp))
@@ -196,7 +202,6 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.height(16.dp))
 
-            // Main Balance Section
             val label = if (month.isNotEmpty()) "Available Balance ($month)" else "Available Balance"
             Text(label, style = TextStyle(fontSize = 11.sp, color = ColorProvider(textSecondary)))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -217,9 +222,16 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.defaultWeight())
 
-            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, "Add record")
+            // ActionIconRow applied before the bar so inner clickables are leaf-most
+            ActionIconRow(context, surfaceColor, accentColor)
+
+            Spacer(GlanceModifier.height(8.dp))
+
+            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, iconOnly = false)
         }
     }
+
+    // ─── Shared Composables ───────────────────────────────────────────────────
 
     @Composable
     private fun StatItem(label: String, value: String, currency: String, valueColor: Color, labelColor: Color, modifier: GlanceModifier) {
@@ -233,30 +245,92 @@ class AppWidget : GlanceAppWidget() {
         }
     }
 
+    /**
+     * QuickRecordBar — entry affordance for adding a record.
+     * iconOnly = true  → icon only, 48 dp wide (used in SMALL and TALL).
+     * iconOnly = false → icon + label, full width (used in WIDE, MEDIUM, LARGE).
+     */
     @Composable
-    private fun QuickRecordBar(context: Context, surfaceColor: Color, accentColor: Color, textColor: Color, text: String, isCompact: Boolean = false) {
-        val barWidth = if (isCompact) 48.dp else GlanceModifier.fillMaxWidth()
-        
+    private fun QuickRecordBar(
+        context: Context,
+        surfaceColor: Color,
+        accentColor: Color,
+        textColor: Color,
+        iconOnly: Boolean
+    ) {
         Row(
             modifier = GlanceModifier
-                .then(if (isCompact) GlanceModifier.width(48.dp) else GlanceModifier.fillMaxWidth())
+                .then(if (iconOnly) GlanceModifier.width(48.dp) else GlanceModifier.fillMaxWidth())
                 .height(48.dp)
                 .background(surfaceColor)
                 .cornerRadius(24.dp)
-                .padding(horizontal = if (isCompact) 0.dp else 16.dp)
+                .padding(horizontal = if (iconOnly) 0.dp else 16.dp)
                 .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
             verticalAlignment = Alignment.CenterVertically,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                provider = ImageProvider(R.drawable.ic_menu_edit), 
-                contentDescription = null, 
+                provider = ImageProvider(R.drawable.ic_menu_edit),
+                contentDescription = null,
                 modifier = GlanceModifier.size(18.dp),
                 colorFilter = ColorFilter.tint(ColorProvider(accentColor))
             )
-            if (!isCompact) {
+            if (!iconOnly) {
                 Spacer(GlanceModifier.width(12.dp))
-                Text(text, style = TextStyle(fontSize = 14.sp, color = ColorProvider(textColor)))
+                Text("Add record", style = TextStyle(fontSize = 14.sp, color = ColorProvider(textColor)))
+            }
+        }
+    }
+
+    /**
+     * ActionIconRow — write + camera icons side-by-side.
+     * Present only in MEDIUM (2×2) and LARGE (3×2+) layouts.
+     * Each icon fires its own URI; inner clickables take priority over root fallback.
+     */
+    @Composable
+    private fun ActionIconRow(
+        context: Context,
+        surfaceColor: Color,
+        accentColor: Color
+    ) {
+        Row(
+            modifier = GlanceModifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Write icon → homeWidget://record
+            Box(
+                modifier = GlanceModifier
+                    .size(44.dp)
+                    .background(surfaceColor)
+                    .cornerRadius(22.dp)
+                    .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    provider = ImageProvider(R.drawable.ic_menu_edit),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(20.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(accentColor))
+                )
+            }
+
+            Spacer(GlanceModifier.width(8.dp))
+
+            // Camera icon → homeWidget://camera
+            Box(
+                modifier = GlanceModifier
+                    .size(44.dp)
+                    .background(surfaceColor)
+                    .cornerRadius(22.dp)
+                    .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://camera"))),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    provider = ImageProvider(R.drawable.ic_menu_camera),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(20.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(accentColor))
+                )
             }
         }
     }
