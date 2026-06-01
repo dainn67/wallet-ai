@@ -125,7 +125,22 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _handleWidgetClick(Uri? uri) {
     debugPrint('Widget Clicked: $uri');
-    switch (uri?.host) {
+    if (uri == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _dispatchWidgetUri(uri);
+    });
+  }
+
+  void _dispatchWidgetUri(Uri uri) {
+    // Drop widget intents silently while onboarding is in progress.
+    final onboardingDone = StorageService().getBool(StorageService.keyOnboardingComplete) == true;
+    if (!onboardingDone) {
+      debugPrint('[HomeScreen] Widget intent dropped: onboarding in progress');
+      return;
+    }
+
+    switch (uri.host) {
       case 'record':
         // Switch to chat tab and focus the text input.
         _tabController.animateTo(0);
