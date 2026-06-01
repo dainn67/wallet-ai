@@ -78,16 +78,6 @@ class _ChatTabState extends State<ChatTab> {
     provider.selectAction();
   }
 
-  Future<void> _pickFromCamera() async {
-    if (_pendingImages.length >= _maxImages) {
-      _showSnackBar('Maximum 5 images per message');
-      return;
-    }
-    final file = await ImagePickerService().pickFromCamera();
-    if (!mounted || file == null) return;
-    await _processAndAdd([file]);
-  }
-
   Future<void> _pickFromGallery() async {
     final remaining = _maxImages - _pendingImages.length;
     if (remaining <= 0) {
@@ -246,7 +236,7 @@ class _ChatTabState extends State<ChatTab> {
                   ),
                   IconButton(
                     icon: Icon(Icons.camera_alt_outlined, color: isStreaming ? Colors.grey : Theme.of(context).colorScheme.primary, size: 22),
-                    onPressed: isStreaming ? null : _pickFromCamera,
+                    onPressed: isStreaming ? null : () => context.read<ChatProvider>().pickImageFromCamera(context: context),
                     tooltip: 'Take photo',
                     splashRadius: 20,
                   ),

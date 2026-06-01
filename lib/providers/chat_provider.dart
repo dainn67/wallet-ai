@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:wallet_ai/configs/configs.dart';
 import 'package:wallet_ai/models/models.dart';
@@ -113,6 +115,27 @@ class ChatProvider extends ChangeNotifier {
 
     _messages.add(userMessage);
     return _handleStream(content, isGreeting: false, imageBytes: hasImages ? effectiveImages : null);
+  }
+
+  /// Opens the system camera and sends the captured image as a chat message.
+  ///
+  /// Safe to call with [context] == null (widget deep-link path): no
+  /// [BuildContext]-dependent code runs. The OS camera permission prompt may
+  /// still appear. Returns silently on cancellation or permission denial.
+  Future<void> pickImageFromCamera({BuildContext? context}) async {
+    final XFile? file = await ImagePickerService().pickFromCamera();
+    if (file == null) return; // user cancelled or permission denied by OS
+
+    Uint8List processed;
+    try {
+      processed = await ImageProcessingService().processPickedImage(file);
+    } on OversizeImageException {
+      return; // silently discard oversize images on the headless path
+    } catch (_) {
+      return;
+    }
+
+    await sendMessage('', imageBytes: [processed]);
   }
 
   Future<void> _handleStream(String query, {bool isGreeting = false, List<Uint8List>? imageBytes}) async {
