@@ -21,14 +21,12 @@ class AppWidget : GlanceAppWidget() {
     override val stateDefinition = HomeWidgetGlanceStateDefinition()
 
     companion object {
-        private val SMALL  = DpSize(80.dp, 80.dp)    // 1×1
-        private val TALL   = DpSize(80.dp, 160.dp)   // 1×2+
         private val WIDE   = DpSize(160.dp, 80.dp)   // 2×1
         private val MEDIUM = DpSize(160.dp, 160.dp)   // 2×2
-        private val LARGE  = DpSize(240.dp, 200.dp)   // 3×2+
+        private val LARGE  = DpSize(240.dp, 160.dp)   // 3×2+
     }
 
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, TALL, WIDE, MEDIUM, LARGE))
+    override val sizeMode = SizeMode.Responsive(setOf(WIDE, MEDIUM, LARGE))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -57,8 +55,6 @@ class AppWidget : GlanceAppWidget() {
                     .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://open")))
             ) {
                 when (size) {
-                    SMALL  -> SmallLayout(context, surfaceColor, accentColor, textColorSecondary)
-                    TALL   -> TallLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary)
                     WIDE   -> WideLayout(context, surfaceColor, accentColor, textColorSecondary)
                     MEDIUM -> MediumLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary, incomeColor, spentColor)
                     else   -> LargeLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary, incomeColor, spentColor)
@@ -68,50 +64,6 @@ class AppWidget : GlanceAppWidget() {
     }
 
     // ─── Breakpoint Layouts ───────────────────────────────────────────────────
-
-    @Composable
-    private fun SmallLayout(
-        context: Context,
-        surfaceColor: Color,
-        accentColor: Color,
-        textColor: Color
-    ) {
-        Box(
-            modifier = GlanceModifier.fillMaxSize().padding(8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            QuickRecordBar(context, surfaceColor, accentColor, textColor, iconOnly = true)
-        }
-    }
-
-    @Composable
-    private fun TallLayout(
-        context: Context,
-        prefs: android.content.SharedPreferences,
-        surfaceColor: Color,
-        accentColor: Color,
-        textPrimary: Color,
-        textSecondary: Color
-    ) {
-        val balance = prefs.getString("total_balance", "0") ?: "0"
-        val currency = prefs.getString("currency", "$") ?: "$"
-
-        Column(
-            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Balance", style = TextStyle(fontSize = 11.sp, color = ColorProvider(textSecondary)))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(balance, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ColorProvider(textPrimary)))
-                Spacer(GlanceModifier.width(4.dp))
-                Text(currency, style = TextStyle(fontSize = 11.sp, color = ColorProvider(textPrimary)))
-            }
-
-            Spacer(GlanceModifier.defaultWeight())
-
-            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, iconOnly = true)
-        }
-    }
 
     @Composable
     private fun WideLayout(
