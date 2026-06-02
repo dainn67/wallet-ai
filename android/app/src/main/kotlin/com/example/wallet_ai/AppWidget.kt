@@ -76,7 +76,7 @@ class AppWidget : GlanceAppWidget() {
             modifier = GlanceModifier.fillMaxSize().padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            QuickRecordBar(context, surfaceColor, accentColor, textColor, iconOnly = false)
+            QuickActionRow(context, surfaceColor, accentColor, textColor, expandText = false)
         }
     }
 
@@ -115,12 +115,7 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.defaultWeight())
 
-            // ActionIconRow applied before the bar so inner clickables are leaf-most
-            ActionIconRow(context, surfaceColor, accentColor)
-
-            Spacer(GlanceModifier.height(8.dp))
-
-            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, iconOnly = false)
+            QuickActionRow(context, surfaceColor, accentColor, textSecondary, expandText = false)
         }
     }
 
@@ -171,12 +166,7 @@ class AppWidget : GlanceAppWidget() {
 
             Spacer(GlanceModifier.defaultWeight())
 
-            // ActionIconRow applied before the bar so inner clickables are leaf-most
-            ActionIconRow(context, surfaceColor, accentColor)
-
-            Spacer(GlanceModifier.height(8.dp))
-
-            QuickRecordBar(context, surfaceColor, accentColor, textSecondary, iconOnly = false)
+            QuickActionRow(context, surfaceColor, accentColor, textSecondary, expandText = true)
         }
     }
 
@@ -195,57 +185,48 @@ class AppWidget : GlanceAppWidget() {
     }
 
     /**
-     * QuickRecordBar — entry affordance for adding a record.
-     * iconOnly = true  → icon only, 48 dp wide (used in SMALL and TALL).
-     * iconOnly = false → icon + label, full width (used in WIDE, MEDIUM, LARGE).
+     * QuickActionRow — unified bottom action row.
+     * expandText = false (WIDE, MEDIUM): two icon circles side by side [✏️] [📷]
+     * expandText = true  (LARGE+):       input box fills width [✏️ Add record ....] [📷]
      */
     @Composable
-    private fun QuickRecordBar(
+    private fun QuickActionRow(
         context: Context,
         surfaceColor: Color,
         accentColor: Color,
         textColor: Color,
-        iconOnly: Boolean
+        expandText: Boolean
     ) {
         Row(
-            modifier = GlanceModifier
-                .then(if (iconOnly) GlanceModifier.width(48.dp) else GlanceModifier.fillMaxWidth())
-                .height(48.dp)
-                .background(surfaceColor)
-                .cornerRadius(24.dp)
-                .padding(horizontal = if (iconOnly) 0.dp else 16.dp)
-                .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                provider = ImageProvider(com.leslie.wallyai.R.drawable.ic_widget_edit),
-                contentDescription = null,
-                modifier = GlanceModifier.size(18.dp),
-                colorFilter = ColorFilter.tint(ColorProvider(accentColor))
-            )
-            if (!iconOnly) {
-                Spacer(GlanceModifier.width(12.dp))
-                Text("Add record", style = TextStyle(fontSize = 14.sp, color = ColorProvider(textColor)))
-            }
-        }
-    }
-
-    /**
-     * ActionIconRow — camera icon only (the bar already covers the text-input / record action).
-     * Present only in MEDIUM (2×2) and LARGE (3×2+) layouts.
-     */
-    @Composable
-    private fun ActionIconRow(
-        context: Context,
-        surfaceColor: Color,
-        accentColor: Color
-    ) {
-        Row(
-            modifier = GlanceModifier.fillMaxWidth(),
+            modifier = if (expandText) GlanceModifier.fillMaxWidth() else GlanceModifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Camera icon → homeWidget://camera
+            // Record button — expands or stays as icon circle
+            Row(
+                modifier = (if (expandText) GlanceModifier.defaultWeight() else GlanceModifier.size(44.dp))
+                    .height(44.dp)
+                    .background(surfaceColor)
+                    .cornerRadius(22.dp)
+                    .padding(horizontal = if (expandText) 14.dp else 0.dp)
+                    .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalAlignment = if (expandText) Alignment.Start else Alignment.CenterHorizontally
+            ) {
+                Image(
+                    provider = ImageProvider(com.leslie.wallyai.R.drawable.ic_widget_edit),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(18.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(accentColor))
+                )
+                if (expandText) {
+                    Spacer(GlanceModifier.width(10.dp))
+                    Text("Add record", style = TextStyle(fontSize = 14.sp, color = ColorProvider(textColor)))
+                }
+            }
+
+            Spacer(GlanceModifier.width(8.dp))
+
+            // Camera button — always icon circle
             Box(
                 modifier = GlanceModifier
                     .size(44.dp)
