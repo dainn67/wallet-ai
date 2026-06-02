@@ -17,8 +17,6 @@ import androidx.glance.appwidget.cornerRadius
 import es.antonborri.home_widget.HomeWidgetGlanceState
 import es.antonborri.home_widget.HomeWidgetGlanceStateDefinition
 import es.antonborri.home_widget.actionStartActivity
-import android.R // For standard system icons
-
 class AppWidget : GlanceAppWidget() {
     override val stateDefinition = HomeWidgetGlanceStateDefinition()
 
@@ -58,7 +56,6 @@ class AppWidget : GlanceAppWidget() {
                     .cornerRadius(28.dp)
                     .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://open")))
             ) {
-                val iconOnly = size.width <= 80.dp
                 when (size) {
                     SMALL  -> SmallLayout(context, surfaceColor, accentColor, textColorSecondary)
                     TALL   -> TallLayout(context, prefs, surfaceColor, accentColor, textColorPrimary, textColorSecondary)
@@ -270,7 +267,7 @@ class AppWidget : GlanceAppWidget() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                provider = ImageProvider(R.drawable.ic_menu_edit),
+                provider = ImageProvider(com.leslie.wallyai.R.drawable.ic_widget_edit),
                 contentDescription = null,
                 modifier = GlanceModifier.size(18.dp),
                 colorFilter = ColorFilter.tint(ColorProvider(accentColor))
@@ -307,7 +304,7 @@ class AppWidget : GlanceAppWidget() {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    provider = ImageProvider(R.drawable.ic_menu_edit),
+                    provider = ImageProvider(com.leslie.wallyai.R.drawable.ic_widget_edit),
                     contentDescription = null,
                     modifier = GlanceModifier.size(20.dp),
                     colorFilter = ColorFilter.tint(ColorProvider(accentColor))
@@ -326,7 +323,7 @@ class AppWidget : GlanceAppWidget() {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    provider = ImageProvider(R.drawable.ic_menu_camera),
+                    provider = ImageProvider(com.leslie.wallyai.R.drawable.ic_widget_camera),
                     contentDescription = null,
                     modifier = GlanceModifier.size(20.dp),
                     colorFilter = ColorFilter.tint(ColorProvider(accentColor))
