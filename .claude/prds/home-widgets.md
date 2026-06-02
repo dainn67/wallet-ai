@@ -1,11 +1,11 @@
 ---
 name: home-widgets
 description: Redesign all Android widget layouts with consistent "Add a record" bar and differentiated write/camera quick-action icons on medium/large breakpoints.
-status: backlog
+status: complete
 priority: P1
 scale: medium
 created: 2026-06-01T09:32:07Z
-updated: 2026-06-01T09:36:32Z
+updated: 2026-06-02T15:46:34Z
 ---
 
 # PRD: home-widgets
