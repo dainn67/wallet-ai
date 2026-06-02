@@ -125,14 +125,38 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _handleWidgetClick(Uri? uri) {
     debugPrint('Widget Clicked: $uri');
-    if (uri?.host == 'record') {
-      // Switch to chat tab
-      _tabController.animateTo(0);
+    if (uri == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _dispatchWidgetUri(uri);
+    });
+  }
 
-      // Wait for tab animation to finish before requesting focus
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _recordingFocusNode.requestFocus();
-      });
+  void _dispatchWidgetUri(Uri uri) {
+    // Drop widget intents silently while onboarding is in progress.
+    final onboardingDone = StorageService().getBool(StorageService.keyOnboardingComplete) == true;
+    if (!onboardingDone) {
+      debugPrint('[HomeScreen] Widget intent dropped: onboarding in progress');
+      return;
+    }
+
+    switch (uri.host) {
+      case 'record':
+        // Switch to chat tab and focus the text input.
+        _tabController.animateTo(0);
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (mounted) _recordingFocusNode.requestFocus();
+        });
+        break;
+      case 'camera':
+        // Switch to chat tab, then open the camera picker.
+        _tabController.animateTo(0);
+        context.read<ChatProvider>().pickImageFromCamera(context: context);
+        break;
+      case 'open':
+      default:
+        // Root fallback: just bring the app to foreground — no-op.
+        break;
     }
   }
 

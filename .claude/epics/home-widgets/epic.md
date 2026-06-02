@@ -1,8 +1,10 @@
 ---
 name: home-widgets
-status: backlog
+status: completed
 created: 2026-06-01T09:39:23Z
-progress: 0%
+updated: 2026-06-02T15:46:34Z
+completed: 2026-06-02T15:46:34Z
+progress: 100%
 priority: P1
 prd: .claude/prds/home-widgets.md
 task_count: 6
