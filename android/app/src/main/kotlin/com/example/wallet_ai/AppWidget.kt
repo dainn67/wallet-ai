@@ -23,7 +23,7 @@ class AppWidget : GlanceAppWidget() {
     companion object {
         private val WIDE   = DpSize(160.dp, 80.dp)   // 2×1
         private val MEDIUM = DpSize(160.dp, 160.dp)   // 2×2
-        private val LARGE  = DpSize(240.dp, 160.dp)   // 3×2+
+        private val LARGE  = DpSize(240.dp, 200.dp)   // 3×2+
     }
 
     override val sizeMode = SizeMode.Responsive(setOf(WIDE, MEDIUM, LARGE))
@@ -136,31 +136,22 @@ class AppWidget : GlanceAppWidget() {
         val currency = prefs.getString("currency", "$") ?: "$"
         val month = prefs.getString("current_month", "") ?: ""
 
-        Column(modifier = GlanceModifier.fillMaxSize().padding(20.dp)) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(GlanceModifier.size(4.dp, 12.dp).background(accentColor).cornerRadius(2.dp)) {}
-                Spacer(GlanceModifier.width(8.dp))
-                Text("WALLY AI", style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ColorProvider(textSecondary)))
-            }
-
-            Spacer(GlanceModifier.height(16.dp))
-
+        Column(modifier = GlanceModifier.fillMaxSize().padding(16.dp)) {
             val label = if (month.isNotEmpty()) "Available Balance ($month)" else "Available Balance"
             Text(label, style = TextStyle(fontSize = 11.sp, color = ColorProvider(textSecondary)))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(balance, style = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, color = ColorProvider(textPrimary)))
-                Spacer(GlanceModifier.width(6.dp))
-                Text(currency, style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ColorProvider(textPrimary)))
+                Text(balance, style = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Bold, color = ColorProvider(textPrimary)))
+                Spacer(GlanceModifier.width(5.dp))
+                Text(currency, style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium, color = ColorProvider(textPrimary)))
             }
 
-            Spacer(GlanceModifier.height(16.dp))
+            Spacer(GlanceModifier.height(10.dp))
 
             // Stats Row
-            Row(modifier = GlanceModifier.fillMaxWidth().background(surfaceColor).cornerRadius(16.dp).padding(12.dp)) {
+            Row(modifier = GlanceModifier.fillMaxWidth().background(surfaceColor).cornerRadius(14.dp).padding(10.dp)) {
                 StatItem("Income", income, currency, incomeColor, textSecondary, GlanceModifier.defaultWeight())
-                Box(GlanceModifier.width(1.dp).fillMaxHeight().background(textSecondary.copy(alpha = 0.1f))) {}
-                Spacer(GlanceModifier.width(12.dp))
+                Box(GlanceModifier.width(1.dp).height(28.dp).background(textSecondary.copy(alpha = 0.15f))) {}
+                Spacer(GlanceModifier.width(10.dp))
                 StatItem("Expenses", spend, currency, spentColor, textSecondary, GlanceModifier.defaultWeight())
             }
 
