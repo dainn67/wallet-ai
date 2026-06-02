@@ -232,9 +232,8 @@ class AppWidget : GlanceAppWidget() {
     }
 
     /**
-     * ActionIconRow — write + camera icons side-by-side.
+     * ActionIconRow — camera icon only (the bar already covers the text-input / record action).
      * Present only in MEDIUM (2×2) and LARGE (3×2+) layouts.
-     * Each icon fires its own URI; inner clickables take priority over root fallback.
      */
     @Composable
     private fun ActionIconRow(
@@ -246,25 +245,6 @@ class AppWidget : GlanceAppWidget() {
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Write icon → homeWidget://record
-            Box(
-                modifier = GlanceModifier
-                    .size(44.dp)
-                    .background(surfaceColor)
-                    .cornerRadius(22.dp)
-                    .clickable(actionStartActivity<MainActivity>(context, Uri.parse("homeWidget://record"))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(com.leslie.wallyai.R.drawable.ic_widget_edit),
-                    contentDescription = null,
-                    modifier = GlanceModifier.size(20.dp),
-                    colorFilter = ColorFilter.tint(ColorProvider(accentColor))
-                )
-            }
-
-            Spacer(GlanceModifier.width(8.dp))
-
             // Camera icon → homeWidget://camera
             Box(
                 modifier = GlanceModifier
